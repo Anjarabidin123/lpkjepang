@@ -19,13 +19,17 @@ class DatabaseSeeder extends Seeder
             DemografiSeeder::class,
             JapanDemografiSeeder::class,
             MasterDataSeeder::class,
+            UserSeeder::class,
             SiswaSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Admin Orchids',
-            'email' => 'admin@orchids.com',
-            'password' => bcrypt('password'),
-        ]);
+        // Default Admin fallback
+        User::updateOrCreate(
+            ['email' => 'admin@orchids.com'],
+            [
+                'name' => 'Admin Orchids',
+                'password' => bcrypt('password'),
+            ]
+        );
     }
 }
