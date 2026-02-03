@@ -54,7 +54,7 @@ export function DashboardLayout() {
     <>
       {!isStudentMobile && <AppSidebar />}
       <SidebarInset>
-        <ModernHeader />
+        {!isStudentMobile && <ModernHeader />}
         <div className={`flex flex-1 flex-col gap-4 p-2 sm:p-4 pt-0 overflow-x-hidden w-full ${isStudentMobile ? 'pb-24' : ''}`}>
           <Routes>
             <Route path="/" element={<Dashboard />} />

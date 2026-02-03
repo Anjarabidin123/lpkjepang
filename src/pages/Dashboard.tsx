@@ -33,7 +33,7 @@ export default function DashboardPage() {
 
     // Jika Siswa dan Mobile, tampilkan Dashboard khusus Mobile
     if (userRole === 'student' && isMobile) {
-        return <MobileStudentDashboard />;
+        return <MobileStudentDashboard user={user} />;
     }
 
     // Jika Siswa, tampilkan Dashboard khusus Siswa (Desktop)

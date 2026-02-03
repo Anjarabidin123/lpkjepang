@@ -64,7 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // User Profile & Auth
     Route::get('/user', function (Request $request) {
-        return $request->user()->load('roles');
+        return $request->user()->load(['roles', 'siswa']);
     });
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/user/change-password', [AuthController::class, 'changePassword']);

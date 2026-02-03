@@ -5,8 +5,24 @@ import { BarChart3, Clock, Calendar, FileText, ChevronRight, User, Bell, Search,
 import { DashboardActivityFeed } from '@/components/Dashboard/DashboardActivityFeed';
 import { useNavigate } from 'react-router-dom';
 
-export function MobileStudentDashboard() {
+export function MobileStudentDashboard({ user }: { user?: any }) {
     const navigate = useNavigate();
+    const siswa = user?.siswa;
+
+    // Calculate Progress dynamically
+    const currentStep = siswa?.current_step || 0;
+    const totalSteps = siswa?.total_steps || 6;
+    const progressPercent = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
+    const processName = siswa?.current_process_name || 'Menunggu Program';
+
+    // Format Date safely
+    let targetDate = 'Belum ditentukan';
+    if (siswa?.target_completion_date) {
+        try {
+            const date = new Date(siswa.target_completion_date);
+            targetDate = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(date);
+        } catch (e) { /* ignore invalid date */ }
+    }
 
     return (
         <div className="space-y-5 pb-24">
@@ -18,7 +34,7 @@ export function MobileStudentDashboard() {
                     </div>
                     <div>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Selamat Pagi,</p>
-                        <h1 className="text-lg font-black font-outfit text-slate-900 leading-none">Siswa LPK</h1>
+                        <h1 className="text-lg font-black font-outfit text-slate-900 leading-none capitalize">{user?.name?.split(' ')[0] || 'Siswa'}</h1>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -33,25 +49,25 @@ export function MobileStudentDashboard() {
             </div>
 
             {/* HERO STATUS CARD - COMPACT */}
-            <div className="mx-2 bg-slate-900 rounded-3xl p-5 text-white shadow-xl shadow-slate-200 relative overflow-hidden">
+            <div className="mx-2 bg-slate-900 rounded-3xl p-4 text-white shadow-xl shadow-slate-200 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-32 bg-blue-500/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
                 <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-6">
+                    <div className="flex justify-between items-start mb-4">
                         <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status Program</p>
-                            <h2 className="text-xl font-black font-outfit tracking-tight">Persiapan CoE</h2>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status Program</p>
+                            <h2 className="text-lg font-black font-outfit tracking-tight">{processName}</h2>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                            <span className="text-[10px] font-bold">Langkah 3/6</span>
+                        <div className="bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                            <span className="text-[9px] font-bold">Langkah {currentStep}/{totalSteps}</span>
                         </div>
                     </div>
 
                     {/* Progress Visual */}
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                         <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full w-[45%] bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full"></div>
+                            <div className="h-full bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full transition-all duration-1000" style={{ width: `${progressPercent}%` }}></div>
                         </div>
-                        <p className="text-[10px] text-slate-400 font-medium text-right">Target Selesai: April 2026</p>
+                        <p className="text-[9px] text-slate-500 font-medium text-right">Target: {targetDate}</p>
                     </div>
                 </div>
             </div>
