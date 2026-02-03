@@ -7,8 +7,6 @@ cmds = [
   "npm run build",
   "cd backend && composer install --no-dev --optimize-autoloader --ignore-platform-reqs",
   "cd backend && php artisan config:clear",
-  "cd backend && php artisan route:clear",
-  "cd backend && php artisan view:clear",
   "chmod -R 777 backend/storage",
   "chmod -R 777 backend/bootstrap/cache"
 ]
