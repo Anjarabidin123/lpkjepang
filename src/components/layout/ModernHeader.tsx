@@ -5,6 +5,8 @@ import { Separator } from '@/components/ui/separator';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { UserProfileDropdown } from '@/components/UserProfileDropdown';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ModernHeaderProps {
   currentPage?: string;
@@ -15,34 +17,40 @@ interface ModernHeaderProps {
 }
 
 export function ModernHeader({ currentPage = "Dashboard", breadcrumbs }: ModernHeaderProps) {
-  return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-        {/* Left Section - Trigger & Navigation */}
-        <div className="flex items-center gap-4 flex-1">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="h-6" />
+  const { userRole } = useAuth();
+  const isMobile = useIsMobile();
+  const isStudentMobile = userRole === 'student' && isMobile;
 
-          {/* Breadcrumb Navigation */}
+  return (
+    <header className="sticky top-0 z-40 w-full bg-white/70 backdrop-blur-md border-b border-slate-100">
+      <div className="flex h-16 items-center justify-between px-6 sm:px-8">
+        <div className="flex items-center gap-5 flex-1">
+          {!isStudentMobile && (
+            <>
+              <SidebarTrigger className="h-9 w-9 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors" />
+              <Separator orientation="vertical" className="h-6 bg-slate-200" />
+            </>
+          )}
+
           <div className="hidden md:block">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/dashboard" className="text-sm text-gray-600 hover:text-primary">
-                    Dashboard
+                  <BreadcrumbLink href="/dashboard" className="text-xs font-semibold text-slate-400 hover:text-primary tracking-wide">
+                    DASHBOARD
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 {breadcrumbs?.map((crumb, index) => (
                   <React.Fragment key={index}>
-                    <BreadcrumbSeparator />
+                    <BreadcrumbSeparator className="text-slate-300" />
                     <BreadcrumbItem>
                       {crumb.href ? (
-                        <BreadcrumbLink href={crumb.href} className="text-sm text-gray-600 hover:text-primary">
-                          {crumb.label}
+                        <BreadcrumbLink href={crumb.href} className="text-xs font-semibold text-slate-400 hover:text-primary tracking-wide">
+                          {crumb.label.toUpperCase()}
                         </BreadcrumbLink>
                       ) : (
-                        <BreadcrumbPage className="text-sm font-medium text-gray-900">
-                          {crumb.label}
+                        <BreadcrumbPage className="text-xs font-black text-slate-900 tracking-wide">
+                          {crumb.label.toUpperCase()}
                         </BreadcrumbPage>
                       )}
                     </BreadcrumbItem>
@@ -50,10 +58,10 @@ export function ModernHeader({ currentPage = "Dashboard", breadcrumbs }: ModernH
                 ))}
                 {!breadcrumbs && currentPage !== "Dashboard" && (
                   <>
-                    <BreadcrumbSeparator />
+                    <BreadcrumbSeparator className="text-slate-300" />
                     <BreadcrumbItem>
-                      <BreadcrumbPage className="text-sm font-medium text-gray-900">
-                        {currentPage}
+                      <BreadcrumbPage className="text-xs font-black text-slate-900 tracking-wide">
+                        {currentPage.toUpperCase()}
                       </BreadcrumbPage>
                     </BreadcrumbItem>
                   </>
@@ -63,17 +71,13 @@ export function ModernHeader({ currentPage = "Dashboard", breadcrumbs }: ModernH
           </div>
         </div>
 
-        {/* Right Section - Status & Profile */}
-        <div className="flex items-center gap-4">
-          {/* System Status Badge */}
-          <div className="hidden sm:flex items-center gap-2">
-            <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse" />
-              System Online
-            </Badge>
+        <div className="flex items-center gap-6">
+          <div className="hidden sm:flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 shadow-sm">
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-[10px] font-black text-emerald-600 tracking-wider">LIVE</span>
+            </div>
           </div>
-          
-          {/* User Profile */}
           <UserProfileDropdown />
         </div>
       </div>

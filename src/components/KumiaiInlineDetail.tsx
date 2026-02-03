@@ -11,10 +11,10 @@ import { SiswaMagangDetailModal } from "@/components/SiswaMagangDetailModal";
 import { usePerusahaan } from "@/hooks/usePerusahaan";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Kumiai } from "@/types";
 
 interface KumiaiInlineDetailProps {
-  kumiai: Tables<'kumiai'> & { 
+  kumiai: Kumiai & {
     perusahaan?: Array<{
       id: string;
       nama: string;

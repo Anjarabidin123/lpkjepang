@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useJenisKerja } from "@/hooks/useJenisKerja";
-import type { Tables } from "@/integrations/supabase/types";
+import type { JenisKerja } from "@/types/masterData";
 
 const jenisKerjaSchema = z.object({
   nama: z.string().min(1, "Nama jenis kerja harus diisi"),
@@ -28,7 +28,7 @@ type JenisKerjaFormData = z.infer<typeof jenisKerjaSchema>;
 interface JenisKerjaFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  jenisKerja?: Tables<'jenis_kerja'>;
+  jenisKerja?: JenisKerja;
 }
 
 export function JenisKerjaForm({ open, onOpenChange, jenisKerja }: JenisKerjaFormProps) {

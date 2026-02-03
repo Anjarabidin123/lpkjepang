@@ -1,8 +1,7 @@
-
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from './useAuth';
-import { internalPaymentTable, siswaTable, itemPembayaranTable } from '@/lib/localStorage/tables';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export interface InternalPayment {
   id: string;
@@ -27,169 +26,97 @@ export interface InternalPayment {
 }
 
 export function useInternalPayment() {
-  const [payments, setPayments] = useState<InternalPayment[]>([]);
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const fetchPayments = async () => {
-    setLoading(true);
-    try {
-      const data = internalPaymentTable.getAll();
-      const allSiswa = siswaTable.getAll();
-      const allItems = itemPembayaranTable.getAll();
-      
-      const processedData = data.map(item => {
-        const siswa = allSiswa.find(s => s.id === item.siswa_id);
-        const itemPembayaran = allItems.find(i => i.id === item.item_pembayaran_id);
-        
-        return {
-          ...item,
-          nominal: Number(item.nominal) || 0,
-          siswa: siswa ? { id: siswa.id, nama: (siswa as any).nama } : undefined,
-          item_pembayaran: itemPembayaran ? {
-            id: itemPembayaran.id,
-            nama_item: (itemPembayaran as any).nama_item,
-            nominal_wajib: Number((itemPembayaran as any).nominal_wajib) || 0
-          } : undefined
-        };
-      }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
-      setPayments(processedData as InternalPayment[]);
-    } catch (error) {
-      console.error('Error fetching payments:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load payment data",
-        variant: "destructive",
-      });
-      setPayments([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createPayment = async (data: Omit<InternalPayment, 'id' | 'created_at' | 'updated_at' | 'siswa' | 'item_pembayaran' | 'status'>) => {
-    try {
-      const insertedData = internalPaymentTable.create({
-        siswa_id: data.siswa_id,
-        item_pembayaran_id: data.item_pembayaran_id,
-        nominal: Number(data.nominal),
-        tanggal_pembayaran: data.tanggal_pembayaran,
-        metode_pembayaran: data.metode_pembayaran || 'Tunai',
-        status: 'Lunas', // Default status
-        keterangan: data.keterangan || null
-      } as any);
-
-      toast({
-        title: "Success",
-        description: "Payment created successfully",
-      });
-      
-      await fetchPayments();
-      return insertedData;
-    } catch (error) {
-      console.error('Error creating payment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create payment",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  const updatePayment = async (id: string, data: Partial<InternalPayment>) => {
-    try {
-      const updateData: any = {};
-      if (data.siswa_id) updateData.siswa_id = data.siswa_id;
-      if (data.item_pembayaran_id) updateData.item_pembayaran_id = data.item_pembayaran_id;
-      if (data.nominal !== undefined) updateData.nominal = Number(data.nominal);
-      if (data.tanggal_pembayaran) updateData.tanggal_pembayaran = data.tanggal_pembayaran;
-      if (data.metode_pembayaran) updateData.metode_pembayaran = data.metode_pembayaran;
-      if (data.keterangan !== undefined) updateData.keterangan = data.keterangan;
-      if (data.status) updateData.status = data.status;
-
-      const updatedData = internalPaymentTable.update(id, updateData);
-      
-      if (!updatedData) throw new Error('Failed to update payment');
-
-      toast({
-        title: "Success",
-        description: "Payment updated successfully",
-      });
-      
-      await fetchPayments();
-      return updatedData;
-    } catch (error) {
-      console.error('Error updating payment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update payment",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  const deletePayment = async (id: string) => {
-    try {
-      const success = internalPaymentTable.delete(id);
-      
-      if (!success) throw new Error('Failed to delete payment');
-
-      toast({
-        title: "Success",
-        description: "Payment deleted successfully",
-      });
-      
-      await fetchPayments();
-    } catch (error) {
-      console.error('Error deleting payment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete payment",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  const getPaymentById = async (id: string) => {
-    try {
-      const payment = internalPaymentTable.getById(id);
-      if (!payment) return null;
-      
-      const siswa = siswaTable.getById(payment.siswa_id);
-      const itemPembayaran = itemPembayaranTable.getById(payment.item_pembayaran_id);
-      
-      return {
-        ...payment,
-        siswa: siswa ? { id: siswa.id, nama: (siswa as any).nama } : undefined,
-        item_pembayaran: itemPembayaran ? {
-          id: itemPembayaran.id,
-          nama_item: (itemPembayaran as any).nama_item,
-          nominal_wajib: Number((itemPembayaran as any).nominal_wajib) || 0
+  const { data: payments = [], isLoading: loading } = useQuery({
+    queryKey: ['internal-payments'],
+    queryFn: async () => {
+      const response = await authFetch(endpoints.internalPayments);
+      if (!response.ok) throw new Error('Failed to fetch payments');
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        siswa_id: item.siswa_id.toString(),
+        item_pembayaran_id: item.item_pembayaran_id.toString(),
+        nominal: Number(item.nominal) || 0,
+        siswa: item.siswa ? {
+          id: item.siswa.id.toString(),
+          nama: item.siswa.nama_lengkap || item.siswa.nama
+        } : undefined,
+        item_pembayaran: item.item_pembayaran ? {
+          id: item.item_pembayaran.id.toString(),
+          nama_item: item.item_pembayaran.nama_item,
+          nominal_wajib: Number(item.item_pembayaran.nominal_wajib) || 0
         } : undefined
-      };
-    } catch (error) {
-      console.error('Error getting payment by id:', error);
-      return null;
+      })) as InternalPayment[];
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchPayments();
-  }, []);
+  const createMutation = useMutation({
+    mutationFn: async (data: Omit<InternalPayment, 'id' | 'created_at' | 'updated_at' | 'siswa' | 'item_pembayaran'>) => {
+      const response = await authFetch(endpoints.internalPayments, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to create payment');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['internal-payments'] });
+      toast({ title: "Success", description: "Payment created successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string } & Partial<InternalPayment>) => {
+      const response = await authFetch(`${endpoints.internalPayments}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to update payment');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['internal-payments'] });
+      toast({ title: "Success", description: "Payment updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await authFetch(`${endpoints.internalPayments}/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete payment');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['internal-payments'] });
+      toast({ title: "Success", description: "Payment deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+
+  const getPaymentById = (id: string) => {
+    return payments.find(p => p.id === id) || null;
+  };
 
   return {
     payments,
     loading,
-    createPayment,
-    updatePayment,
-    deletePayment,
+    createPayment: createMutation.mutateAsync,
+    updatePayment: (id: string, data: any) => updateMutation.mutateAsync({ id, ...data }),
+    deletePayment: deleteMutation.mutateAsync,
     getPaymentById,
-    fetchPayments,
-    isAuthenticated: !!user,
+    fetchPayments: () => queryClient.invalidateQueries({ queryKey: ['internal-payments'] }),
   };
 }

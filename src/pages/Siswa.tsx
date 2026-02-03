@@ -28,7 +28,7 @@ function SiswaContent() {
   const { regencies } = useDemografiRegencies();
   const { columns, visibleColumns, toggleColumn } = useSiswaRegularColumnVisibility();
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   const {
     editingItem,
     isCreating,
@@ -75,7 +75,7 @@ function SiswaContent() {
   const getStatusBadge = (status: string) => {
     const colors = {
       "Proses": "bg-yellow-500/10 text-yellow-600",
-      "Diterima": "bg-green-500/10 text-green-600", 
+      "Diterima": "bg-green-500/10 text-green-600",
       "Ditolak": "bg-destructive/10 text-destructive",
       "Aktif": "bg-primary/10 text-primary"
     };
@@ -90,13 +90,13 @@ function SiswaContent() {
     { value: 'umur', label: 'Umur' }
   ];
 
-    const filteredSiswa = (siswa || []).filter(s => {
-      const search = searchTerm.toLowerCase();
-      return (
-        (s.nama || "").toLowerCase().includes(search) ||
-        (s.nik || "").includes(searchTerm)
-      );
-    });
+  const filteredSiswa = (siswa || []).filter(s => {
+    const search = searchTerm.toLowerCase();
+    return (
+      (s.nama || "").toLowerCase().includes(search) ||
+      (s.nik || "").includes(searchTerm)
+    );
+  });
 
   const sortedSiswa = sortData(filteredSiswa);
 

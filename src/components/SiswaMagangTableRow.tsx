@@ -30,7 +30,7 @@ export function SiswaMagangTableRow({
 }: SiswaMagangTableRowProps) {
   const formatCurrency = (amount: number | null) => {
     if (!amount) return '-';
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,

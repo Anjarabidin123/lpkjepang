@@ -1,88 +1,47 @@
-
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { kewajibanPembayaranTable, siswaTable, itemPembayaranTable } from '@/lib/localStorage/tables';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export function useKewajibanPembayaran() {
-  const [kewajibanList, setKewajibanList] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchKewajiban = async () => {
-    setLoading(true);
-    try {
-      const data = kewajibanPembayaranTable.getAll();
-      const allSiswa = siswaTable.getAll();
-      const allItems = itemPembayaranTable.getAll();
-      
-      const processedData = data.map(item => {
-        const siswa = allSiswa.find(s => s.id === item.siswa_id);
-        const itemPembayaran = allItems.find(i => i.id === item.item_pembayaran_id);
-        
-        return {
-          ...item,
-          nominal_wajib: Number(item.nominal_wajib) || 0,
-          nominal_terbayar: Number(item.nominal_terbayar) || 0,
-          sisa_kewajiban: Number(item.sisa_kewajiban) || 0,
-          siswa: siswa ? { id: siswa.id, nama: (siswa as any).nama } : undefined,
-          item_pembayaran: itemPembayaran ? {
-            id: itemPembayaran.id,
-            nama_item: (itemPembayaran as any).nama_item,
-            nominal_wajib: Number((itemPembayaran as any).nominal_wajib) || 0
-          } : undefined
-        };
-      }).sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-      
-      setKewajibanList(processedData);
-    } catch (error) {
-      console.error('Error fetching kewajiban pembayaran:', error);
-      toast({
-        title: "Error",
-        description: "Gagal memuat data kewajiban pembayaran",
-        variant: "destructive",
-      });
-      setKewajibanList([]);
-    } finally {
-      setLoading(false);
+  const { data: kewajibanList = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['kewajiban-pembayaran'],
+    queryFn: async () => {
+      const response = await authFetch(endpoints.kewajibanPembayaran);
+      if (!response.ok) throw new Error('Failed to fetch kewajiban pembayaran');
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        siswa_id: item.siswa_id.toString(),
+        item_pembayaran_id: item.item_pembayaran_id.toString(),
+        nominal_wajib: Number(item.nominal_wajib) || 0,
+        nominal_terbayar: Number(item.nominal_terbayar) || 0,
+        sisa_kewajiban: Number(item.sisa_kewajiban) || 0,
+        siswa: item.siswa ? {
+          id: item.siswa.id.toString(),
+          nama: item.siswa.nama_lengkap || item.siswa.nama
+        } : undefined,
+        item_pembayaran: item.item_pembayaran ? {
+          id: item.item_pembayaran.id.toString(),
+          nama_item: item.item_pembayaran.nama_item,
+          nominal_wajib: Number(item.item_pembayaran.nominal_wajib) || 0
+        } : undefined
+      }));
     }
-  };
+  });
 
-  const getKewajibanBySiswa = async (siswaId: string) => {
-    try {
-      const data = kewajibanPembayaranTable.getAll().filter(item => item.siswa_id === siswaId);
-      const allItems = itemPembayaranTable.getAll();
-      
-      const processedData = data.map(item => {
-        const itemPembayaran = allItems.find(i => i.id === item.item_pembayaran_id);
-        
-        return {
-          ...item,
-          nominal_wajib: Number(item.nominal_wajib) || 0,
-          nominal_terbayar: Number(item.nominal_terbayar) || 0,
-          sisa_kewajiban: Number(item.sisa_kewajiban) || 0,
-          item_pembayaran: itemPembayaran ? {
-            id: itemPembayaran.id,
-            nama_item: (itemPembayaran as any).nama_item,
-            nominal_wajib: Number((itemPembayaran as any).nominal_wajib) || 0
-          } : undefined
-        };
-      }).sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-      
-      return processedData;
-    } catch (error) {
-      console.error('Error fetching kewajiban by siswa:', error);
-      return [];
-    }
+  const getKewajibanBySiswa = (siswaId: string) => {
+    return kewajibanList.filter((item: any) => item.siswa_id === siswaId);
   };
-
-  useEffect(() => {
-    fetchKewajiban();
-  }, []);
 
   return {
     kewajibanList,
     loading,
-    fetchKewajiban,
+    fetchKewajiban: refetch,
     getKewajibanBySiswa,
   };
 }

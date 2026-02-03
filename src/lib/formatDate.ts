@@ -9,7 +9,7 @@ export function formatDate(dateString: string | null | undefined): string {
     // Check if date is valid
     if (isNaN(date.getTime())) return '-';
     
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -30,7 +30,7 @@ export function formatTime(dateString: string | null | undefined): string {
     // Check if date is valid
     if (isNaN(date.getTime())) return '-';
     
-    return date.toLocaleTimeString('id-ID', {
+    return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
@@ -51,7 +51,7 @@ export function formatDateTime(dateString: string | null | undefined): string {
     // Check if date is valid
     if (isNaN(date.getTime())) return '-';
     
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

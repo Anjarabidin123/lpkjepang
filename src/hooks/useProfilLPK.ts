@@ -1,164 +1,103 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { endpoints } from '@/config/api';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from './useAuth';
+import { authFetch } from '@/lib/api-client';
 
 export interface ProfilLPK {
-  id: string;
-  nama: string;
-  pemilik?: string;
-  alamat?: string;
-  no_telp?: string;
-  email?: string;
-  website?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+    id: string;
+    nama: string;
+    pemilik: string | null;
+    alamat: string | null;
+    no_telp: string | null;
+    email: string | null;
+    website: string | null;
+    logo_url: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
 }
 
 export function useProfilLPK() {
-  const [profiles, setProfiles] = useState<ProfilLPK[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const { user } = useAuth();
+    const [profiles, setProfiles] = useState<ProfilLPK[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
 
-  const fetchProfiles = async () => {
-    if (!user) {
-      setProfiles([]);
-      return;
-    }
+    const fetchProfiles = async () => {
+        try {
+            setLoading(true);
+            const response = await authFetch(endpoints.profilLpk);
+            if (!response.ok) throw new Error('Failed to fetch LPK profiles');
+            const data = await response.json();
+            setProfiles(data.map((p: any) => ({
+                ...p,
+                id: p.id.toString()
+            })));
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('profil_lpk')
-        .select('*')
-        .order('created_at', { ascending: false });
+    useEffect(() => {
+        fetchProfiles();
+    }, []);
 
-      if (error) throw error;
-      setProfiles(data || []);
-    } catch (error) {
-      console.error('Error fetching LPK profiles:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load LPK profiles",
-        variant: "destructive",
-      });
-      setProfiles([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const createProfile = async (data: any) => {
+        try {
+            const response = await authFetch(endpoints.profilLpk, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error('Failed to create LPK profile');
+            toast({ title: "Berhasil", description: "Profil LPK berhasil dibuat" });
+            fetchProfiles();
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message, variant: "destructive" });
+            throw error;
+        }
+    };
 
-  const createProfile = async (data: Omit<ProfilLPK, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
+    const updateProfile = async (id: string, data: any) => {
+        try {
+            const response = await authFetch(`${endpoints.profilLpk}/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error('Failed to update LPK profile');
+            toast({ title: "Berhasil", description: "Profil LPK berhasil diperbarui" });
+            fetchProfiles();
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message, variant: "destructive" });
+            throw error;
+        }
+    };
 
-    try {
-      const { data: insertedData, error } = await supabase
-        .from('profil_lpk')
-        .insert([data])
-        .select()
-        .single();
+    const deleteProfile = async (id: string) => {
+        try {
+            const response = await authFetch(`${endpoints.profilLpk}/${id}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) throw new Error('Failed to delete LPK profile');
+            toast({ title: "Berhasil", description: "Profil LPK berhasil dihapus" });
+            fetchProfiles();
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message, variant: "destructive" });
+            throw error;
+        }
+    };
 
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "LPK profile created successfully",
-      });
-      
-      await fetchProfiles();
-      return insertedData;
-    } catch (error) {
-      console.error('Error creating LPK profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create LPK profile",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  const updateProfile = async (id: string, data: Partial<ProfilLPK>) => {
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-
-    try {
-      const { data: updatedData, error } = await supabase
-        .from('profil_lpk')
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "LPK profile updated successfully",
-      });
-      
-      await fetchProfiles();
-      return updatedData;
-    } catch (error) {
-      console.error('Error updating LPK profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update LPK profile",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  const deleteProfile = async (id: string) => {
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-
-    try {
-      const { error } = await supabase
-        .from('profil_lpk')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "LPK profile deleted successfully",
-      });
-      
-      await fetchProfiles();
-    } catch (error) {
-      console.error('Error deleting LPK profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete LPK profile",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchProfiles();
-    }
-  }, [user]);
-
-  return {
-    profiles,
-    loading,
-    createProfile,
-    updateProfile,
-    deleteProfile,
-    fetchProfiles,
-    isAuthenticated: !!user,
-  };
+    return {
+        profiles,
+        loading,
+        fetchProfiles,
+        createProfile,
+        updateProfile,
+        deleteProfile
+    };
 }

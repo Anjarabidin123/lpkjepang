@@ -26,7 +26,7 @@ interface OfficialBiodataFormProps {
 
 export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiodataFormProps) {
   const { createSiswa, updateSiswa, isCreating, isUpdating } = useSiswa();
-  
+
   const form = useForm<SiswaFormData>({
     defaultValues: {
       nama: siswa?.nama || '',
@@ -150,7 +150,7 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
                 </div>
                 <div className="col-span-3">
                   <Label className="text-sm font-medium">性別 Jenis Kelamin / Sex</Label>
-                  <RadioGroup 
+                  <RadioGroup
                     value={form.watch('jenis_kelamin')}
                     onValueChange={(value) => form.setValue('jenis_kelamin', value as 'Laki-laki' | 'Perempuan')}
                     className="flex gap-6 mt-2"
@@ -468,7 +468,7 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
           {/* Japan-related Goals Section */}
           <div className="border-t-2 border-gray-400 pt-6 mt-8">
             <h3 className="text-lg font-bold mb-4">日本関連情報 Informasi Terkait Jepang</h3>
-            
+
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <Label className="text-sm font-medium">目標給与 Target Gaji / Target Salary</Label>

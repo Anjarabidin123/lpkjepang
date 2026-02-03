@@ -1,14 +1,14 @@
-// localStorage table definitions matching Supabase schema
+// localStorage table definitions for local caching and offline capabilities
 
-import { 
-  generateId, 
-  getFromStorage, 
-  setToStorage, 
-  addToStorage, 
-  updateInStorage, 
+import {
+  generateId,
+  getFromStorage,
+  setToStorage,
+  addToStorage,
+  updateInStorage,
   deleteFromStorage,
   findInStorage,
-  notifyStorageChange 
+  notifyStorageChange
 } from './core';
 
 // Table keys
@@ -60,9 +60,9 @@ export const TABLES = {
 export function createLocalStorageTable<T extends Record<string, any>>(tableName: string) {
   return {
     getAll: (): (T & { id: string })[] => getFromStorage<T & { id: string }>(tableName),
-    
+
     getById: (id: string): (T & { id: string }) | null => findInStorage<T & { id: string }>(tableName, id),
-    
+
     getOneByField: (field: keyof T, value: any): (T & { id: string }) | null => {
       const items = getFromStorage<T & { id: string }>(tableName);
       return items.find(item => item[field as string] === value) || null;
@@ -71,18 +71,18 @@ export function createLocalStorageTable<T extends Record<string, any>>(tableName
     count: (): number => {
       return getFromStorage(tableName).length;
     },
-    
+
     create: (data: Omit<T, 'id' | 'created_at' | 'updated_at'>): T & { id: string } => {
       const newItem = addToStorage<T & { id: string }>(tableName, {
         ...data,
         id: (data as any).id || generateId(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      } as T & { id: string });
+      } as unknown as T & { id: string });
       notifyStorageChange(tableName, newItem);
       return newItem;
     },
-    
+
     update: (id: string, updates: Partial<T>): (T & { id: string }) | null => {
       const updated = updateInStorage<T & { id: string }>(tableName, id, updates as Partial<T & { id: string }>);
       if (updated) {
@@ -90,7 +90,7 @@ export function createLocalStorageTable<T extends Record<string, any>>(tableName
       }
       return updated;
     },
-    
+
     delete: (id: string): boolean => {
       const result = deleteFromStorage<T & { id: string }>(tableName, id);
       if (result) {
@@ -98,12 +98,12 @@ export function createLocalStorageTable<T extends Record<string, any>>(tableName
       }
       return result;
     },
-    
+
     query: (filter: (item: T) => boolean): T[] => {
       const items = getFromStorage<T>(tableName);
       return items.filter(filter);
     },
-    
+
     setAll: (data: T[]): void => {
       setToStorage(tableName, data);
       notifyStorageChange(tableName, data);

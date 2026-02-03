@@ -18,7 +18,7 @@ export function JobOrderInlineForm({ jobOrder, onCancel, onSuccess }: JobOrderIn
   const { createJobOrder, updateJobOrder, isCreating, isUpdating } = useJobOrder();
   const { kumiai } = useKumiai();
   const { jenisKerja } = useJenisKerja();
-  
+
   const {
     formData,
     formErrors,
@@ -30,9 +30,9 @@ export function JobOrderInlineForm({ jobOrder, onCancel, onSuccess }: JobOrderIn
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log('Form submitted with data:', formData);
-    
+
     if (!validateForm()) {
       console.log('Form validation failed');
       return;
@@ -42,15 +42,22 @@ export function JobOrderInlineForm({ jobOrder, onCancel, onSuccess }: JobOrderIn
       if (jobOrder) {
         const submitData = getSubmitDataForUpdate();
         console.log('Updating existing job order:', jobOrder.id, submitData);
-        updateJobOrder({ id: jobOrder.id, data: submitData });
+        updateJobOrder(
+          { id: jobOrder.id, data: submitData },
+          {
+            onSuccess: () => {
+              if (onSuccess) onSuccess();
+            },
+          }
+        );
       } else {
         const submitData = getSubmitDataForCreate();
         console.log('Creating new job order:', submitData);
-        createJobOrder(submitData);
-      }
-
-      if (onSuccess) {
-        onSuccess();
+        createJobOrder(submitData, {
+          onSuccess: () => {
+            if (onSuccess) onSuccess();
+          },
+        });
       }
     } catch (error) {
       console.error('Error in form submission:', error);
@@ -62,7 +69,7 @@ export function JobOrderInlineForm({ jobOrder, onCancel, onSuccess }: JobOrderIn
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-gray-50">
-      <JobOrderFormHeader 
+      <JobOrderFormHeader
         jobOrder={jobOrder}
         isLoading={isLoading}
         onCancel={onCancel}

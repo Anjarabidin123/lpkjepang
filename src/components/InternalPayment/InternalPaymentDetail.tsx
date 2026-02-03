@@ -141,11 +141,11 @@ export function InternalPaymentDetail({ payment, onClose, onPrint }: InternalPay
         <div className="grid grid-cols-2 gap-4 pt-4 border-t">
           <div>
             <label className="text-sm font-medium text-gray-600">Dibuat</label>
-            <p className="text-sm">{new Date(payment.created_at).toLocaleString('id-ID')}</p>
+            <p className="text-sm">{new Date(payment.created_at).toLocaleString('en-US')}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">Terakhir Diperbarui</label>
-            <p className="text-sm">{new Date(payment.updated_at).toLocaleString('id-ID')}</p>
+            <p className="text-sm">{new Date(payment.updated_at).toLocaleString('en-US')}</p>
           </div>
         </div>
       </CardContent>

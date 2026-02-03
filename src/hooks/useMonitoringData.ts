@@ -1,116 +1,108 @@
-
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
-export function useMonitoringData() {
-  return useQuery({
-    queryKey: ['monitoring-data'],
+export interface MonitoringKPIData {
+  siswaMagangKPI: {
+    target: number;
+    pencapaian: number;
+    pertumbuhan: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  kumiaiKPI: {
+    target: number;
+    pencapaian: number;
+    pertumbuhan: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  lpkMitraKPI: {
+    target: number;
+    pencapaian: number;
+    pertumbuhan: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  gajiKPI: {
+    target: number;
+    pencapaian: number;
+    pertumbuhan: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  chartData: Array<{
+    period: string;
+    siswaMagang: number;
+    target: number;
+    pencapaian: number;
+  }>;
+  trendData: Array<{
+    period: string;
+    value: number;
+    category: string;
+  }>;
+  tableData: Array<{
+    id: number;
+    nama: string;
+    kategori: string;
+    status: string;
+    target: number;
+    pencapaian: number;
+    persentase: number;
+    trend: 'up' | 'down';
+  }>;
+  summary: {
+    totalSiswa: number;
+    totalSiswaMagang: number;
+    totalKumiai: number;
+    totalLpkMitra: number;
+  };
+}
+
+export function useMonitoringData(filters?: {
+  kumiai_id?: string;
+  lpk_mitra_id?: string;
+  status?: string;
+  period?: string;
+}) {
+  return useQuery<MonitoringKPIData>({
+    queryKey: ['monitoring-kpi', filters],
     queryFn: async () => {
       try {
-        console.log('Fetching monitoring data...');
+        console.log('Fetching monitoring KPI data from Laravel API...');
 
-        // Fetch siswa data
-        const { data: siswa, error: siswaError } = await supabase
-          .from('siswa')
-          .select('*');
-
-        if (siswaError) {
-          console.error('Error fetching siswa:', siswaError);
-          throw siswaError;
+        // Build query params
+        const params = new URLSearchParams();
+        if (filters?.kumiai_id && filters.kumiai_id !== 'all') {
+          params.append('kumiai_id', filters.kumiai_id);
+        }
+        if (filters?.lpk_mitra_id && filters.lpk_mitra_id !== 'all') {
+          params.append('lpk_mitra_id', filters.lpk_mitra_id);
+        }
+        if (filters?.status && filters.status !== 'all') {
+          params.append('status', filters.status);
+        }
+        if (filters?.period) {
+          params.append('period', filters.period);
         }
 
-        // Fetch siswa_magang data
-        const { data: siswaMagang, error: siswaMagangError } = await supabase
-          .from('siswa_magang')
-          .select('*');
+        const url = `${endpoints.monitoring.kpi}${params.toString() ? '?' + params.toString() : ''}`;
+        const response = await authFetch(url);
 
-        if (siswaMagangError) {
-          console.error('Error fetching siswa_magang:', siswaMagangError);
-          throw siswaMagangError;
+        if (!response.ok) {
+          throw new Error('Failed to fetch monitoring KPI data');
         }
 
-        // Fetch kumiai data
-        const { data: kumiai, error: kumiaiError } = await supabase
-          .from('kumiai')
-          .select('*');
+        const data = await response.json();
+        console.log('Monitoring KPI data fetched successfully:', data);
 
-        if (kumiaiError) {
-          console.error('Error fetching kumiai:', kumiaiError);
-          throw kumiaiError;
-        }
-
-        // Fetch lpk_mitra data  
-        const { data: lpkMitra, error: lpkMitraError } = await supabase
-          .from('lpk_mitra')
-          .select('*');
-
-        if (lpkMitraError) {
-          console.error('Error fetching lpk_mitra:', lpkMitraError);
-          throw lpkMitraError;
-        }
-
-        // Fetch perusahaan data
-        const { data: perusahaan, error: perusahaanError } = await supabase
-          .from('perusahaan')
-          .select('*');
-
-        if (perusahaanError) {
-          console.error('Error fetching perusahaan:', perusahaanError);
-          throw perusahaanError;
-        }
-
-        // Calculate statistics with safe null checks
-        const totalSiswa = siswa?.length || 0;
-        const totalSiswaMagang = siswaMagang?.length || 0;
-        const totalKumiai = kumiai?.length || 0;
-        const totalLpkMitra = lpkMitra?.length || 0;
-        const totalPerusahaan = perusahaan?.length || 0;
-
-        // Status distribution for siswa with safe processing
-        const siswaStatusDistribution = siswa?.reduce((acc: any, item: any) => {
-          const status = item?.status || 'Unknown';
-          acc[status] = (acc[status] || 0) + 1;
-          return acc;
-        }, {}) || {};
-
-        // Active entities with safe filtering
-        const activeKumiai = kumiai?.filter((item: any) => item?.is_active !== false).length || totalKumiai;
-        const activeLpkMitra = totalLpkMitra; // No status field, assume all active
-        const activePerusahaan = totalPerusahaan; // No status field, assume all active
-
-        console.log('Monitoring data fetched successfully:', {
-          totalSiswa,
-          totalSiswaMagang,
-          totalKumiai,
-          totalLpkMitra,
-          totalPerusahaan
-        });
-
-        return {
-          totalSiswa,
-          totalSiswaMagang,
-          totalKumiai,
-          totalLpkMitra,
-          totalPerusahaan,
-          siswaStatusDistribution,
-          activeKumiai,
-          activeLpkMitra,
-          activePerusahaan,
-          siswa: siswa || [],
-          siswaMagang: siswaMagang || [],
-          kumiai: kumiai || [],
-          lpkMitra: lpkMitra || [],
-          perusahaan: perusahaan || [],
-        };
+        return data;
       } catch (error) {
-        console.error('Error in monitoring data query:', error);
+        console.error('Error in monitoring KPI query:', error);
         throw error;
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60 * 2, // 2 minutes (refresh more often for KPI)
+    gcTime: 1000 * 60 * 5, // 5 minutes
     retry: (failureCount, error) => {
-      console.log('Monitoring data query retry attempt:', failureCount, error);
+      console.log('Monitoring KPI query retry attempt:', failureCount, error);
       return failureCount < 3;
     }
   });

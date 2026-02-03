@@ -1,124 +1,91 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import type { DemografiRegency, CreateDemografiRegencyData, UpdateDemografiRegencyData } from '@/types/demografi';
+import { endpoints } from '@/config/api';
+import { useToast } from '@/hooks/use-toast';
+import { authFetch } from '@/lib/api-client';
 
-const REGENCIES_QUERY_KEY = 'demografi-regencies';
+export interface Regency {
+    id: string;
+    nama: string;
+    kode: string;
+    province_id: string;
+}
 
 export function useDemografiRegencies(provinceId?: string) {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
 
-  const {
-    data: regencies = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: [REGENCIES_QUERY_KEY, provinceId],
-    queryFn: async (): Promise<DemografiRegency[]> => {
-      let query = supabase
-        .from('demografi_regencies')
-        .select(`
-          *,
-          province:demografi_provinces(
-            *,
-            country:demografi_countries(*)
-          )
-        `)
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true })
-        .order('nama', { ascending: true });
+    const { data: regencies = [], isLoading, error } = useQuery({
+        queryKey: ['regencies', provinceId],
+        queryFn: async () => {
+            const url = provinceId
+                ? `${endpoints.demografi.regencies}?province_id=${provinceId}`
+                : endpoints.demografi.regencies;
 
-      if (provinceId) {
-        query = query.eq('province_id', provinceId);
-      }
+            const response = await authFetch(url);
+            if (!response.ok) throw new Error('Failed to fetch regencies');
+            const data = await response.json();
+            return data.map((r: any) => ({
+                ...r,
+                id: r.id.toString(),
+                province_id: r.province_id.toString()
+            })) as Regency[];
+        },
+        enabled: true // Always load if no provinceId, or filter on server
+    });
 
-      const { data, error } = await query;
+    const createMutation = useMutation({
+        mutationFn: async (newRegency: Omit<Regency, 'id'>) => {
+            const response = await authFetch(endpoints.demografi.regencies, {
+                method: 'POST',
+                body: JSON.stringify(newRegency)
+            });
+            if (!response.ok) throw new Error('Failed to create regency');
+            return await response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['regencies'] });
+            toast({ title: 'Berhasil', description: 'Kabupaten/Kota berhasil ditambahkan' });
+        }
+    });
 
-      if (error) {
-        console.error('Error fetching regencies:', error);
-        throw new Error(`Failed to fetch regencies: ${error.message}`);
-      }
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, ...data }: Partial<Regency> & { id: string }) => {
+            const response = await authFetch(`${endpoints.demografi.regencies}/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error('Failed to update regency');
+            return await response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['regencies'] });
+            toast({ title: 'Berhasil', description: 'Kabupaten/Kota berhasil diperbarui' });
+        }
+    });
 
-      return data as DemografiRegency[];
-    },
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
-  });
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const response = await authFetch(`${endpoints.demografi.regencies}/${id}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) throw new Error('Failed to delete regency');
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['regencies'] });
+            toast({ title: 'Berhasil', description: 'Kabupaten/Kota berhasil dihapus' });
+        }
+    });
 
-  const createRegency = useMutation({
-    mutationFn: async (data: CreateDemografiRegencyData) => {
-      const { data: result, error } = await supabase
-        .from('demografi_regencies')
-        .insert([data])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [REGENCIES_QUERY_KEY] });
-      toast.success('Kabupaten berhasil ditambahkan');
-    },
-    onError: (error) => {
-      console.error('Error creating regency:', error);
-      toast.error('Gagal menambahkan kabupaten');
-    },
-  });
-
-  const updateRegency = useMutation({
-    mutationFn: async ({ id, ...data }: UpdateDemografiRegencyData) => {
-      const { data: result, error } = await supabase
-        .from('demografi_regencies')
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [REGENCIES_QUERY_KEY] });
-      toast.success('Kabupaten berhasil diperbarui');
-    },
-    onError: (error) => {
-      console.error('Error updating regency:', error);
-      toast.error('Gagal memperbarui kabupaten');
-    },
-  });
-
-  const deleteRegency = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('demografi_regencies')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [REGENCIES_QUERY_KEY] });
-      toast.success('Kabupaten berhasil dihapus');
-    },
-    onError: (error) => {
-      console.error('Error deleting regency:', error);
-      toast.error('Gagal menghapus kabupaten');
-    },
-  });
-
-  return {
-    regencies,
-    isLoading,
-    error,
-    refetch,
-    createRegency: createRegency.mutate,
-    updateRegency: updateRegency.mutate,
-    deleteRegency: deleteRegency.mutate,
-    isCreating: createRegency.isPending,
-    isUpdating: updateRegency.isPending,
-    isDeleting: deleteRegency.isPending,
-  };
+    return {
+        regencies,
+        isLoading,
+        error,
+        createRegency: createMutation.mutate,
+        updateRegency: updateMutation.mutate,
+        deleteRegency: deleteMutation.mutate,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
 }

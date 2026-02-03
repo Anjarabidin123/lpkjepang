@@ -33,7 +33,7 @@ export function ReportDataTable({ data }: ReportDataTableProps) {
 
   const formatMonthLabel = (month: string) => {
     const date = new Date(month + '-01');
-    return date.toLocaleDateString('id-ID', { year: 'numeric', month: 'long' });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
   };
 
   return (

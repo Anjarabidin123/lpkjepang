@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import type { Tables } from "@/integrations/supabase/types";
+import type { JenisKerja } from "@/types";
 
 interface JenisKerjaFormActionsProps {
-  jenisKerja?: Tables<'jenis_kerja'>;
+  jenisKerja?: JenisKerja;
   isLoading: boolean;
   onCancel: () => void;
 }

@@ -28,7 +28,7 @@ export function SiswaMagangDetail({ siswaMagang, onClose }: SiswaMagangDetailPro
 
   const formatCurrency = (amount: number | null) => {
     if (!amount) return '-';
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
@@ -37,7 +37,7 @@ export function SiswaMagangDetail({ siswaMagang, onClose }: SiswaMagangDetailPro
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('id-ID', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'

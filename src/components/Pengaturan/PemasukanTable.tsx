@@ -228,7 +228,7 @@ export function PemasukanTable() {
               incomes.map((income) => (
                 <TableRow key={income.id}>
                   <TableCell>
-                    {new Date(income.tanggal_pemasukan).toLocaleDateString('id-ID')}
+                    {new Date(income.tanggal_pemasukan).toLocaleDateString('en-US')}
                   </TableCell>
                   <TableCell className="font-medium">
                     {income.nama_pemasukan}

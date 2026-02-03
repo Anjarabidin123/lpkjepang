@@ -1,44 +1,28 @@
-
-import { jobOrderTable, kumiaiTable, jenisKerjaTable, jobOrderPesertaTable } from '@/lib/localStorage/tables';
-import { JobOrder } from '@/types/jobOrder';
+import type { JobOrder } from '@/types/jobOrder';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export const fetchOperations = {
   async fetchJobOrders(): Promise<JobOrder[]> {
     try {
-      console.log('fetchJobOrders - Starting fetch from localStorage...');
-      
-      const jobOrdersData = jobOrderTable.getAll();
-      const kumiaiData = kumiaiTable.getAll();
-      const jenisKerjaData = jenisKerjaTable.getAll();
-      const pesertaData = jobOrderPesertaTable.getAll();
+      console.log('fetchJobOrders - Starting fetch from Laravel API...');
+      const response = await authFetch(endpoints.jobOrders);
+      if (!response.ok) throw new Error('Failed to fetch job orders');
 
-      console.log('fetchJobOrders - Raw data:', jobOrdersData?.length || 0, 'records');
+      const data = await response.json();
+      console.log('fetchJobOrders - Fetched:', data.length);
 
-      if (!jobOrdersData) {
-        console.log('fetchJobOrders - No data returned');
-        return [];
-      }
-
-      // Join data manually for localStorage
-      const jobOrdersWithPeserta = jobOrdersData.map((jobOrder: any) => {
-        const kumiai = kumiaiData.find(k => k.id === jobOrder.kumiai_id);
-        const jenisKerja = jenisKerjaData.find(jk => jk.id === jobOrder.jenis_kerja_id);
-        const count = pesertaData.filter(p => p.job_order_id === jobOrder.id).length;
-
-        return {
-          ...jobOrder,
-          kumiai: kumiai ? { id: kumiai.id, nama: kumiai.nama, kode: kumiai.kode } : null,
-          jenis_kerja: jenisKerja ? { id: jenisKerja.id, nama: jenisKerja.nama, kode: jenisKerja.kode } : null,
-          peserta_count: count
-        } as JobOrder;
-      });
-
-      console.log('fetchJobOrders - Processed job orders with peserta count:', jobOrdersWithPeserta.length);
-      return jobOrdersWithPeserta;
-
+      // Ensure IDs are strings and use dataMappers for consistency if needed, 
+      // but simple mapping here is fine too as long as it matches JobOrder type.
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        kumiai_id: item.kumiai_id?.toString() || null,
+        jenis_kerja_id: item.jenis_kerja_id?.toString() || null,
+      }));
     } catch (error) {
       console.error('fetchJobOrders - Unexpected error:', error);
-      throw error;
+      return [];
     }
   }
 };

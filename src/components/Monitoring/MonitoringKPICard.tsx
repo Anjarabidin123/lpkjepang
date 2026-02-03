@@ -27,7 +27,7 @@ export function MonitoringKPICard({
     if (value === null || value === undefined || isNaN(value)) {
       return '0';
     }
-    return value.toLocaleString('id-ID');
+    return value.toLocaleString('en-US');
   },
   className
 }: MonitoringKPICardProps) {

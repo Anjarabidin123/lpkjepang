@@ -329,7 +329,7 @@ export function JobOrderDataPesertaTab({ jobOrder }: JobOrderDataPesertaTabProps
                                 <div className="flex items-center gap-3">
                                   <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400">
                                     <Calendar className="w-3 h-3" />
-                                    {participant.siswa?.tanggal_lahir ? new Date(participant.siswa.tanggal_lahir).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
+                                    {participant.siswa?.tanggal_lahir ? new Date(participant.siswa.tanggal_lahir).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
                                   </div>
                                   <Badge variant="outline" className="text-[9px] font-bold uppercase border-slate-100 text-slate-500 bg-white">
                                     {participant.siswa?.jenis_kelamin || '-'}

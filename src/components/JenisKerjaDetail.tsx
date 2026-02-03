@@ -3,18 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, ArrowLeft } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import type { JenisKerja } from "@/types";
 
 interface JenisKerjaDetailProps {
-  jenisKerja: Tables<'jenis_kerja'>;
+  jenisKerja: JenisKerja;
   onEdit: () => void;
   onBack: () => void;
 }
 
 export function JenisKerjaDetail({ jenisKerja, onEdit, onBack }: JenisKerjaDetailProps) {
   const getStatusBadge = (status?: string) => {
-    return status === "Aktif" 
-      ? "bg-green-100 text-green-800" 
+    return status === "Aktif"
+      ? "bg-green-100 text-green-800"
       : "bg-red-100 text-red-800";
   };
 

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProgram } from "@/hooks/useProgram";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Program } from "@/types";
 
 const programSchema = z.object({
   nama: z.string().min(1, "Nama program harus diisi"),
@@ -29,7 +29,7 @@ type ProgramFormData = z.infer<typeof programSchema>;
 interface ProgramFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  program?: Tables<'program'>;
+  program?: Program;
 }
 
 export function ProgramForm({ open, onOpenChange, program }: ProgramFormProps) {

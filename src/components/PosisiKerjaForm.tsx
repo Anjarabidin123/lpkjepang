@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { usePerusahaan } from "@/hooks/usePerusahaan";
 import { useJenisKerja } from "@/hooks/useJenisKerja";
 import { usePosisiKerja } from "@/hooks/usePosisiKerja";
-import type { Tables } from "@/integrations/supabase/types";
+import type { PosisiKerja } from "@/types";
 
 const posisiKerjaSchema = z.object({
   kode: z.string().min(1, "Kode posisi kerja harus diisi"),
@@ -34,7 +34,7 @@ type PosisiKerjaFormData = z.infer<typeof posisiKerjaSchema>;
 interface PosisiKerjaFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  posisiKerja?: Tables<'posisi_kerja'>;
+  posisiKerja?: PosisiKerja;
 }
 
 export function PosisiKerjaForm({ open, onOpenChange, posisiKerja }: PosisiKerjaFormProps) {

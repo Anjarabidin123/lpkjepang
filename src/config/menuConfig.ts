@@ -1,13 +1,13 @@
-import { 
-  Home, 
-  BarChart3, 
-  Database, 
-  GraduationCap, 
-  Users, 
-  Building2, 
-  Factory, 
-  BookOpen, 
-  Briefcase, 
+import {
+  Home,
+  BarChart3,
+  Database,
+  GraduationCap,
+  Users,
+  Building2,
+  Factory,
+  BookOpen,
+  Briefcase,
   MapPin,
   ClipboardList,
   FileText,
@@ -23,7 +23,8 @@ import {
   Activity,
   UserCheck,
   Map,
-  FileStack
+  FileStack,
+  FileSearch
 } from "lucide-react"
 import { LucideIcon } from "lucide-react"
 
@@ -34,6 +35,7 @@ export interface MenuItem {
   icon: LucideIcon;
   children?: MenuItem[];
   isCollapsible?: boolean;
+  allowedRoles?: string[]; // Jika kosong, berarti semua role boleh akses
 }
 
 export const menuConfig: MenuItem[] = [
@@ -42,19 +44,62 @@ export const menuConfig: MenuItem[] = [
     title: "Dashboard",
     url: "/",
     icon: Home,
+    allowedRoles: [], // Semua role bisa akses
   },
   {
     id: "monitoring",
-    title: "Monitoring", 
+    title: "Monitoring",
     url: "/monitoring",
     icon: Monitor,
+    allowedRoles: ['super_admin', 'admin', 'finance', 'instructor'],
+  },
+  {
+    id: "student-menu",
+    title: "Menu Saya",
+    icon: GraduationCap,
+    isCollapsible: true,
+    allowedRoles: ['student'],
+    children: [
+      {
+        id: "my-profile",
+        title: "Profil Saya",
+        url: "/profile",
+        icon: Users,
+      },
+      {
+        id: "my-schedule",
+        title: "Absensi & Nilai",
+        url: "/education",
+        icon: GraduationCap,
+      },
+      {
+        id: "my-documents",
+        title: "Dokumen Saya",
+        url: "/document-tracking",
+        icon: FileStack,
+      },
+      {
+        id: "learning-modules",
+        title: "Materi Belajar",
+        url: "/learning-modules",
+        icon: BookOpen,
+      },
+    ]
   },
   {
     id: "master-data",
     title: "Master Data",
     icon: Database,
     isCollapsible: true,
+    allowedRoles: ['super_admin', 'admin', 'instructor'], // Finance tidak bisa akses
     children: [
+      {
+        id: "doc-tracking",
+        title: "Tracking Dokumen",
+        url: "/document-tracking",
+        icon: FileSearch,
+        allowedRoles: ['super_admin', 'admin'],
+      },
       {
         id: "siswa-magang",
         title: "Siswa Magang",
@@ -110,6 +155,7 @@ export const menuConfig: MenuItem[] = [
     title: "Operasional",
     icon: Activity,
     isCollapsible: true,
+    allowedRoles: ['super_admin', 'admin', 'instructor'],
     children: [
       {
         id: "job-order",
@@ -123,25 +169,53 @@ export const menuConfig: MenuItem[] = [
         url: "/task-management",
         icon: CheckSquare,
       },
-{
-          id: "rekrutment",
-          title: "Rekrutment",
-          url: "/rekrutmen",
-          icon: Briefcase,
-        },
-        {
-          id: "document",
-          title: "Dokumen",
-          url: "/document",
-          icon: FileStack,
-        },
-      ]
-    },
-    {
-      id: "transaksi",
+      {
+        id: "rekrutment",
+        title: "Rekrutment",
+        url: "/rekrutmen",
+        icon: Briefcase,
+      },
+      {
+        id: "document",
+        title: "Dokumen",
+        url: "/document",
+        icon: FileStack,
+      },
+    ]
+  },
+  {
+    id: "pendidikan-menu",
+    title: "Pendidikan",
+    icon: GraduationCap,
+    isCollapsible: true,
+    allowedRoles: ['super_admin', 'admin', 'instructor'],
+    children: [
+      {
+        id: "absensi-siswa",
+        title: "Absensi Harian",
+        url: "/education/attendance",
+        icon: CheckSquare,
+      },
+      {
+        id: "nilai-siswa",
+        title: "Penilaian Ujian",
+        url: "/education/grades",
+        icon: FileText,
+      },
+      {
+        id: "materi-belajar",
+        title: "Materi Belajar",
+        url: "/learning-modules",
+        icon: BookOpen,
+      },
+    ]
+  },
+  {
+    id: "transaksi",
     title: "Transaksi",
     icon: DollarSign,
     isCollapsible: true,
+    allowedRoles: ['super_admin', 'finance'],
     children: [
       {
         id: "internal-payment-trans",
@@ -151,7 +225,7 @@ export const menuConfig: MenuItem[] = [
       },
       {
         id: "invoice-trans",
-        title: "Invoice", 
+        title: "Invoice",
         url: "/invoice",
         icon: FileText,
       },
@@ -180,6 +254,7 @@ export const menuConfig: MenuItem[] = [
     title: "System Management",
     icon: Shield,
     isCollapsible: true,
+    allowedRoles: ['super_admin'],
     children: [
       {
         id: "user-management-rbac",
@@ -207,7 +282,7 @@ export const menuConfig: MenuItem[] = [
       },
       {
         id: "settings-sys",
-        title: "Settings", 
+        title: "Settings",
         url: "/settings",
         icon: Settings,
       },

@@ -43,7 +43,7 @@ export function SiswaDetail({ siswa, onBack }: SiswaDetailProps) {
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('id-ID', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: '2-digit',
       month: 'long',
       year: 'numeric'
@@ -156,8 +156,8 @@ export function SiswaDetail({ siswa, onBack }: SiswaDetailProps) {
                 {/* Photo Section */}
                 <div className="col-span-3 border-r border-gray-400 p-4 flex flex-col items-center">
                   <Avatar className="w-32 h-32 mb-4">
-                    <AvatarImage 
-                      src={siswa.foto_siswa || siswa.foto_url || ''} 
+                    <AvatarImage
+                      src={siswa.foto_siswa || siswa.foto_url || ''}
                       alt={`Foto ${siswa.nama}`}
                       className="object-cover"
                     />
@@ -325,20 +325,20 @@ export function SiswaDetail({ siswa, onBack }: SiswaDetailProps) {
                 <p className="text-sm text-blue-600">色覚障害</p>
                 <div className="flex items-center gap-4 mt-2">
                   <label className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={siswa.buta_warna === true}
                       readOnly
-                      className="w-4 h-4" 
+                      className="w-4 h-4"
                     />
                     <span className="text-sm">有色：</span>
                   </label>
                   <label className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={siswa.buta_warna === false}
                       readOnly
-                      className="w-4 h-4" 
+                      className="w-4 h-4"
                     />
                     <span className="text-sm">無</span>
                   </label>

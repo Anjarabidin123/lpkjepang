@@ -1,16 +1,12 @@
 
 import { useSiswaQueries, useSiswaAvailableForMagang } from './siswa/useSiswaQueries';
 import { useSiswaMutations } from './siswa/useSiswaMutations';
-import { useSiswaRealtime } from './siswa/useSiswaRealtime';
 
 export * from './siswa/types';
 
 export function useSiswa() {
   const queries = useSiswaQueries();
   const mutations = useSiswaMutations();
-  
-  // Set up realtime subscription
-  useSiswaRealtime();
 
   return {
     ...queries,
@@ -21,9 +17,9 @@ export function useSiswa() {
 export function useSiswaForMagang() {
   const availableQueries = useSiswaAvailableForMagang();
   const mutations = useSiswaMutations();
-  
-  // Set up realtime subscription
-  useSiswaRealtime();
+
+  // Set up realtime subscription (Disabled for Laravel Migration)
+  // useSiswaRealtime();
 
   return {
     siswa: availableQueries.availableSiswa,

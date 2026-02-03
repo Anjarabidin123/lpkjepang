@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export interface SiswaPendidikan {
   id: string;
@@ -24,75 +24,70 @@ export function useSiswaPendidikan(siswaId: string) {
   const { data: pendidikan = [], isLoading, error, refetch } = useQuery({
     queryKey: ['siswa-pendidikan', siswaId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('siswa_pendidikan')
-        .select('*')
-        .eq('siswa_id', siswaId)
-        .order('tahun_masuk', { ascending: false });
-      
-      if (error) throw error;
-      return data as SiswaPendidikan[];
+      const response = await authFetch(`${endpoints.siswaPendidikan}?siswa_id=${siswaId}`);
+      if (!response.ok) throw new Error('Failed to fetch pendidikan data');
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        siswa_id: item.siswa_id.toString()
+      })) as SiswaPendidikan[];
     },
     enabled: !!siswaId
   });
 
   const createMutation = useMutation({
     mutationFn: async (newPendidikan: Omit<SiswaPendidikan, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase
-        .from('siswa_pendidikan')
-        .insert([newPendidikan])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+      const response = await authFetch(endpoints.siswaPendidikan, {
+        method: 'POST',
+        body: JSON.stringify(newPendidikan)
+      });
+      if (!response.ok) throw new Error('Failed to create pendidikan');
+      const data = await response.json();
+      return { ...data, id: data.id.toString() };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['siswa-pendidikan', siswaId] });
       toast({ title: "Informasi pendidikan berhasil ditambahkan" });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Error", 
-        description: error.message || "Gagal menambah informasi pendidikan", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menambah informasi pendidikan",
+        variant: "destructive"
       });
     }
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<SiswaPendidikan> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('siswa_pendidikan')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+      const response = await authFetch(`${endpoints.siswaPendidikan}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.ok) throw new Error('Failed to update pendidikan');
+      const data = await response.json();
+      return { ...data, id: data.id.toString() };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['siswa-pendidikan', siswaId] });
       toast({ title: "Informasi pendidikan berhasil diperbarui" });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Error", 
-        description: error.message || "Gagal memperbarui informasi pendidikan", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message || "Gagal memperbarui informasi pendidikan",
+        variant: "destructive"
       });
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('siswa_pendidikan')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      const response = await authFetch(`${endpoints.siswaPendidikan}/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete pendidikan');
       return id;
     },
     onSuccess: () => {
@@ -100,10 +95,10 @@ export function useSiswaPendidikan(siswaId: string) {
       toast({ title: "Informasi pendidikan berhasil dihapus" });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Error", 
-        description: error.message || "Gagal menghapus informasi pendidikan", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menghapus informasi pendidikan",
+        variant: "destructive"
       });
     }
   });

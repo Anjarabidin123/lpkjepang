@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useProgram } from '@/hooks/useProgram';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Program } from '@/types';
 
 const programSchema = z.object({
   nama: z.string().min(1, 'Nama program wajib diisi'),
@@ -29,7 +29,7 @@ type ProgramFormData = z.infer<typeof programSchema>;
 interface ProgramInlineFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  program?: Tables<'program'> | null;
+  program?: Program | null;
 }
 
 export function ProgramInlineForm({ open, onOpenChange, program }: ProgramInlineFormProps) {
@@ -65,13 +65,23 @@ export function ProgramInlineForm({ open, onOpenChange, program }: ProgramInline
       };
 
       if (program) {
-        await updateProgram({ id: program.id, data: submitData });
+        updateProgram(
+          { id: program.id, data: submitData },
+          {
+            onSuccess: () => {
+              onOpenChange(false);
+              form.reset();
+            },
+          }
+        );
       } else {
-        await createProgram(submitData);
+        createProgram(submitData, {
+          onSuccess: () => {
+            onOpenChange(false);
+            form.reset();
+          },
+        });
       }
-      
-      onOpenChange(false);
-      form.reset();
     } catch (error) {
       console.error('Error saving program:', error);
     }

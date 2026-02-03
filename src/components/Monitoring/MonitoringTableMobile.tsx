@@ -37,11 +37,11 @@ export function MonitoringTableMobile({ data }: MonitoringTableMobileProps) {
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div>
               <span className="text-gray-500">Target:</span>
-              <p className="font-mono font-medium">{item.target.toLocaleString('id-ID')}</p>
+              <p className="font-mono font-medium">{item.target.toLocaleString('en-US')}</p>
             </div>
             <div>
               <span className="text-gray-500">Pencapaian:</span>
-              <p className="font-mono font-medium">{item.pencapaian.toLocaleString('id-ID')}</p>
+              <p className="font-mono font-medium">{item.pencapaian.toLocaleString('en-US')}</p>
             </div>
           </div>
           

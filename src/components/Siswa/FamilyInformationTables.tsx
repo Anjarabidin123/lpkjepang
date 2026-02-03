@@ -28,7 +28,7 @@ interface ContactPerson {
 }
 
 const hubunganOptions = [
-  "Ayah", "Ibu", "Suami", "Istri", "Anak", "Kakak", "Adik", 
+  "Ayah", "Ibu", "Suami", "Istri", "Anak", "Kakak", "Adik",
   "Kakek", "Nenek", "Paman", "Bibi", "Sepupu", "Keponakan", "Lainnya"
 ];
 
@@ -73,8 +73,8 @@ export function FamilyInformationTables() {
   };
 
   const updateFamilyMember = (type: 'indonesia' | 'japan', id: string, field: keyof FamilyMember, value: any) => {
-    const updateList = (members: FamilyMember[]) => 
-      members.map(member => 
+    const updateList = (members: FamilyMember[]) =>
+      members.map(member =>
         member.id === id ? { ...member, [field]: value } : member
       );
 
@@ -237,7 +237,7 @@ export function FamilyInformationTables() {
                   />
                 </TableCell>
                 <TableCell className="border-r border-gray-400">
-                  <Select 
+                  <Select
                     value={member.hubungan}
                     onValueChange={(value) => updateFamilyMember('indonesia', member.id, 'hubungan', value)}
                   >
@@ -338,7 +338,7 @@ export function FamilyInformationTables() {
                   />
                 </TableCell>
                 <TableCell className="border-r border-gray-400">
-                  <Select 
+                  <Select
                     value={member.hubungan}
                     onValueChange={(value) => updateFamilyMember('japan', member.id, 'hubungan', value)}
                   >

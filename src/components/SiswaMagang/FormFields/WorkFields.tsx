@@ -48,7 +48,7 @@ export function WorkFields({ form, program, jenisKerja, posisiKerja, visibleColu
 
   const posisiKerjaOptions = posisiKerja?.map(item => ({
     id: item.id,
-    label: `${item.posisi} - ${item.kode}`,
+    label: `${item.nama} - ${item.kode}`,
     value: item.id
   })) || [];
 

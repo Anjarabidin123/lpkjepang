@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import type { Tables } from "@/integrations/supabase/types";
+import type { JenisKerja } from "@/types";
 
 const jenisKerjaSchema = z.object({
   nama: z.string().min(1, "Nama jenis kerja harus diisi"),
@@ -18,7 +18,7 @@ const jenisKerjaSchema = z.object({
 
 export type JenisKerjaFormData = z.infer<typeof jenisKerjaSchema>;
 
-export function useJenisKerjaForm(jenisKerja?: Tables<'jenis_kerja'>) {
+export function useJenisKerjaForm(jenisKerja?: JenisKerja) {
   const form = useForm<JenisKerjaFormData>({
     resolver: zodResolver(jenisKerjaSchema),
     defaultValues: {

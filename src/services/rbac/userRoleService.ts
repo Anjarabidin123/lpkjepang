@@ -1,50 +1,38 @@
 
-import { profilesTable, userRolesTable, rbacRolesTable } from '@/lib/localStorage/tables';
+// import { profilesTable, userRolesTable, rbacRolesTable } from '@/lib/localStorage/tables';
 import { UserWithRoles, AssignRoleData } from '@/types/rbac';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export class UserRoleService {
   static async fetchUsersWithRoles(): Promise<UserWithRoles[]> {
-    console.log('Fetching users with roles from localStorage...');
-    
-    const profiles = profilesTable.getAll();
-    const userRoles = userRolesTable.getAll();
-    const rbacRoles = rbacRolesTable.getAll();
+    console.log('Fetching users with roles from API...');
+    try {
+      const response = await authFetch(endpoints.users);
+      if (!response.ok) throw new Error('Failed to fetch users');
+      const data = await response.json();
 
-    const usersWithRoles = profiles.map(profile => {
-      const assignedRoles = userRoles
-        .filter(ur => ur.user_id === profile.id)
-        .map(ur => rbacRoles.find(r => r.name === ur.role))
-        .filter(Boolean);
-
-      return {
-        ...profile,
-        roles: assignedRoles
-      };
-    });
-
-    return usersWithRoles as UserWithRoles[];
+      return data.map((u: any) => ({
+        id: u.id.toString(),
+        name: u.name,
+        email: u.email,
+        roles: u.roles || []
+      })) as UserWithRoles[];
+    } catch (e) {
+      return [];
+    }
   }
 
   static async assignRolesToUser(assignData: AssignRoleData): Promise<boolean> {
-    console.log('Assigning roles to user in localStorage:', assignData);
-    
+    console.log('Assigning roles to user API:', assignData);
     try {
-      // Deactivate existing role assignments
-      const allRoles = userRolesTable.getAll();
-      const rolesToKeep = allRoles.filter(role => role.user_id !== assignData.user_id);
-      userRolesTable.setAll(rolesToKeep as any);
-
-      // Insert new role assignments
-      for (const roleId of assignData.role_ids) {
-        const role = rbacRolesTable.getById(roleId);
-        if (role) {
-          userRolesTable.create({
-            user_id: assignData.user_id,
-            role: role.name
-          } as any);
-        }
-      }
-
+      const response = await authFetch(`${endpoints.users}/${assignData.user_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          roles: assignData.role_ids
+        })
+      });
+      if (!response.ok) throw new Error('Failed to assign roles');
       return true;
     } catch (error) {
       console.error('Error in assignRolesToUser:', error);
@@ -53,17 +41,18 @@ export class UserRoleService {
   }
 
   static async getUserRoles(userId: string): Promise<string[]> {
-    console.log('Getting user roles from localStorage:', userId);
-    
-    const userRoles = userRolesTable.getAll().filter(ur => ur.user_id === userId);
-    const roleNames = userRoles.map(ur => ur.role);
-    const roles = rbacRolesTable.getAll().filter(r => roleNames.includes(r.name));
-    
-    return roles.map(r => r.id);
+    console.log('Getting user roles from API:', userId);
+    try {
+      const response = await authFetch(`${endpoints.users}/${userId}`);
+      if (!response.ok) return [];
+      const user = await response.json();
+      return user.roles ? user.roles.map((r: any) => r.id.toString()) : [];
+    } catch (e) {
+      return [];
+    }
   }
 
   static subscribeToUserRoles(callback: (users: UserWithRoles[]) => void) {
-    console.log('localStorage subscription simulation for user roles...');
-    return () => {};
+    return () => { };
   }
 }

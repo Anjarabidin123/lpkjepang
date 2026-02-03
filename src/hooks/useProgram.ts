@@ -1,14 +1,23 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { programTable } from '@/lib/localStorage/tables';
+// import { programTable } from '@/lib/localStorage/tables';
 import { useToast } from '@/hooks/use-toast';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 interface Program {
   id: string;
   nama: string;
   kode: string;
   deskripsi: string | null;
+  tanggal_mulai: string | null;
+  tanggal_selesai: string | null;
+  status: string | null;
   durasi: number | null;
+  satuan_durasi: string | null;
+  biaya: number | null;
+  kuota: number | null;
+  peserta_terdaftar: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -23,10 +32,14 @@ export function useProgram() {
   const { data: program, isLoading, error } = useQuery({
     queryKey: ['program'],
     queryFn: async () => {
-      console.log('Fetching program data from localStorage...');
-      const data = programTable.getAll();
-      console.log('Program data fetched successfully:', data?.length || 0, 'records');
-      return data as Program[];
+      console.log('Fetching program data from Laravel API...');
+      const response = await authFetch(endpoints.programs);
+      if (!response.ok) throw new Error('Failed to fetch programs');
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString()
+      })) as Program[];
     },
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
@@ -34,8 +47,19 @@ export function useProgram() {
 
   const createMutation = useMutation({
     mutationFn: async (data: ProgramInsert) => {
-      const result = programTable.create(data);
-      return result as Program;
+      const response = await authFetch(endpoints.programs, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Gagal menambahkan program');
+      }
+      const result = await response.json();
+      return {
+        ...result,
+        id: result.id.toString()
+      } as Program;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['program'] });
@@ -55,9 +79,19 @@ export function useProgram() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ProgramUpdate }) => {
-      const result = programTable.update(id, data);
-      if (!result) throw new Error('Program tidak ditemukan');
-      return result as Program;
+      const response = await authFetch(`${endpoints.programs}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Gagal memperbarui program');
+      }
+      const result = await response.json();
+      return {
+        ...result,
+        id: result.id.toString()
+      } as Program;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['program'] });
@@ -77,8 +111,10 @@ export function useProgram() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const success = programTable.delete(id);
-      if (!success) throw new Error('Gagal menghapus program');
+      const response = await authFetch(`${endpoints.programs}/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Gagal menghapus program');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['program'] });

@@ -1,189 +1,111 @@
 
-import { 
-  siswaMagangTable, 
-  siswaTable, 
-  kumiaiTable, 
-  perusahaanTable, 
-  programTable, 
-  jenisKerjaTable, 
-  posisiKerjaTable, 
-  lpkMitraTable, 
-  demografiProvincesTable, 
-  demografiRegenciesTable 
-} from '@/lib/localStorage/tables';
 import type { SiswaMagang, CreateSiswaMagangData, UpdateSiswaMagangData } from '@/types/siswaMagang';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
-const joinRelations = (data: any): SiswaMagang => {
-  const siswa = siswaTable.getById(data.siswa_id) || { id: data.siswa_id, nama: 'Unknown', nik: '', email: '', telepon: '' };
-  const kumiai = data.kumiai_id ? kumiaiTable.getById(data.kumiai_id) : null;
-  const perusahaan = data.perusahaan_id ? perusahaanTable.getById(data.perusahaan_id) : null;
-  const program = data.program_id ? programTable.getById(data.program_id) : null;
-  const jenis_kerja = data.jenis_kerja_id ? jenisKerjaTable.getById(data.jenis_kerja_id) : null;
-  const posisi_kerja = data.posisi_kerja_id ? posisiKerjaTable.getById(data.posisi_kerja_id) : null;
-  const lpk_mitra = data.lpk_mitra_id ? lpkMitraTable.getById(data.lpk_mitra_id) : null;
-  const provinsi = data.demografi_province_id ? demografiProvincesTable.getById(data.demografi_province_id) : { id: '', nama: '', kode: '' };
-  const kabupaten = data.demografi_regency_id ? demografiRegenciesTable.getById(data.demografi_regency_id) : { id: '', nama: '', kode: '' };
-
+const mapSiswaMagang = (item: any): SiswaMagang => {
+  if (!item) return item;
   return {
-    ...data,
-    siswa,
-    kumiai,
-    perusahaan,
-    program,
-    jenis_kerja,
-    posisi_kerja,
-    lpk_mitra,
-    provinsi,
-    kabupaten
+    ...item,
+    id: item.id.toString(),
+    siswa_id: item.siswa_id?.toString() || null,
+    kumiai_id: item.kumiai_id?.toString() || null,
+    perusahaan_id: item.perusahaan_id?.toString() || null,
+    program_id: item.program_id?.toString() || null,
+    jenis_kerja_id: item.jenis_kerja_id?.toString() || null,
+    posisi_kerja_id: item.posisi_kerja_id?.toString() || null,
+    lpk_mitra_id: item.lpk_mitra_id?.toString() || null,
+    demografi_province_id: item.demografi_province_id?.toString() || null,
+    demografi_regency_id: item.demografi_regency_id?.toString() || null,
+
+    // Map relations (Handle both snake_case from DB and camelCase from Laravel Eloquent)
+    siswa: item.siswa ? { ...item.siswa, id: item.siswa.id.toString() } : null,
+    kumiai: item.kumiai ? { ...item.kumiai, id: item.kumiai.id.toString() } : null,
+    perusahaan: item.perusahaan ? { ...item.perusahaan, id: item.perusahaan.id.toString() } : null,
+    program: item.program ? { ...item.program, id: item.program.id.toString() } : null,
+
+    jenis_kerja: item.jenis_kerja || (item.jenisKerja ? { ...item.jenisKerja, id: item.jenisKerja.id.toString() } : null),
+    posisi_kerja: item.posisi_kerja || (item.posisiKerja ? { ...item.posisiKerja, id: item.posisiKerja.id.toString() } : null),
+    lpk_mitra: item.lpk_mitra || (item.lpkMitra ? { ...item.lpkMitra, id: item.lpkMitra.id.toString() } : null),
+    provinsi: item.provinsi || (item.demografiProvince ? { ...item.demografiProvince, id: item.demografiProvince.id.toString() } : null),
+    kabupaten: item.kabupaten || (item.demografiRegency ? { ...item.demografiRegency, id: item.demografiRegency.id.toString() } : null),
   } as SiswaMagang;
 };
 
 export const siswaMagangService = {
   async fetchAll(): Promise<SiswaMagang[]> {
-    console.log('Fetching siswa magang data from localStorage...');
+    console.log('Fetching siswa magang data from Laravel API...');
     try {
-      const data = siswaMagangTable.getAll();
-      const mappedData = data.map(joinRelations);
-      
-      console.log('Siswa magang data fetched successfully:', mappedData.length, 'records');
-      return mappedData;
-    } catch (err) {
-      console.error('Fetch all error:', err);
-      throw err;
+      const response = await authFetch(endpoints.siswaMagang);
+      if (!response.ok) throw new Error('Failed to fetch from Laravel');
+      const data = await response.json();
+      return data.map(mapSiswaMagang);
+    } catch (e) {
+      console.error("Failed to fetch siswa magang", e);
+      return [];
     }
   },
 
   async fetchById(id: string): Promise<SiswaMagang | null> {
-    console.log('Fetching siswa magang by ID from localStorage:', id);
+    if (!id) return null;
     try {
-      const data = siswaMagangTable.getById(id);
-      if (!data) return null;
-      
-      return joinRelations(data);
-    } catch (err) {
-      console.error('Fetch by ID error:', err);
-      throw err;
+      const response = await authFetch(`${endpoints.siswaMagang}/${id}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return mapSiswaMagang(data);
+    } catch (e) {
+      return null;
     }
   },
 
   async create(newSiswaMagang: CreateSiswaMagangData): Promise<SiswaMagang> {
-    console.log('Creating siswa magang in localStorage with data:', newSiswaMagang);
-    
-    if (!newSiswaMagang.siswa_id) {
-      throw new Error('Siswa ID is required');
-    }
+    console.log('Creating siswa magang:', newSiswaMagang);
+    const response = await authFetch(endpoints.siswaMagang, {
+      method: 'POST',
+      body: JSON.stringify(newSiswaMagang)
+    });
 
-    const cleanData = {
-      siswa_id: newSiswaMagang.siswa_id,
-      kumiai_id: newSiswaMagang.kumiai_id || null,
-      perusahaan_id: newSiswaMagang.perusahaan_id || null,
-      program_id: newSiswaMagang.program_id || null,
-      jenis_kerja_id: newSiswaMagang.jenis_kerja_id || null,
-      posisi_kerja_id: newSiswaMagang.posisi_kerja_id || null,
-      lpk_mitra_id: newSiswaMagang.lpk_mitra_id || null,
-      demografi_province_id: newSiswaMagang.demografi_province_id || null,
-      demografi_regency_id: newSiswaMagang.demografi_regency_id || null,
-      lokasi: newSiswaMagang.lokasi || null,
-      tanggal_mulai_kerja: newSiswaMagang.tanggal_mulai_kerja || null,
-      tanggal_pulang_kerja: newSiswaMagang.tanggal_pulang_kerja || null,
-      gaji: newSiswaMagang.gaji || null,
-      status_magang: newSiswaMagang.status_magang || 'Aktif',
-      avatar_url: newSiswaMagang.avatar_url || null,
-    };
-
-    try {
-      const data = siswaMagangTable.create(cleanData);
-      console.log('Siswa magang created successfully:', data);
-      return joinRelations(data);
-    } catch (err) {
-      console.error('Create mutation error:', err);
-      throw err;
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.message || 'Failed to create siswa magang');
     }
+    const data = await response.json();
+    return mapSiswaMagang(data);
   },
 
   async update({ id, ...updates }: UpdateSiswaMagangData): Promise<SiswaMagang> {
-    console.log('Updating siswa magang in localStorage:', id, updates);
-    
-    if (!id) {
-      throw new Error('ID is required for update');
-    }
-    
-    try {
-      const { 
-        created_at, 
-        updated_at, 
-        siswa, 
-        kumiai, 
-        perusahaan, 
-        program, 
-        jenis_kerja, 
-        posisi_kerja, 
-        lpk_mitra, 
-        provinsi, 
-        kabupaten, 
-        ...updateData 
-      } = updates as any;
-      
-      const cleanUpdateData = Object.fromEntries(
-        Object.entries(updateData).map(([key, value]) => [
-          key, 
-          value === '' ? null : value
-        ])
-      );
+    console.log('Updating siswa magang:', id);
+    const response = await authFetch(`${endpoints.siswaMagang}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates)
+    });
 
-      const data = siswaMagangTable.update(id, cleanUpdateData);
-      if (!data) throw new Error('Failed to update: Record not found');
-      
-      console.log('Siswa magang updated successfully:', data);
-      return joinRelations(data);
-    } catch (err) {
-      console.error('Update mutation error:', err);
-      throw err;
-    }
+    if (!response.ok) throw new Error('Failed to update siswa magang');
+    const data = await response.json();
+    return mapSiswaMagang(data);
   },
 
   async delete(id: string): Promise<string> {
-    console.log('Deleting siswa magang from localStorage:', id);
-    
-    if (!id) {
-      throw new Error('ID is required for delete');
-    }
-    
-    try {
-      const success = siswaMagangTable.delete(id);
-      if (!success) throw new Error('Failed to delete');
-      
-      console.log('Siswa magang deleted successfully:', id);
-      return id;
-    } catch (err) {
-      console.error('Delete mutation error:', err);
-      throw err;
-    }
+    console.log('Deleting siswa magang:', id);
+    const response = await authFetch(`${endpoints.siswaMagang}/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) throw new Error('Failed to delete siswa magang');
+    return id;
   },
 
   async updateStatus(id: string, status: string): Promise<SiswaMagang> {
-    console.log('Updating siswa magang status in localStorage:', id, status);
-    
-    if (!id || !status) {
-      throw new Error('ID and status are required');
-    }
-    
-    try {
-      const data = siswaMagangTable.update(id, { status_magang: status });
-      if (!data) throw new Error('Failed to update status: Record not found');
-      
-      console.log('Siswa magang status updated successfully:', data);
-      return joinRelations(data);
-    } catch (err) {
-      console.error('Status update error:', err);
-      throw err;
-    }
+    const response = await authFetch(`${endpoints.siswaMagang}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status_magang: status })
+    });
+    if (!response.ok) throw new Error('Failed to update status');
+    const data = await response.json();
+    return mapSiswaMagang(data);
   },
 
   setupRealtimeSubscription(callback: (payload: any) => void) {
-    console.log('Real-time subscription for localStorage not implemented, using polling or simple event emitter if needed');
-    return () => {
-      console.log('Cleaning up real-time simulation');
-    };
+    return () => { };
   }
 };

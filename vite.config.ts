@@ -73,6 +73,10 @@ export default defineConfig(({ mode }) => ({
     logErrorsPlugin(),
     mode === 'development' && componentTaggerPlugin(),
   ].filter(Boolean),
+  build: {
+    outDir: "backend/public",
+    emptyOutDir: true,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

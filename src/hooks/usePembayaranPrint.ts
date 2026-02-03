@@ -58,7 +58,7 @@ export function usePembayaranPrint() {
           </div>
           
           <div class="footer">
-            <p>Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
+            <p>Dicetak pada: ${new Date().toLocaleString('en-US')}</p>
             <p>Terima kasih atas pembayaran Anda</p>
           </div>
         </body>

@@ -90,7 +90,7 @@ export function InvoiceItemsManager({ items, onChange, kumiaiId }: InvoiceItemsM
                 <Label htmlFor={`nominal-${index}`}>Nominal Fee (Rp)</Label>
                 <Input
                   type="text"
-                  value={new Intl.NumberFormat('id-ID').format(item.nominal_fee || 0)}
+                  value={new Intl.NumberFormat('en-US').format(item.nominal_fee || 0)}
                   onChange={(e) => handleNominalChange(index, e.target.value)}
                   placeholder="0"
                 />

@@ -18,13 +18,13 @@ interface SiswaMagangTableProps {
   visibleColumns?: SiswaColumnConfig[];
 }
 
-export function SiswaMagangTable({ 
-  siswaMagang, 
-  searchTerm, 
-  onView, 
-  onEdit, 
-  onDelete, 
-  isDeleting, 
+export function SiswaMagangTable({
+  siswaMagang,
+  searchTerm,
+  onView,
+  onEdit,
+  onDelete,
+  isDeleting,
   visibleColumns = []
 }: SiswaMagangTableProps) {
   if (!siswaMagang || siswaMagang.length === 0) {
@@ -50,31 +50,31 @@ export function SiswaMagangTable({
 
   const formatCurrency = (amount: number | null) => {
     if (!amount) return '-';
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount).replace('IDR', 'Rp');
   };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
     try {
-      return new Date(dateString).toLocaleDateString('id-ID');
+      return new Date(dateString).toLocaleDateString('en-US');
     } catch {
       return dateString;
     }
   };
 
   // Filter data based on search term if provided
-  const filteredData = searchTerm 
-    ? siswaMagang.filter(item => 
-        item.siswa?.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.lokasi?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.siswa?.nik?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.kumiai?.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.perusahaan?.nama?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+  const filteredData = searchTerm
+    ? siswaMagang.filter(item =>
+      item.siswa?.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.lokasi?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.siswa?.nik?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.kumiai?.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.perusahaan?.nama?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : siswaMagang;
 
   // Helper function to check if column is visible
@@ -109,8 +109,8 @@ export function SiswaMagangTable({
         </TableHeader>
         <TableBody>
           {filteredData.map((item) => (
-            <TableRow 
-              key={item.id} 
+            <TableRow
+              key={item.id}
               className="cursor-pointer hover:bg-muted/50 transition-colors"
               onClick={() => onView && onView(item)}
             >
@@ -205,9 +205,9 @@ export function SiswaMagangTable({
                 <TableCell>
                   <div className="flex items-center gap-1">
                     {onView && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           onView(item);
@@ -217,9 +217,9 @@ export function SiswaMagangTable({
                       </Button>
                     )}
                     {onEdit && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           onEdit(item);
@@ -229,9 +229,9 @@ export function SiswaMagangTable({
                       </Button>
                     )}
                     {onDelete && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           onDelete(item.id);

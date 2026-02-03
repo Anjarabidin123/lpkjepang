@@ -1,8 +1,7 @@
-
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from './useAuth';
-import { pemasukanTable, kategoriPemasukanTable } from '@/lib/localStorage/tables';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export interface Pemasukan {
   id: string;
@@ -20,136 +19,86 @@ export interface Pemasukan {
 }
 
 export function usePemasukan() {
-  const [incomes, setIncomes] = useState<Pemasukan[]>([]);
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const fetchIncomes = async () => {
-    setLoading(true);
-    try {
-      const data = pemasukanTable.getAll();
-      const categories = kategoriPemasukanTable.getAll();
-      
-      const processedData = data.map(item => {
-        const category = categories.find(c => c.id === item.kategori_id);
-        return {
-          ...item,
-          nominal: Number(item.nominal) || 0,
-          kategori_pemasukan: category ? {
-            id: category.id,
-            nama_kategori: category.nama_kategori
-          } : undefined
-        };
-      }).sort((a, b) => new Date(b.tanggal_pemasukan).getTime() - new Date(a.tanggal_pemasukan).getTime());
-      
-      setIncomes(processedData);
-    } catch (error) {
-      console.error('Error fetching income data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load income data",
-        variant: "destructive",
-      });
-      setIncomes([]);
-    } finally {
-      setLoading(false);
+  const { data: incomes = [], isLoading: loading } = useQuery({
+    queryKey: ['pemasukan'],
+    queryFn: async () => {
+      const response = await authFetch(endpoints.pemasukan);
+      if (!response.ok) throw new Error('Failed to fetch income data');
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        kategori_id: item.kategori_id?.toString(),
+        nominal: Number(item.nominal) || 0,
+        kategori_pemasukan: item.kategori ? {
+          id: item.kategori.id.toString(),
+          nama_kategori: item.kategori.nama_kategori
+        } : undefined
+      })) as Pemasukan[];
     }
-  };
+  });
 
-  const createIncome = async (data: Omit<Pemasukan, 'id' | 'created_at' | 'updated_at' | 'kategori_pemasukan'>) => {
-    try {
-      const insertedData = pemasukanTable.create({
-        kategori_id: data.kategori_id || null,
-        nama_pemasukan: data.nama_pemasukan,
-        nominal: Number(data.nominal),
-        tanggal_pemasukan: data.tanggal_pemasukan,
-        keterangan: data.keterangan || null
-      } as any);
-      
-      toast({
-        title: "Success",
-        description: "Income record created successfully",
+  const createMutation = useMutation({
+    mutationFn: async (data: Omit<Pemasukan, 'id' | 'created_at' | 'updated_at' | 'kategori_pemasukan'>) => {
+      const response = await authFetch(endpoints.pemasukan, {
+        method: 'POST',
+        body: JSON.stringify(data)
       });
-      
-      await fetchIncomes();
-      return insertedData;
-    } catch (error) {
-      console.error('Error creating income:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create income record",
-        variant: "destructive",
-      });
-      throw error;
+      if (!response.ok) throw new Error('Failed to create income record');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pemasukan'] });
+      toast({ title: "Success", description: "Income record created successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
+  });
 
-  const updateIncome = async (id: string, data: Partial<Pemasukan>) => {
-    try {
-      const updateData: any = {};
-      if (data.kategori_id !== undefined) updateData.kategori_id = data.kategori_id;
-      if (data.nama_pemasukan) updateData.nama_pemasukan = data.nama_pemasukan;
-      if (data.nominal !== undefined) updateData.nominal = Number(data.nominal);
-      if (data.tanggal_pemasukan) updateData.tanggal_pemasukan = data.tanggal_pemasukan;
-      if (data.keterangan !== undefined) updateData.keterangan = data.keterangan;
-
-      const updatedData = pemasukanTable.update(id, updateData);
-      
-      if (!updatedData) throw new Error('Failed to update income record');
-
-      toast({
-        title: "Success",
-        description: "Income record updated successfully",
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string } & Partial<Pemasukan>) => {
+      const response = await authFetch(`${endpoints.pemasukan}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
       });
-      
-      await fetchIncomes();
-      return updatedData;
-    } catch (error) {
-      console.error('Error updating income:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update income record",
-        variant: "destructive",
-      });
-      throw error;
+      if (!response.ok) throw new Error('Failed to update income record');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pemasukan'] });
+      toast({ title: "Success", description: "Income record updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
+  });
 
-  const deleteIncome = async (id: string) => {
-    try {
-      const success = pemasukanTable.delete(id);
-      
-      if (!success) throw new Error('Failed to delete income record');
-
-      toast({
-        title: "Success",
-        description: "Income record deleted successfully",
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await authFetch(`${endpoints.pemasukan}/${id}`, {
+        method: 'DELETE'
       });
-      
-      await fetchIncomes();
-    } catch (error) {
-      console.error('Error deleting income:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete income record",
-        variant: "destructive",
-      });
-      throw error;
+      if (!response.ok) throw new Error('Failed to delete income record');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pemasukan'] });
+      toast({ title: "Success", description: "Income record deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
-
-  useEffect(() => {
-    fetchIncomes();
-  }, []);
+  });
 
   return {
     incomes,
     loading,
-    createIncome,
-    updateIncome,
-    deleteIncome,
-    fetchIncomes,
-    isAuthenticated: !!user,
+    createIncome: createMutation.mutateAsync,
+    updateIncome: (id: string, data: any) => updateMutation.mutateAsync({ id, ...data }),
+    deleteIncome: deleteMutation.mutateAsync,
+    fetchIncomes: () => queryClient.invalidateQueries({ queryKey: ['pemasukan'] }),
   };
 }

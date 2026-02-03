@@ -1,13 +1,25 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { posisiKerjaTable, perusahaanTable, jenisKerjaTable } from '@/lib/localStorage/tables';
+// import { posisiKerjaTable, perusahaanTable, jenisKerjaTable } from '@/lib/localStorage/tables';
 import { useToast } from '@/hooks/use-toast';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 interface PosisiKerja {
   id: string;
   nama: string;
   kode: string;
+  posisi: string;
   deskripsi: string | null;
+  lokasi: string | null;
+  kuota: number | null;
+  terisi: number | null;
+  gaji_harian: number | null;
+  jam_kerja: string | null;
+  persyaratan: string | null;
+  status: string | null;
+  tanggal_buka: string | null;
+  tanggal_tutup: string | null;
   perusahaan_id: string | null;
   jenis_kerja_id: string | null;
   created_at: string;
@@ -34,37 +46,36 @@ export function usePosisiKerja() {
   const { data: posisiKerja, isLoading, error } = useQuery({
     queryKey: ['posisi_kerja'],
     queryFn: async () => {
-      console.log('Fetching posisi kerja from localStorage...');
-      const posisiData = posisiKerjaTable.getAll() as PosisiKerja[];
-      const perusahaanData = perusahaanTable.getAll() as any[];
-      const jenisKerjaData = jenisKerjaTable.getAll() as any[];
-
-      // Join relations
-      const processedData = posisiData.map(item => ({
+      console.log('Fetching posisi kerja from Laravel API...');
+      const response = await authFetch(endpoints.posisiKerja);
+      if (!response.ok) throw new Error('Failed to fetch posisi kerja');
+      const data = await response.json();
+      return data.map((item: any) => ({
         ...item,
-        perusahaan: item.perusahaan_id 
-          ? perusahaanData.find(p => p.id === item.perusahaan_id) 
-            ? { id: perusahaanData.find(p => p.id === item.perusahaan_id)!.id, nama: perusahaanData.find(p => p.id === item.perusahaan_id)!.nama, kode: perusahaanData.find(p => p.id === item.perusahaan_id)!.kode }
-            : null
-          : null,
-        jenis_kerja: item.jenis_kerja_id
-          ? jenisKerjaData.find(j => j.id === item.jenis_kerja_id)
-            ? { id: jenisKerjaData.find(j => j.id === item.jenis_kerja_id)!.id, nama: jenisKerjaData.find(j => j.id === item.jenis_kerja_id)!.nama, kode: jenisKerjaData.find(j => j.id === item.jenis_kerja_id)!.kode }
-            : null
-          : null,
-      }));
-
-      console.log('Posisi kerja fetched successfully:', processedData.length, 'records');
-      return processedData;
+        id: item.id.toString(),
+        perusahaan_id: item.perusahaan_id?.toString(),
+        jenis_kerja_id: item.jenis_kerja_id?.toString()
+      })) as PosisiKerja[];
     },
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: PosisiKerjaInsert) => {
-      const result = posisiKerjaTable.create(data);
-      return result as PosisiKerja;
+      const response = await authFetch(endpoints.posisiKerja, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Gagal menambahkan posisi kerja');
+      }
+      const result = await response.json();
+      return {
+        ...result,
+        id: result.id.toString(),
+        perusahaan_id: result.perusahaan_id?.toString(),
+        jenis_kerja_id: result.jenis_kerja_id?.toString()
+      } as PosisiKerja;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posisi_kerja'] });
@@ -84,9 +95,21 @@ export function usePosisiKerja() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: PosisiKerjaUpdate }) => {
-      const result = posisiKerjaTable.update(id, data);
-      if (!result) throw new Error('Posisi kerja tidak ditemukan');
-      return result as PosisiKerja;
+      const response = await authFetch(`${endpoints.posisiKerja}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Gagal memperbarui posisi kerja');
+      }
+      const result = await response.json();
+      return {
+        ...result,
+        id: result.id.toString(),
+        perusahaan_id: result.perusahaan_id?.toString(),
+        jenis_kerja_id: result.jenis_kerja_id?.toString()
+      } as PosisiKerja;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posisi_kerja'] });
@@ -106,8 +129,10 @@ export function usePosisiKerja() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const success = posisiKerjaTable.delete(id);
-      if (!success) throw new Error('Gagal menghapus posisi kerja');
+      const response = await authFetch(`${endpoints.posisiKerja}/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Gagal menghapus posisi kerja');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posisi_kerja'] });

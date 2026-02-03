@@ -57,7 +57,7 @@ export class JobOrderPdfService {
                   <small>NIK: ${participant.siswa?.nik || '-'}</small>
                 </td>
                 <td style="border: 1px solid #000; padding: 8px; text-align: center;">
-                  ${participant.siswa?.tanggal_lahir ? new Date(participant.siswa.tanggal_lahir).toLocaleDateString('id-ID') : '-'}
+                  ${participant.siswa?.tanggal_lahir ? new Date(participant.siswa.tanggal_lahir).toLocaleDateString('en-US') : '-'}
                 </td>
                 <td style="border: 1px solid #000; padding: 8px; text-align: center;">-</td>
                 <td style="border: 1px solid #000; padding: 8px; text-align: center;">-</td>
@@ -76,7 +76,7 @@ export class JobOrderPdfService {
         </table>
         
         <div style="margin-top: 30px; text-align: right; font-size: 10px;">
-          Dicetak pada: ${new Date().toLocaleDateString('id-ID', { 
+          Dicetak pada: ${new Date().toLocaleDateString('en-US', { 
             year: 'numeric', 
             month: 'long', 
             day: 'numeric',

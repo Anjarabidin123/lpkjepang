@@ -1,103 +1,78 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import type { CreateSiswaData, UpdateSiswaData } from './types';
+import { useToast } from '@/hooks/use-toast';
+import { siswaService } from '@/services/siswaService';
+import { Siswa } from './types';
 
 const SISWA_QUERY_KEY = 'siswa';
 
 export function useSiswaMutations() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
 
-  const createSiswa = useMutation({
-    mutationFn: async (data: CreateSiswaData) => {
-      console.log('Creating siswa with data:', data);
-      
-      const { data: result, error } = await supabase
-        .from('siswa')
-        .insert([data])
-        .select()
-        .single();
+    const createMutation = useMutation({
+        mutationFn: (newSiswa: Omit<Siswa, 'id' | 'created_at' | 'updated_at'>) =>
+            siswaService.create(newSiswa),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [SISWA_QUERY_KEY] });
+            toast({
+                title: "Berhasil",
+                description: "Data siswa berhasil ditambahkan",
+            });
+        },
+        onError: (error: Error) => {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+        },
+    });
 
-      if (error) {
-        console.error('Error creating siswa:', error);
-        throw error;
-      }
+    const updateMutation = useMutation({
+        mutationFn: (data: Partial<Siswa> & { id: string }) =>
+            siswaService.update(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [SISWA_QUERY_KEY] });
+            toast({
+                title: "Berhasil",
+                description: "Data siswa berhasil diperbarui",
+            });
+        },
+        onError: (error: Error) => {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+        },
+    });
 
-      console.log('Siswa created successfully:', result);
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SISWA_QUERY_KEY] });
-      toast.success('Siswa berhasil ditambahkan');
-    },
-    onError: (error) => {
-      console.error('Error creating siswa:', error);
-      toast.error('Gagal menambahkan siswa');
-    },
-  });
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) =>
+            siswaService.delete(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [SISWA_QUERY_KEY] });
+            toast({
+                title: "Berhasil",
+                description: "Data siswa berhasil dihapus",
+            });
+        },
+        onError: (error: Error) => {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+        },
+    });
 
-  const updateSiswa = useMutation({
-    mutationFn: async ({ id, ...data }: UpdateSiswaData) => {
-      console.log('Updating siswa:', id, 'with data:', data);
-      
-      const { data: result, error } = await supabase
-        .from('siswa')
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error updating siswa:', error);
-        throw error;
-      }
-
-      console.log('Siswa updated successfully:', result);
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SISWA_QUERY_KEY] });
-      toast.success('Siswa berhasil diperbarui');
-    },
-    onError: (error) => {
-      console.error('Error updating siswa:', error);
-      toast.error('Gagal memperbarui siswa');
-    },
-  });
-
-  const deleteSiswa = useMutation({
-    mutationFn: async (id: string) => {
-      console.log('Deleting siswa:', id);
-      
-      const { error } = await supabase
-        .from('siswa')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting siswa:', error);
-        throw error;
-      }
-
-      console.log('Siswa deleted successfully');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SISWA_QUERY_KEY] });
-      toast.success('Siswa berhasil dihapus');
-    },
-    onError: (error) => {
-      console.error('Error deleting siswa:', error);
-      toast.error('Gagal menghapus siswa');
-    },
-  });
-
-  return {
-    createSiswa: createSiswa.mutate,
-    updateSiswa: updateSiswa.mutate,
-    deleteSiswa: deleteSiswa.mutate,
-    isCreating: createSiswa.isPending,
-    isUpdating: updateSiswa.isPending,
-    isDeleting: deleteSiswa.isPending,
-  };
+    return {
+        createSiswa: createMutation.mutate,
+        updateSiswa: updateMutation.mutate,
+        deleteSiswa: deleteMutation.mutate,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
 }

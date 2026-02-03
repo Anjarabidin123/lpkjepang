@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 import { Save, Edit2, Eye, EyeOff, Shield, AlertTriangle, Lock } from 'lucide-react';
 import { SecurityService } from '@/services/securityService';
 
@@ -39,6 +40,10 @@ export function PasswordChange() {
   const validatePasswords = (): string[] => {
     const errors: string[] = [];
 
+    if (!passwordData.currentPassword) {
+      errors.push('Current password is required');
+    }
+
     if (!passwordData.newPassword || !passwordData.confirmPassword) {
       errors.push('Please fill in all password fields');
     }
@@ -64,7 +69,7 @@ export function PasswordChange() {
 
   const handlePasswordUpdate = async () => {
     const validationErrors = validatePasswords();
-    
+
     if (validationErrors.length > 0) {
       toast({
         title: "Password Requirements Not Met",
@@ -79,25 +84,31 @@ export function PasswordChange() {
       // Log password change attempt
       await SecurityService.logSecurityEvent({
         event_type: 'password_change_attempt',
-        event_details: { 
+        event_details: {
           timestamp: new Date().toISOString(),
           password_strength: passwordStrength.score
         }
       });
 
-      // Update password using Supabase auth
-      const { error } = await supabase.auth.updateUser({
-        password: passwordData.newPassword
+      // Update password using Laravel API
+      const response = await authFetch(endpoints.auth.changePassword, {
+        method: 'POST',
+        body: JSON.stringify({
+          current_password: passwordData.currentPassword,
+          new_password: passwordData.newPassword,
+          new_password_confirmation: passwordData.confirmPassword
+        })
       });
 
-      if (error) {
-        throw new Error(error.message);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to change password');
       }
 
       // Log successful password change
       await SecurityService.logSecurityEvent({
         event_type: 'password_changed',
-        event_details: { 
+        event_details: {
           timestamp: new Date().toISOString(),
           password_strength: passwordStrength.score
         }
@@ -123,10 +134,10 @@ export function PasswordChange() {
 
     } catch (error) {
       console.error('Error updating password:', error);
-      
+
       await SecurityService.logSecurityEvent({
         event_type: 'password_change_failed',
-        event_details: { 
+        event_details: {
           timestamp: new Date().toISOString(),
           error: error instanceof Error ? error.message : 'Unknown error'
         }
@@ -164,11 +175,11 @@ export function PasswordChange() {
   };
 
   const isFormValid = () => {
-    return passwordData.newPassword && 
-           passwordData.confirmPassword && 
-           passwordValidation.isValid && 
-           passwordData.newPassword === passwordData.confirmPassword &&
-           !SecurityService.isCommonPassword(passwordData.newPassword);
+    return passwordData.newPassword &&
+      passwordData.confirmPassword &&
+      passwordValidation.isValid &&
+      passwordData.newPassword === passwordData.confirmPassword &&
+      !SecurityService.isCommonPassword(passwordData.newPassword);
   };
 
   return (
@@ -204,14 +215,40 @@ export function PasswordChange() {
 
             <div className="space-y-4">
               <div className="relative">
+                <Label htmlFor="currentPassword">Current Password *</Label>
+                <div className="relative">
+                  <Input
+                    id="currentPassword"
+                    type={showPasswords.current ? "text" : "password"}
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData(prev => ({
+                      ...prev,
+                      currentPassword: SecurityService.sanitizeInput(e.target.value)
+                    }))}
+                    placeholder="Enter your current password"
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => togglePasswordVisibility('current')}
+                  >
+                    {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="relative">
                 <Label htmlFor="newPassword">New Password *</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
                     type={showPasswords.new ? "text" : "password"}
                     value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData(prev => ({ 
-                      ...prev, 
+                    onChange={(e) => setPasswordData(prev => ({
+                      ...prev,
                       newPassword: SecurityService.sanitizeInput(e.target.value)
                     }))}
                     placeholder="Enter new secure password"
@@ -227,7 +264,7 @@ export function PasswordChange() {
                     {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
-                
+
                 {passwordData.newPassword && (
                   <div className="mt-2 space-y-2">
                     <div className="flex justify-between text-sm">
@@ -249,7 +286,7 @@ export function PasswordChange() {
                   </div>
                 )}
               </div>
-              
+
               <div className="relative">
                 <Label htmlFor="confirmPassword">Confirm New Password *</Label>
                 <div className="relative">
@@ -257,8 +294,8 @@ export function PasswordChange() {
                     id="confirmPassword"
                     type={showPasswords.confirm ? "text" : "password"}
                     value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData(prev => ({ 
-                      ...prev, 
+                    onChange={(e) => setPasswordData(prev => ({
+                      ...prev,
                       confirmPassword: SecurityService.sanitizeInput(e.target.value)
                     }))}
                     placeholder="Confirm new password"
@@ -304,8 +341,8 @@ export function PasswordChange() {
             )}
 
             <div className="flex gap-2 pt-4">
-              <Button 
-                onClick={handlePasswordUpdate} 
+              <Button
+                onClick={handlePasswordUpdate}
                 disabled={isLoading || !isFormValid()}
                 className="flex items-center gap-2"
               >

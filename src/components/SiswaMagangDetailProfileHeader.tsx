@@ -10,16 +10,16 @@ interface SiswaMagangDetailProfileHeaderProps {
   getStatusBadgeVariant: (status: string | null) => "default" | "secondary" | "destructive" | "outline";
 }
 
-export function SiswaMagangDetailProfileHeader({ 
-  siswaMagang, 
-  getStatusBadgeVariant 
+export function SiswaMagangDetailProfileHeader({
+  siswaMagang,
+  getStatusBadgeVariant
 }: SiswaMagangDetailProfileHeaderProps) {
   return (
     <div className="flex items-center space-x-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border h-full">
       <div className="relative">
         <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
-          <AvatarImage 
-            src={siswaMagang.avatar_url || ''} 
+          <AvatarImage
+            src={siswaMagang.avatar_url || ''}
             alt={`Foto ${siswaMagang.siswa?.nama || 'Siswa'}`}
             className="object-cover"
             onError={(e) => {
@@ -44,7 +44,7 @@ export function SiswaMagangDetailProfileHeader({
           <Badge variant={getStatusBadgeVariant(siswaMagang.status_magang)} className="px-3 py-1">
             {siswaMagang.status_magang || 'Aktif'}
           </Badge>
-          <span className="text-sm text-gray-500">ID: {siswaMagang.id.slice(0, 8)}...</span>
+          <span className="text-sm text-gray-500">ID: {siswaMagang.id.toString().slice(0, 8)}...</span>
           {siswaMagang.avatar_url && (
             <span className="text-sm text-green-600 font-medium">
               📷 Foto tersedia

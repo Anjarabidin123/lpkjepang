@@ -70,7 +70,7 @@ function formatDate(dateString: string | undefined) {
   if (!dateString) return '-';
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return '-';
-  return date.toLocaleDateString('id-ID', { 
+  return date.toLocaleDateString('en-US', { 
     day: 'numeric', 
     month: 'short', 
     year: 'numeric' 

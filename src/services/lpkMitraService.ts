@@ -1,40 +1,73 @@
 
-import { lpkMitraTable } from '@/lib/localStorage/tables';
+import { endpoints } from '@/config/api';
 import { LpkMitra, CreateLpkMitraData, UpdateLpkMitraData } from '@/types/lpkMitra';
+import { authFetch } from '@/lib/api-client';
 
 export class LpkMitraService {
   static async fetchAll(): Promise<LpkMitra[]> {
-    console.log('Fetching all LPK Mitra from localStorage...');
-    const data = lpkMitraTable.getAll();
-    console.log('Fetched LPK Mitra:', data);
-    return (data as LpkMitra[]) || [];
+    console.log('Fetching all LPK Mitra from Laravel API...');
+    try {
+      const response = await authFetch(endpoints.lpkMitra);
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        nama_lpk: item.nama_lpk || item.nama // Handle naming mismatch (backend 'nama' -> frontend 'nama_lpk')
+      })) as LpkMitra[];
+    } catch (e) {
+      return [];
+    }
   }
 
   static async fetchById(id: string): Promise<LpkMitra | null> {
-    console.log('Fetching LPK Mitra by ID from localStorage:', id);
-    const data = lpkMitraTable.getById(id);
-    return data as LpkMitra | null;
+    try {
+      const response = await authFetch(`${endpoints.lpkMitra}/${id}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return {
+        ...data,
+        id: data.id.toString(),
+        nama_lpk: data.nama_lpk || data.nama
+      } as LpkMitra;
+    } catch (e) {
+      return null;
+    }
   }
 
   static async create(lpkMitraData: CreateLpkMitraData): Promise<LpkMitra | null> {
-    console.log('Creating LPK Mitra in localStorage:', lpkMitraData);
-    const data = lpkMitraTable.create(lpkMitraData);
-    console.log('Created LPK Mitra:', data);
-    return data as LpkMitra;
+    const response = await authFetch(endpoints.lpkMitra, {
+      method: 'POST',
+      body: JSON.stringify(lpkMitraData)
+    });
+    if (!response.ok) throw new Error('Failed to create LPK Mitra');
+    const data = await response.json();
+    return {
+      ...data,
+      id: data.id.toString(),
+      nama_lpk: data.nama_lpk || data.nama
+    } as LpkMitra;
   }
 
   static async update(id: string, updateData: UpdateLpkMitraData): Promise<LpkMitra | null> {
-    console.log('Updating LPK Mitra in localStorage:', { id, updateData });
-    const data = lpkMitraTable.update(id, updateData);
-    console.log('Updated LPK Mitra:', data);
-    return data as LpkMitra;
+    const response = await authFetch(`${endpoints.lpkMitra}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData)
+    });
+    if (!response.ok) throw new Error('Failed to update LPK Mitra');
+    const data = await response.json();
+    return {
+      ...data,
+      id: data.id.toString(),
+      nama_lpk: data.nama_lpk || data.nama
+    } as LpkMitra;
   }
 
   static async delete(id: string): Promise<boolean> {
-    console.log('Deleting LPK Mitra from localStorage:', id);
-    const success = lpkMitraTable.delete(id);
-    console.log('Deleted LPK Mitra successfully');
-    return success;
+    const response = await authFetch(`${endpoints.lpkMitra}/${id}`, {
+      method: 'DELETE'
+    });
+    return response.ok;
   }
 }
 

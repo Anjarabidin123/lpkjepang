@@ -268,7 +268,23 @@ const dreiElems = [
     "OrbitControls"
 ];
 
-const shouldTag = (name) => !threeFiberElems.includes(name) && !dreiElems.includes(name);
+const muiProviders = [
+    "ThemeProvider",
+    "MuiThemeProvider",
+    "CssBaseline",
+    "StyledEngineProvider",
+    "CacheProvider",
+    "LocalizationProvider",
+    "AuthProvider",
+    "QueryClientProvider",
+    "TooltipProvider",
+    "Slot"
+];
+
+const shouldTag = (name) =>
+    !threeFiberElems.includes(name) &&
+    !dreiElems.includes(name) &&
+    !muiProviders.includes(name);
 
 // ➕ Collect aliases of the Next.js <Image> component so we can reliably tag it even if it was renamed.
 const isNextImageAlias = (aliases, name) => aliases.has(name);
@@ -328,7 +344,7 @@ const findMapContext = (node, variables) => {
     let current = node;
     let depth = 0;
     const maxDepth = 10; // Prevent infinite loops
-    
+
     while (current && depth < maxDepth) {
         if (current.type === 'CallExpression' &&
             current.callee?.type === 'MemberExpression' &&
@@ -336,11 +352,11 @@ const findMapContext = (node, variables) => {
             // Found a .map() call, check if it's on a known array
             const arrayName = current.callee.object?.name;
             const mapCallback = current.arguments?.[0];
-            
+
             if (arrayName && mapCallback?.type === 'ArrowFunctionExpression') {
                 const itemParam = mapCallback.params?.[0];
                 const indexParam = mapCallback.params?.[1];
-                
+
                 if (itemParam?.type === 'Identifier') {
                     const varInfo = variables.get(arrayName);
                     return {
@@ -356,26 +372,26 @@ const findMapContext = (node, variables) => {
         current = current.parent;
         depth++;
     }
-    
+
     return null;
 };
 
 const getSemanticName = (node, mapContext, imageAliases) => {
     const getName = () => {
         if (node.name.type === 'JSXIdentifier') return node.name.name;
-        if (node.name.type === 'JSXMemberExpression') 
+        if (node.name.type === 'JSXMemberExpression')
             return `${node.name.object.name}.${node.name.property.name}`;
         return null;
     };
-    
+
     const tagName = getName();
     if (!tagName) return null;
-    
+
     // For Next.js Image components, always return 'img' so the name is a valid HTML tag.
     if (isNextImageAlias(imageAliases, tagName)) {
         return 'img';
     }
-    
+
     return tagName;
 };
 
@@ -391,11 +407,11 @@ function transformSource(src, filename) {
             sourceType: 'module',
             plugins: ['jsx', 'typescript'],
         });
-        
+
         const ms = new MagicString(src);
         const rel = path.relative(process.cwd(), filename);
         let mutated = false;
-        
+
         // Add parent references to AST nodes for upward traversal (non-enumerable to avoid infinite recursion)
         walk(ast, {
             enter(node, parent) {
@@ -404,10 +420,10 @@ function transformSource(src, filename) {
                 }
             }
         });
-        
+
         // 0️⃣ Collect variable declarations first
         const variables = findVariableDeclarations(ast);
-        
+
         // 1️⃣ Gather local identifiers that reference `next/image`.
         const imageAliases = new Set();
         walk(ast, {
@@ -420,28 +436,28 @@ function transformSource(src, filename) {
                 }
             },
         });
-        
+
         // 2️⃣ Inject attributes with enhanced semantic context.
         walk(ast, {
             enter(node) {
                 if (node.type !== 'JSXOpeningElement') return;
-                
+
                 const mapContext = findMapContext(node, variables);
                 const semanticName = getSemanticName(node, mapContext, imageAliases);
-                
+
                 if (!semanticName ||
                     ['Fragment', 'React.Fragment'].includes(semanticName) ||
                     (!isNextImageAlias(imageAliases, semanticName.split('-')[0]) &&
                         !shouldTag(semanticName))) return;
-                
+
                 const { line, column } = node.loc.start;
                 let orchidsId = `${rel}:${line}:${column}`;
-                
+
                 // Enhance the ID with context if we have map information
                 if (mapContext) {
                     orchidsId += `@${mapContext.arrayName}`;
                 }
-                
+
                 // 🔍 Append referenced variable locations for simple identifier references in props
                 node.attributes?.forEach((attr) => {
                     if (attr.type === 'JSXAttribute' &&
@@ -449,30 +465,30 @@ function transformSource(src, filename) {
                         attr.value.expression?.type === 'Identifier') {
                         const refName = attr.value.expression.name;
                         const varInfo = variables.get(refName);
-                        
+
                         if (varInfo) {
                             orchidsId += `@${refName}`;
                         }
                     }
                 });
-                
+
                 // 📍 If inside a map context and we have an index variable, inject data-map-index
                 if (mapContext?.indexVarName) {
                     ms.appendLeft(node.name.end, ` data-map-index={${mapContext.indexVarName}}`);
                 }
-                
+
                 ms.appendLeft(node.name.end, ` data-orchids-id="${orchidsId}" data-orchids-name="${semanticName}"`);
                 mutated = true;
             },
         });
-        
+
         if (mutated) {
             return {
                 code: ms.toString(),
                 map: ms.generateMap({ hires: true })
             };
         }
-        
+
         return { code: src };
     } catch (err) {
         console.error('[componentTagger] Parse error:', err);

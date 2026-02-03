@@ -1,121 +1,84 @@
-
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { itemPembayaranTable } from '@/lib/localStorage/tables';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export function useItemPembayaran() {
-  const [itemPembayaranList, setItemPembayaranList] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchItemPembayaran = async () => {
-    setLoading(true);
-    try {
-      const data = itemPembayaranTable.getAll();
-      
-      const processedData = data.map(item => ({
+  const { data: itemPembayaranList = [], isLoading: loading } = useQuery({
+    queryKey: ['item-pembayaran'],
+    queryFn: async () => {
+      const response = await authFetch(endpoints.itemPembayaran);
+      if (!response.ok) throw new Error('Failed to fetch item pembayaran');
+      const data = await response.json();
+      return data.map((item: any) => ({
         ...item,
+        id: item.id.toString(),
         nominal_wajib: Number(item.nominal_wajib) || 0
-      })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
-      setItemPembayaranList(processedData);
-    } catch (error) {
-      console.error('Error fetching item pembayaran:', error);
-      toast({
-        title: "Error",
-        description: "Gagal memuat data item pembayaran",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+      }));
     }
-  };
+  });
 
-  const createItemPembayaran = async (data: any) => {
-    try {
-      const processedData = {
-        ...data,
-        nominal_wajib: Number(data.nominal_wajib) || 0
-      };
-      
-      itemPembayaranTable.create(processedData);
-
-      toast({
-        title: "Berhasil",
-        description: "Item pembayaran berhasil ditambahkan",
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await authFetch(endpoints.itemPembayaran, {
+        method: 'POST',
+        body: JSON.stringify(data)
       });
-      
-      await fetchItemPembayaran();
-    } catch (error) {
-      console.error('Error creating item pembayaran:', error);
-      toast({
-        title: "Error",
-        description: "Gagal menambahkan item pembayaran",
-        variant: "destructive",
-      });
-      throw error;
+      if (!response.ok) throw new Error('Failed to create item pembayaran');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['item-pembayaran'] });
+      toast({ title: "Berhasil", description: "Item pembayaran berhasil ditambahkan" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
+  });
 
-  const updateItemPembayaran = async (id: string, data: any) => {
-    try {
-      const processedData = {
-        ...data,
-        nominal_wajib: Number(data.nominal_wajib) || 0
-      };
-      
-      itemPembayaranTable.update(id, processedData);
-
-      toast({
-        title: "Berhasil",
-        description: "Item pembayaran berhasil diperbarui",
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string } & any) => {
+      const response = await authFetch(`${endpoints.itemPembayaran}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
       });
-      
-      await fetchItemPembayaran();
-    } catch (error) {
-      console.error('Error updating item pembayaran:', error);
-      toast({
-        title: "Error",
-        description: "Gagal memperbarui item pembayaran",
-        variant: "destructive",
-      });
-      throw error;
+      if (!response.ok) throw new Error('Failed to update item pembayaran');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['item-pembayaran'] });
+      toast({ title: "Berhasil", description: "Item pembayaran berhasil diperbarui" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
+  });
 
-  const deleteItemPembayaran = async (id: string) => {
-    try {
-      const success = itemPembayaranTable.delete(id);
-      
-      if (!success) throw new Error('Failed to delete item pembayaran');
-
-      toast({
-        title: "Berhasil",
-        description: "Item pembayaran berhasil dihapus",
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await authFetch(`${endpoints.itemPembayaran}/${id}`, {
+        method: 'DELETE'
       });
-      
-      await fetchItemPembayaran();
-    } catch (error) {
-      console.error('Error deleting item pembayaran:', error);
-      toast({
-        title: "Error",
-        description: "Gagal menghapus item pembayaran",
-        variant: "destructive",
-      });
-      throw error;
+      if (!response.ok) throw new Error('Failed to delete item pembayaran');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['item-pembayaran'] });
+      toast({ title: "Berhasil", description: "Item pembayaran berhasil dihapus" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
-
-  useEffect(() => {
-    fetchItemPembayaran();
-  }, []);
+  });
 
   return {
     itemPembayaranList,
     loading,
-    createItemPembayaran,
-    updateItemPembayaran,
-    deleteItemPembayaran,
-    fetchItemPembayaran,
+    createItemPembayaran: createMutation.mutateAsync,
+    updateItemPembayaran: (id: string, data: any) => updateMutation.mutateAsync({ id, ...data }),
+    deleteItemPembayaran: deleteMutation.mutateAsync,
+    fetchItemPembayaran: () => queryClient.invalidateQueries({ queryKey: ['item-pembayaran'] }),
   };
 }

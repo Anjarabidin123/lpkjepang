@@ -1,147 +1,119 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from './useAuth';
+import { useState, useEffect, useCallback } from 'react';
+import { authFetch } from '@/lib/api-client';
+import { endpoints } from '@/config/api';
 
 export interface FinanceReportData {
-  totalIncome: number;
-  totalExpense: number;
-  netProfit: number;
-  incomeByCategory: Array<{ kategori: string; total: number }>;
-  expenseByCategory: Array<{ kategori: string; total: number }>;
-  monthlyTrends: Array<{ 
-    month: string; 
-    income: number; 
-    expense: number; 
-    profit: number 
-  }>;
+    totalIncome: number;
+    totalExpense: number;
+    netProfit: number;
+    incomeByCategory: Array<{ kategori: string; total: number }>;
+    expenseByCategory: Array<{ kategori: string; total: number }>;
+    monthlyTrends: Array<{
+        month: string;
+        income: number;
+        expense: number;
+        profit: number;
+    }>;
 }
 
 export function useFinanceReport() {
-  const [reportData, setReportData] = useState<FinanceReportData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const { user } = useAuth();
+    const [reportData, setReportData] = useState<FinanceReportData | null>(null);
+    const [loading, setLoading] = useState(true);
 
-  const fetchReportData = async (startDate?: string, endDate?: string) => {
-    if (!user) {
-      setReportData(null);
-      return;
-    }
+    const fetchReportData = useCallback(async (startDate?: string, endDate?: string) => {
+        try {
+            setLoading(true);
 
-    setLoading(true);
-    try {
-      // Build date filter condition
-      let dateFilter = '';
-      if (startDate && endDate) {
-        dateFilter = `tanggal.gte.${startDate},tanggal.lte.${endDate}`;
-      }
+            // Fetch all required data for calculation
+            const [incomeRes, expenseRes] = await Promise.all([
+                authFetch(endpoints.pemasukan),
+                authFetch(endpoints.pengeluaran)
+            ]);
 
-      // Fetch arus kas data
-      const { data: arusKasData, error: arusKasError } = await supabase
-        .from('arus_kas')
-        .select('*')
-        .order('tanggal', { ascending: false });
+            const income = await incomeRes.json();
+            const expense = await expenseRes.json();
 
-      if (arusKasError) throw arusKasError;
+            // Filter by date if provided
+            const filterByDate = (items: any[]) => {
+                if (!startDate && !endDate) return items;
+                return items.filter(item => {
+                    const date = new Date(item.tanggal || item.created_at).getTime();
+                    const start = startDate ? new Date(startDate).getTime() : 0;
+                    const end = endDate ? new Date(endDate).getTime() : Infinity;
+                    return date >= start && date <= end;
+                });
+            };
 
-      // Filter by date if specified
-      let filteredData = arusKasData || [];
-      if (startDate && endDate) {
-        filteredData = filteredData.filter(item => 
-          item.tanggal >= startDate && item.tanggal <= endDate
-        );
-      }
+            const filteredIncome = filterByDate(income);
+            const filteredExpense = filterByDate(expense);
 
-      // Calculate totals
-      const incomeData = filteredData.filter(item => item.jenis === 'Pemasukan');
-      const expenseData = filteredData.filter(item => item.jenis === 'Pengeluaran');
+            // Calculations
+            const totalIncome = filteredIncome.reduce((sum: number, item: any) => sum + Number(item.jumlah), 0);
+            const totalExpense = filteredExpense.reduce((sum: number, item: any) => sum + Number(item.jumlah), 0);
 
-      const totalIncome = incomeData.reduce((sum, item) => sum + Number(item.nominal), 0);
-      const totalExpense = expenseData.reduce((sum, item) => sum + Number(item.nominal), 0);
-      const netProfit = totalIncome - totalExpense;
+            // Group by category
+            const incomeByCategory = Object.entries(
+                filteredIncome.reduce((acc: any, item: any) => {
+                    const cat = item.kategori?.nama || 'Lainnya';
+                    acc[cat] = (acc[cat] || 0) + Number(item.jumlah);
+                    return acc;
+                }, {})
+            ).map(([kategori, total]) => ({ kategori, total: total as number }));
 
-      // Income by category
-      const incomeByCategory = incomeData.reduce((acc, item) => {
-        const existing = acc.find(cat => cat.kategori === item.kategori);
-        if (existing) {
-          existing.total += Number(item.nominal);
-        } else {
-          acc.push({ kategori: item.kategori, total: Number(item.nominal) });
+            const expenseByCategory = Object.entries(
+                filteredExpense.reduce((acc: any, item: any) => {
+                    const cat = item.kategori?.nama || 'Lainnya';
+                    acc[cat] = (acc[cat] || 0) + Number(item.jumlah);
+                    return acc;
+                }, {})
+            ).map(([kategori, total]) => ({ kategori, total: total as number }));
+
+            // Monthly Trends (simple logic for now)
+            const monthlyData: Record<string, { income: number; expense: number }> = {};
+
+            filteredIncome.forEach((item: any) => {
+                const month = new Date(item.tanggal || item.created_at).toISOString().substring(0, 7);
+                if (!monthlyData[month]) monthlyData[month] = { income: 0, expense: 0 };
+                monthlyData[month].income += Number(item.jumlah);
+            });
+
+            filteredExpense.forEach((item: any) => {
+                const month = new Date(item.tanggal || item.created_at).toISOString().substring(0, 7);
+                if (!monthlyData[month]) monthlyData[month] = { income: 0, expense: 0 };
+                monthlyData[month].expense += Number(item.jumlah);
+            });
+
+            const monthlyTrends = Object.entries(monthlyData)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([month, data]) => ({
+                    month,
+                    income: data.income,
+                    expense: data.expense,
+                    profit: data.income - data.expense
+                }));
+
+            setReportData({
+                totalIncome,
+                totalExpense,
+                netProfit: totalIncome - totalExpense,
+                incomeByCategory,
+                expenseByCategory,
+                monthlyTrends
+            });
+        } catch (error) {
+            console.error('Error calculating finance report:', error);
+        } finally {
+            setLoading(false);
         }
-        return acc;
-      }, [] as Array<{ kategori: string; total: number }>);
+    }, []);
 
-      // Expense by category
-      const expenseByCategory = expenseData.reduce((acc, item) => {
-        const existing = acc.find(cat => cat.kategori === item.kategori);
-        if (existing) {
-          existing.total += Number(item.nominal);
-        } else {
-          acc.push({ kategori: item.kategori, total: Number(item.nominal) });
-        }
-        return acc;
-      }, [] as Array<{ kategori: string; total: number }>);
+    useEffect(() => {
+        fetchReportData();
+    }, [fetchReportData]);
 
-      // Monthly trends
-      const monthlyData = filteredData.reduce((acc, item) => {
-        const month = new Date(item.tanggal).toISOString().substring(0, 7); // YYYY-MM
-        const existing = acc.find(m => m.month === month);
-        
-        if (existing) {
-          if (item.jenis === 'Pemasukan') {
-            existing.income += Number(item.nominal);
-          } else {
-            existing.expense += Number(item.nominal);
-          }
-          existing.profit = existing.income - existing.expense;
-        } else {
-          acc.push({
-            month,
-            income: item.jenis === 'Pemasukan' ? Number(item.nominal) : 0,
-            expense: item.jenis === 'Pengeluaran' ? Number(item.nominal) : 0,
-            profit: item.jenis === 'Pemasukan' ? Number(item.nominal) : -Number(item.nominal)
-          });
-        }
-        return acc;
-      }, [] as Array<{ month: string; income: number; expense: number; profit: number }>);
-
-      // Sort monthly trends by month
-      monthlyData.sort((a, b) => a.month.localeCompare(b.month));
-
-      setReportData({
-        totalIncome,
-        totalExpense,
-        netProfit,
-        incomeByCategory: incomeByCategory.sort((a, b) => b.total - a.total),
-        expenseByCategory: expenseByCategory.sort((a, b) => b.total - a.total),
-        monthlyTrends: monthlyData
-      });
-
-    } catch (error) {
-      console.error('Error fetching report data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load finance report data",
-        variant: "destructive",
-      });
-      setReportData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchReportData();
-    }
-  }, [user]);
-
-  return {
-    reportData,
-    loading,
-    fetchReportData,
-    isAuthenticated: !!user,
-  };
+    return {
+        reportData,
+        loading,
+        fetchReportData
+    };
 }

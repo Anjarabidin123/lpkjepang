@@ -272,7 +272,7 @@ export function ProfilLPKContent() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(profile.created_at).toLocaleDateString('id-ID')}
+                        {new Date(profile.created_at).toLocaleDateString('en-US')}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">

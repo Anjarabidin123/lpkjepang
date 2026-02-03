@@ -1,14 +1,6 @@
 
+import { endpoints } from '@/config/api';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  getSession, 
-  signIn as localSignIn, 
-  signUp as localSignUp, 
-  signOut as localSignOut,
-  initializeLocalStorage,
-  LocalSession,
-  getUserRole
-} from '@/lib/localStorage';
 
 interface User {
   id: string;
@@ -30,6 +22,11 @@ interface AuthError {
   name: string;
 }
 
+export interface LocalSession {
+  user: User;
+  access_token: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: LocalSession | null;
@@ -49,91 +46,103 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('Initializing localStorage auth...');
-    
-    // Initialize localStorage database
-    initializeLocalStorage();
-    
-    // Check for existing session
-    const existingSession = getSession();
-    console.log('Existing session:', existingSession ? 'Found' : 'None');
-    
-    if (existingSession) {
-      setSession(existingSession);
-      setUser(existingSession.user as User);
-      const role = getUserRole(existingSession.user.id);
-      setUserRole(role || 'user');
+    console.log('Initializing Laravel API auth...');
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+
+    if (token && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setSession({ user: parsedUser, access_token: token } as any);
+
+        // Restore role from stored user data
+        if (parsedUser.roles && parsedUser.roles.length > 0) {
+          setUserRole(parsedUser.roles[0]);
+        } else {
+          setUserRole('student');
+        }
+      } catch (e) {
+        console.error('Failed to parse stored user', e);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
-    
     setLoading(false);
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Attempting to sign in with email:', email);
+      console.log('Attempting to sign in to Laravel API...', email);
       setLoading(true);
-      
-      const result = await localSignIn(email, password);
-      
-      if (result.error) {
-        console.error('Sign in error:', result.error);
+
+      const response = await fetch(endpoints.auth.login, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
         setLoading(false);
-        return { error: { message: result.error, name: 'AuthError' } as AuthError };
+        return { error: { message: data.message || 'Login failed', name: 'AuthError' } };
       }
 
-      if (result.user) {
-        const newSession = getSession();
-        setSession(newSession);
-        setUser(result.user as User);
-        const role = getUserRole(result.user.id);
-        setUserRole(role || 'user');
-        console.log('Sign in successful:', result.user.email);
-      }
-      
+      // Login Sukses
+      // Extract roles names
+      const roles = data.user.roles && data.user.roles.length > 0
+        ? data.user.roles.map((r: any) => r.name)
+        : ['student']; // Default fallback role
+
+      const userData = {
+        id: data.user.id.toString(),
+        email: data.user.email,
+        full_name: data.user.name,
+        avatar_url: null,
+        roles: roles
+      };
+
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      setUser(userData as any);
+      setSession({ user: userData, access_token: data.access_token } as any);
+      setUserRole(roles[0]); // Primary role for simple checks
+
       setLoading(false);
       return { error: null };
     } catch (err) {
       console.error('Unexpected sign in error:', err);
       setLoading(false);
-      return { 
-        error: { 
-          message: 'An unexpected error occurred during sign in',
-          name: 'UnexpectedError'
-        } as AuthError 
-      };
+      return { error: { message: 'Network Error', name: 'UnexpectedError' } };
     }
   };
 
   const signUp = async (email: string, password: string) => {
-    try {
-      const result = await localSignUp(email, password);
-      
-      if (result.error) {
-        return { error: { message: result.error, name: 'AuthError' } as AuthError };
-      }
-      
-      return { error: null };
-    } catch (err) {
-      console.error('Unexpected sign up error:', err);
-      return { 
-        error: { 
-          message: 'An unexpected error occurred during sign up',
-          name: 'UnexpectedError'
-        } as AuthError 
-      };
-    }
+    return { error: { message: 'Registration disabled', name: 'AuthError' } };
   };
 
   const signOut = async () => {
     try {
-      console.log('Signing out user...');
-      await localSignOut();
+      const token = localStorage.getItem('token');
+      if (token) {
+        await fetch(endpoints.auth.logout, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error signing out:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setUser(null);
       setSession(null);
       setUserRole(null);
-      console.log('Sign out successful');
-    } catch (error) {
-      console.error('Error signing out:', error);
     }
   };
 

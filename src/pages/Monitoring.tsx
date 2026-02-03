@@ -1,206 +1,190 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Monitor } from 'lucide-react';
-import { MonitoringKPIGrid } from '@/components/Monitoring/MonitoringKPIGrid';
-import { MonitoringCharts } from '@/components/Monitoring/MonitoringCharts';
-import { MonitoringFilters } from '@/components/Monitoring/MonitoringFilters';
-import { MonitoringTable } from '@/components/Monitoring/MonitoringTable';
-import { useMonitoringData } from '@/hooks/useMonitoringData';
-import { useKumiai } from '@/hooks/useKumiai';
-import { useLpkMitra } from '@/hooks/useLpkMitra';
-import { AuthGuard } from '@/components/AuthGuard';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMonitoringData } from "@/hooks/useMonitoringData";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area,
+    LineChart, Line, Legend
+} from 'recharts';
+import {
+    Activity, Target, ShieldCheck, Users, TrendingUp, BarChart3,
+    Filter, Calendar, Building2, School
+} from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatNumber } from '@/lib/format';
 
-// Create mock KPI data structure to match expected interface
-const createMockKPIData = (data: any) => {
-  // Safe data processing with null checks
-  const safeData = data || {};
-  
-  return {
-    siswaMagangKPI: {
-      target: 100,
-      pencapaian: safeData.totalSiswaMagang || 0,
-      pertumbuhan: 5.2,
-      trend: 'up' as const
-    },
-    kumiaiKPI: {
-      target: 50,
-      pencapaian: safeData.totalKumiai || 0,
-      pertumbuhan: 2.1,
-      trend: 'up' as const
-    },
-    lpkMitraKPI: {
-      target: 20,
-      pencapaian: safeData.totalLpkMitra || 0,
-      pertumbuhan: 1.5,
-      trend: 'stable' as const
-    },
-    gajiKPI: {
-      target: 150000,
-      pencapaian: 135000,
-      pertumbuhan: -2.3,
-      trend: 'down' as const
-    },
-    chartData: safeData.siswa?.slice(0, 12).map((item: any, index: number) => ({
-      period: `Periode ${index + 1}`,
-      siswaMagang: Math.floor(Math.random() * 50) + 10,
-      target: 100,
-      pencapaian: Math.floor(Math.random() * 80) + 20
-    })) || Array.from({ length: 12 }, (_, index) => ({
-      period: `Periode ${index + 1}`,
-      siswaMagang: Math.floor(Math.random() * 50) + 10,
-      target: 100,
-      pencapaian: Math.floor(Math.random() * 80) + 20
-    })),
-    trendData: safeData.siswaMagang?.slice(0, 12).map((item: any, index: number) => ({
-      period: `Bulan ${index + 1}`,
-      value: Math.floor(Math.random() * 30) + 5,
-      category: 'Siswa Magang'
-    })) || Array.from({ length: 12 }, (_, index) => ({
-      period: `Bulan ${index + 1}`,
-      value: Math.floor(Math.random() * 30) + 5,
-      category: 'Siswa Magang'
-    })),
-    tableData: safeData.siswa?.slice(0, 10).map((item: any, index: number) => ({
-      id: item.id || `mock-${index}`,
-      nama: item.nama || `Data ${index + 1}`,
-      kategori: 'Siswa',
-      status: item.status || 'Aktif',
-      target: 100,
-      pencapaian: Math.floor(Math.random() * 100),
-      persentase: Math.floor(Math.random() * 100),
-      trend: Math.random() > 0.5 ? 'up' : 'down'
-    })) || []
-  };
-};
+export default function MonitoringPage() {
+    const [period, setPeriod] = useState('monthly');
+    const { data: kpiData, isLoading } = useMonitoringData({ period });
 
-export default function Monitoring() {
-  const [selectedKumiai, setSelectedKumiai] = useState('all');
-  const [selectedLpkMitra, setSelectedLpkMitra] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+    if (isLoading) return <div className="flex justify-center p-20"><LoadingSpinner size={48} /></div>;
 
-  const { 
-    data: monitoringData, 
-    isLoading: isLoadingMonitoring, 
-    error: monitoringError,
-    refetch: refetchMonitoring 
-  } = useMonitoringData();
+    const summary = kpiData?.summary || { totalSiswa: 0, totalSiswaMagang: 0, totalKumiai: 0, totalLpkMitra: 0 };
+    const chartData = kpiData?.chartData || [];
 
-  const { kumiai = [], isLoading: isLoadingKumiai } = useKumiai();
-  const { lpkMitras = [], isLoading: isLoadingLpkMitra } = useLpkMitra();
-
-  const handleRefresh = () => {
-    console.log('Refreshing monitoring data...');
-    refetchMonitoring();
-  };
-
-  const isLoading = isLoadingMonitoring || isLoadingKumiai || isLoadingLpkMitra;
-
-  if (isLoading) {
     return (
-      <AuthGuard>
-        <div className="container-responsive py-6">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600 text-sm">Loading monitoring data...</p>
+        <div className="space-y-8 animate-fade-in p-2 sm:p-4">
+            {/* Dynamic Header with Filters */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-[2rem] border border-slate-50 shadow-sm">
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight font-outfit uppercase">Monitoring & KPI</h1>
+                    <p className="text-slate-500 font-medium tracking-wide flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
+                        Statistik Real-time Operasional LPK UJC
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100">
+                        <Filter className="w-4 h-4 text-slate-400" />
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Periode:</span>
+                    </div>
+                    <Select value={period} onValueChange={setPeriod}>
+                        <SelectTrigger className="w-[180px] rounded-2xl border-slate-100 font-bold text-slate-700 bg-white shadow-sm">
+                            <SelectValue placeholder="Pilih Periode" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
+                            <SelectItem value="monthly" className="font-bold">Bulanan</SelectItem>
+                            <SelectItem value="quarterly" className="font-bold">Kuartal</SelectItem>
+                            <SelectItem value="yearly" className="font-bold">Tahunan</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
-          </div>
-        </div>
-      </AuthGuard>
-    );
-  }
 
-  if (monitoringError) {
-    console.error('Monitoring error:', monitoringError);
+            {/* Main Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                    { label: 'Total Siswa', value: summary.totalSiswa, icon: Users, color: 'blue', trend: '+5% Baru' },
+                    { label: 'Siswa Magang', value: summary.totalSiswaMagang, icon: ShieldCheck, color: 'emerald', trend: 'On Track' },
+                    { label: 'Kumiai Aktif', value: summary.totalKumiai, icon: Building2, color: 'orange', trend: 'Stabil' },
+                    { label: 'LPK Mitra', value: summary.totalLpkMitra, icon: School, color: 'purple', trend: '+1 Baru' },
+                ].map((stat, idx) => (
+                    <Card key={idx} className="flat-card group border-none shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500">
+                        <CardContent className="pt-8">
+                            <div className="flex items-start justify-between mb-4">
+                                <div className={`p-4 rounded-3xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform duration-500`}>
+                                    <stat.icon className="w-6 h-6" />
+                                </div>
+                                <Badge className="bg-slate-50 text-slate-400 border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full">
+                                    {stat.trend}
+                                </Badge>
+                            </div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-1">{stat.label}</p>
+                            <h2 className="text-4xl font-black text-slate-900 font-outfit tracking-tighter">
+                                {formatNumber(stat.value)}
+                            </h2>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <Card className="lg:col-span-8 flat-card border-none overflow-hidden">
+                    <CardHeader className="bg-slate-50/50 p-8 border-b border-slate-50 flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-slate-600">
+                                <TrendingUp className="w-4 h-4 text-primary" />
+                                Grafik Progres Penempatan
+                            </CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pt-10 h-[450px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={chartData}>
+                                <defs>
+                                    <linearGradient id="colorSiswa" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
+                                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis
+                                    dataKey="period"
+                                    fontSize={10}
+                                    fontWeight={900}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#94a3b8' }}
+                                />
+                                <YAxis
+                                    fontSize={10}
+                                    fontWeight={900}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#94a3b8' }}
+                                />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '16px' }}
+                                />
+                                <Legend iconType="circle" />
+                                <Area
+                                    type="monotone"
+                                    dataKey="siswaMagang"
+                                    name="Siswa Magang"
+                                    stroke="hsl(var(--primary))"
+                                    strokeWidth={4}
+                                    fillOpacity={1}
+                                    fill="url(#colorSiswa)"
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="pencapaian"
+                                    name="Realisasi Target"
+                                    stroke="#10b981"
+                                    strokeWidth={4}
+                                    fill="transparent"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                <Card className="lg:col-span-4 flat-card border-none overflow-hidden h-full">
+                    <CardHeader className="bg-slate-50/50 p-8 border-b border-slate-50">
+                        <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-slate-600">
+                            <BarChart3 className="w-4 h-4 text-orange-500" />
+                            Target vs Realisasi
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-8 space-y-10">
+                        {[
+                            { label: 'Siswa Penempatan', target: 100, current: summary.totalSiswaMagang, color: 'blue' },
+                            { label: 'Kumiai Jepang', target: 50, current: summary.totalKumiai, color: 'orange' },
+                            { label: 'Siswa Reguler', target: 500, current: summary.totalSiswa, color: 'purple' },
+                        ].map((item, idx) => {
+                            const percentage = Math.round((item.current / item.target) * 100);
+                            return (
+                                <div key={idx} className="space-y-4">
+                                    <div className="flex justify-between items-end">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
+                                            <p className="text-lg font-black text-slate-800 font-outfit uppercase">{item.current} / {item.target}</p>
+                                        </div>
+                                        <div className="text-2xl font-black text-slate-900 font-outfit">{percentage}%</div>
+                                    </div>
+                                    <div className="h-3 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-0.5">
+                                        <div
+                                            className={`h-full rounded-full bg-${item.color}-500 transition-all duration-1000 ease-out`}
+                                            style={{ width: `${Math.min(percentage, 100)}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+}
+
+function Badge({ children, className }: { children: React.ReactNode, className?: string }) {
     return (
-      <AuthGuard>
-        <div className="container-responsive py-6">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-red-600 mb-2">Error Loading Data</h3>
-            <p className="text-gray-600 mb-4 text-sm">
-              {monitoringError?.message || 'Failed to load monitoring data'}
-            </p>
-            <button 
-              onClick={handleRefresh}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </AuthGuard>
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 ${className}`}>
+            {children}
+        </span>
     );
-  }
-
-  // Transform data to match expected interface with safe processing
-  const transformedData = createMockKPIData(monitoringData);
-
-  return (
-    <AuthGuard>
-      <div className="container-responsive py-4 space-y-4">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <Monitor className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600" />
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold">KPI Monitoring Dashboard</h1>
-            <p className="text-gray-600 text-sm">Monitor key performance indicators dan aktivitas sistem</p>
-          </div>
-        </div>
-        
-        {/* Filters */}
-        <ErrorBoundary>
-          <MonitoringFilters
-            selectedKumiai={selectedKumiai}
-            selectedLpkMitra={selectedLpkMitra}
-            selectedStatus={selectedStatus}
-            selectedPeriod={selectedPeriod}
-            onKumiaiChange={setSelectedKumiai}
-            onLpkMitraChange={setSelectedLpkMitra}
-            onStatusChange={setSelectedStatus}
-            onPeriodChange={setSelectedPeriod}
-            onRefresh={handleRefresh}
-            kumiaiOptions={kumiai}
-            lpkMitraOptions={lpkMitras}
-          />
-        </ErrorBoundary>
-
-        {/* KPI Grid */}
-        <ErrorBoundary>
-          <MonitoringKPIGrid data={transformedData} />
-        </ErrorBoundary>
-
-        {/* Charts */}
-        <ErrorBoundary>
-          <MonitoringCharts 
-            chartData={transformedData.chartData}
-            trendData={transformedData.trendData}
-            period={selectedPeriod}
-          />
-        </ErrorBoundary>
-
-        {/* Data Table */}
-        <ErrorBoundary>
-          <Card className="glass">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">Detailed Performance Data</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <MonitoringTable 
-                data={transformedData.tableData}
-                filters={{
-                  kumiai: selectedKumiai,
-                  lpkMitra: selectedLpkMitra,
-                  status: selectedStatus,
-                  period: selectedPeriod
-                }}
-              />
-            </CardContent>
-          </Card>
-        </ErrorBoundary>
-      </div>
-    </AuthGuard>
-  );
 }

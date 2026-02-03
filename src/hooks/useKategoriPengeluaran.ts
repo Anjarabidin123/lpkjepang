@@ -1,8 +1,7 @@
-
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from './useAuth';
-import { kategoriPengeluaranTable } from '@/lib/localStorage/tables';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export interface KategoriPengeluaran {
   id: string;
@@ -14,111 +13,80 @@ export interface KategoriPengeluaran {
 }
 
 export function useKategoriPengeluaran() {
-  const [categories, setCategories] = useState<KategoriPengeluaran[]>([]);
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const fetchCategories = async () => {
-    setLoading(true);
-    try {
-      const data = kategoriPengeluaranTable.getAll();
-      // Sort by name
-      const sortedData = [...data].sort((a, b) => a.nama_kategori.localeCompare(b.nama_kategori));
-      setCategories(sortedData);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load expense categories",
-        variant: "destructive",
-      });
-      setCategories([]);
-    } finally {
-      setLoading(false);
+  const { data: categories = [], isLoading: loading } = useQuery({
+    queryKey: ['kategori-pengeluaran'],
+    queryFn: async () => {
+      const response = await authFetch(endpoints.kategoriPengeluaran);
+      if (!response.ok) throw new Error('Failed to fetch expense categories');
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString()
+      })) as KategoriPengeluaran[];
     }
-  };
+  });
 
-  const createCategory = async (data: Omit<KategoriPengeluaran, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
-      const insertedData = kategoriPengeluaranTable.create(data);
-      
-      toast({
-        title: "Success",
-        description: "Category created successfully",
+  const createMutation = useMutation({
+    mutationFn: async (data: Omit<KategoriPengeluaran, 'id' | 'created_at' | 'updated_at'>) => {
+      const response = await authFetch(endpoints.kategoriPengeluaran, {
+        method: 'POST',
+        body: JSON.stringify(data)
       });
-      
-      await fetchCategories();
-      return insertedData;
-    } catch (error) {
-      console.error('Error creating category:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create category",
-        variant: "destructive",
-      });
-      throw error;
+      if (!response.ok) throw new Error('Failed to create expense category');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kategori-pengeluaran'] });
+      toast({ title: "Success", description: "Category created successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
+  });
 
-  const updateCategory = async (id: string, data: Partial<KategoriPengeluaran>) => {
-    try {
-      const updatedData = kategoriPengeluaranTable.update(id, data);
-      
-      if (!updatedData) throw new Error('Failed to update category');
-
-      toast({
-        title: "Success",
-        description: "Category updated successfully",
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string } & Partial<KategoriPengeluaran>) => {
+      const response = await authFetch(`${endpoints.kategoriPengeluaran}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
       });
-      
-      await fetchCategories();
-      return updatedData;
-    } catch (error) {
-      console.error('Error updating category:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update category",
-        variant: "destructive",
-      });
-      throw error;
+      if (!response.ok) throw new Error('Failed to update category');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kategori-pengeluaran'] });
+      toast({ title: "Success", description: "Category updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
+  });
 
-  const deleteCategory = async (id: string) => {
-    try {
-      const success = kategoriPengeluaranTable.delete(id);
-      
-      if (!success) throw new Error('Failed to delete category');
-
-      toast({
-        title: "Success",
-        description: "Category deleted successfully",
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await authFetch(`${endpoints.kategoriPengeluaran}/${id}`, {
+        method: 'DELETE'
       });
-      
-      await fetchCategories();
-    } catch (error) {
-      console.error('Error deleting category:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete category",
-        variant: "destructive",
-      });
-      throw error;
+      if (!response.ok) throw new Error('Failed to delete category');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kategori-pengeluaran'] });
+      toast({ title: "Success", description: "Category deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  });
 
   return {
     categories,
     loading,
-    createCategory,
-    updateCategory,
-    deleteCategory,
-    fetchCategories,
-    isAuthenticated: !!user,
+    createCategory: createMutation.mutateAsync,
+    updateCategory: (id: string, data: any) => updateMutation.mutateAsync({ id, ...data }),
+    deleteCategory: deleteMutation.mutateAsync,
+    fetchCategories: () => queryClient.invalidateQueries({ queryKey: ['kategori-pengeluaran'] }),
   };
 }

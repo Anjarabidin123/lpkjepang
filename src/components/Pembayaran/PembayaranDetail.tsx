@@ -55,7 +55,7 @@ export function PembayaranDetail({ pembayaran, onClose, onPrint }: PembayaranDet
                   {formatIDRCurrency(pembayaran.nominal)}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
-                  Nilai: {pembayaran.nominal?.toLocaleString('id-ID')}
+                  Nilai: {pembayaran.nominal?.toLocaleString('en-US')}
                 </p>
               </div>
             </div>

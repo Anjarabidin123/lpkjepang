@@ -15,7 +15,7 @@ interface OrganizationFieldsProps {
 
 export function OrganizationFields({ form, kumiai, perusahaan, visibleColumns }: OrganizationFieldsProps) {
   const { lpkMitras } = useLpkMitra();
-  
+
   // Create column visibility map for easy lookup
   const columnVisibility = visibleColumns?.reduce((acc, col) => {
     acc[col.key] = col.visible;

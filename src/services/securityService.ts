@@ -1,6 +1,4 @@
 
-import { supabase } from '@/integrations/supabase/client';
-
 interface SecurityEvent {
   event_type: string;
   event_details?: Record<string, any>;
@@ -13,7 +11,7 @@ export class SecurityService {
     try {
       // Mock user for localStorage environment
       const user = { id: 'demo-admin-id' };
-      
+
       // In localStorage environment, we log to console or a dedicated table
       console.log('Security Event (localStorage):', {
         user_id: user?.id || null,
@@ -32,7 +30,7 @@ export class SecurityService {
     try {
       await this.logSecurityEvent({
         event_type: 'failed_login',
-        event_details: { 
+        event_details: {
           email,
           error,
           timestamp: new Date().toISOString()
@@ -50,15 +48,15 @@ export class SecurityService {
 
   static validatePassword(password: string): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     if (password.length < 6) {
       errors.push('Password must be at least 6 characters long');
     }
-    
+
     if (!/[A-Z]/.test(password)) {
       errors.push('Password must contain at least one uppercase letter');
     }
-    
+
     if (!/[0-9]/.test(password)) {
       errors.push('Password must contain at least one number');
     }
@@ -155,7 +153,7 @@ export class SecurityService {
       'password123', 'admin', 'letmein', 'welcome', 'monkey',
       '1234', '12345', '123123', 'qwerty123', 'password1'
     ];
-    
+
     return commonPasswords.includes(password.toLowerCase());
   }
 

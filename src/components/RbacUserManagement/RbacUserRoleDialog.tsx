@@ -57,6 +57,9 @@ export function RbacUserRoleDialog({
             </Avatar>
             Manage Roles for {user.full_name || user.email}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Select the roles you want to assign to this user.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

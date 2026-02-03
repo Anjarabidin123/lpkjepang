@@ -1,13 +1,21 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { jenisKerjaTable } from '@/lib/localStorage/tables';
 import { useToast } from '@/hooks/use-toast';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 interface JenisKerja {
   id: string;
   nama: string;
   kode: string;
   deskripsi: string | null;
+  kategori: string | null;
+  tingkat_kesulitan: string | null;
+  syarat_pendidikan: string | null;
+  gaji_minimal: number | null;
+  gaji_maksimal: number | null;
+  total_posisi: number | null;
+  status: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -22,16 +30,32 @@ export function useJenisKerja() {
   const { data: jenisKerja, isLoading, error } = useQuery({
     queryKey: ['jenis_kerja'],
     queryFn: async () => {
-      console.log('Fetching jenis kerja from localStorage...');
-      const data = jenisKerjaTable.getAll();
-      return data as JenisKerja[];
+      console.log('Fetching jenis kerja from Laravel API...');
+      const response = await authFetch(endpoints.jenisKerja);
+      if (!response.ok) throw new Error('Failed to fetch jenis kerja');
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString()
+      })) as JenisKerja[];
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: JenisKerjaInsert) => {
-      const result = jenisKerjaTable.create(data);
-      return result as JenisKerja;
+      const response = await authFetch(endpoints.jenisKerja, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Gagal menambahkan jenis kerja');
+      }
+      const result = await response.json();
+      return {
+        ...result,
+        id: result.id.toString()
+      } as JenisKerja;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jenis_kerja'] });
@@ -51,9 +75,19 @@ export function useJenisKerja() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: JenisKerjaUpdate }) => {
-      const result = jenisKerjaTable.update(id, data);
-      if (!result) throw new Error('Jenis kerja tidak ditemukan');
-      return result as JenisKerja;
+      const response = await authFetch(`${endpoints.jenisKerja}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Gagal memperbarui jenis kerja');
+      }
+      const result = await response.json();
+      return {
+        ...result,
+        id: result.id.toString()
+      } as JenisKerja;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jenis_kerja'] });
@@ -73,8 +107,10 @@ export function useJenisKerja() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const success = jenisKerjaTable.delete(id);
-      if (!success) throw new Error('Gagal menghapus jenis kerja');
+      const response = await authFetch(`${endpoints.jenisKerja}/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Gagal menghapus jenis kerja');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jenis_kerja'] });

@@ -1,89 +1,49 @@
+@layer utilities {
 
-/* Modern gradient backgrounds */
-.bg-gradient-primary {
-  background: var(--gradient-primary);
-}
+  /* Modern gradient backgrounds */
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
 
-.bg-gradient-secondary {
-  background: var(--gradient-secondary);
-}
+  .bg-gradient-secondary {
+    background: var(--gradient-secondary);
+  }
 
-.bg-gradient-accent {
-  background: var(--gradient-accent);
-}
+  .bg-gradient-accent {
+    background: var(--gradient-accent);
+  }
 
-/* Responsive utilities */
-.container-responsive {
-  @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-}
+  /* Responsive utilities */
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
 
-.section-spacing {
-  @apply py-6 sm:py-8 md:py-10 lg:py-12;
-}
+  .section-spacing {
+    @apply py-6 sm:py-8 md:py-10 lg:py-12;
+  }
 
-.card-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
-}
+  .card-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+  }
 
-.stats-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6;
-}
+  .stats-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6;
+  }
 
-.form-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6;
-}
+  .padding-responsive {
+    @apply p-4 sm:p-6 md:p-8;
+  }
 
-/* Mobile-optimized text sizes */
-.text-responsive-xs {
-  @apply text-xs sm:text-sm;
-}
+  .margin-responsive {
+    @apply m-4 sm:m-6 md:m-8;
+  }
 
-.text-responsive-sm {
-  @apply text-sm sm:text-base;
-}
+  /* Button responsive utilities */
+  .btn-responsive {
+    @apply px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base;
+  }
 
-.text-responsive-base {
-  @apply text-base sm:text-lg;
-}
-
-.text-responsive-lg {
-  @apply text-lg sm:text-xl;
-}
-
-.text-responsive-xl {
-  @apply text-xl sm:text-2xl;
-}
-
-.text-responsive-2xl {
-  @apply text-2xl sm:text-3xl;
-}
-
-.text-responsive-3xl {
-  @apply text-2xl sm:text-3xl lg:text-4xl;
-}
-
-/* Mobile-optimized spacing */
-.space-responsive {
-  @apply space-y-4 sm:space-y-6 md:space-y-8;
-}
-
-.gap-responsive {
-  @apply gap-3 sm:gap-4 md:gap-6;
-}
-
-.padding-responsive {
-  @apply p-4 sm:p-6 md:p-8;
-}
-
-.margin-responsive {
-  @apply m-4 sm:m-6 md:m-8;
-}
-
-/* Button responsive utilities */
-.btn-responsive {
-  @apply px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base;
-}
-
-.btn-responsive-lg {
-  @apply px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg;
+  .btn-responsive-lg {
+    @apply px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg;
+  }
 }

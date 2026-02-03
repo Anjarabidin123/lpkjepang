@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { endpoints } from '@/config/api';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -49,7 +50,8 @@ import {
   Printer,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { siswaMagangTable, siswaTable } from '@/lib/localStorage/tables';
+import { authFetch } from '@/lib/api-client';
+// import { siswaMagangTable, siswaTable } from '@/lib/localStorage/tables';
 import { useSiswaDocuments, useDocumentTemplates, useDocumentVariables, useDocumentMailMerge } from '@/hooks/useDocuments';
 import { SiswaDocument, DOCUMENT_STATUSES, DocumentStatus, DOCUMENT_CATEGORIES } from '@/types/document';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -90,23 +92,34 @@ export function StudentDocumentTracker() {
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [statusNote, setStatusNote] = useState('');
 
-  const fetchSiswaList = useCallback(() => {
+  // Fetch with useSiswaMagang hook or direct fetch
+  // Since we are inside a component, let's use a useEffect to fetch data from API
+
+  const fetchSiswaList = useCallback(async () => {
     try {
       setLoadingSiswa(true);
-      
-      const siswaMagangData = siswaMagangTable.getAll();
-      
+
+      const response = await authFetch(endpoints.siswaMagang);
+      if (!response.ok) throw new Error('Failed to fetch siswa magang');
+      const siswaMagangData = await response.json();
+
+      // Need to fetch Siswa details for names? 
+      // api/siswa-magang includes 'siswa' relation usually if controller is set up right
+      // Check SiswaMagangController: index returns SiswaMagang::with(['siswa', ...]) -> YES.
+
       const siswaWithDocs: SiswaWithDocuments[] = siswaMagangData.map((sm: any) => {
-        const siswa = sm.siswa_id ? siswaTable.getById(sm.siswa_id) : null;
-        const siswaDocs = documents.filter((d) => d.siswa_magang_id === sm.id);
+        const siswa = sm.siswa;
+        // Gunakan loose comparison (==) untuk menangani kemungkinan string/number ID dari API
+        const siswaDocs = documents.filter((d: any) => d.siswa_magang_id == sm.id);
         const completedCount = siswaDocs.filter((d) => d.status === 'verified').length;
         const pendingCount = siswaDocs.filter((d) => ['pending', 'draft', 'uploaded', 'review'].includes(d.status)).length;
         const rejectedCount = siswaDocs.filter((d) => d.status === 'rejected').length;
+        // Templates might be empty if not implemented yet, so totalRequired will be 0.
         const totalRequired = templates.filter((t) => t.is_required && t.is_active).length;
 
         return {
-          id: siswa?.id || sm.id,
-          siswa_magang_id: sm.id,
+          id: siswa?.id?.toString() || sm.id.toString(),
+          siswa_magang_id: sm.id.toString(),
           nama: siswa?.nama || 'Unknown',
           nik: siswa?.nik,
           foto_url: siswa?.foto_url,
@@ -116,7 +129,7 @@ export function StudentDocumentTracker() {
             completed: completedCount,
             pending: pendingCount,
             rejected: rejectedCount,
-            percentage: totalRequired > 0 ? Math.round((completedCount / totalRequired) * 100) : 0,
+            percentage: totalRequired > 0 ? Math.round((completedCount / totalRequired) * 100) : (siswaDocs.length > 0 && completedCount === siswaDocs.length ? 100 : 0),
           },
         };
       });
@@ -167,8 +180,8 @@ export function StudentDocumentTracker() {
   };
 
   const handleUpdateStatus = async (documentId: string, newStatus: DocumentStatus) => {
-    const success = await updateDocument(documentId, { 
-      status: newStatus, 
+    const success = await updateDocument(documentId, {
+      status: newStatus,
       catatan: statusNote || undefined,
       verified_at: newStatus === 'verified' ? new Date().toISOString() : undefined,
     });
@@ -182,10 +195,10 @@ export function StudentDocumentTracker() {
 
   const handlePreviewDocument = async (doc: SiswaDocument) => {
     if (!doc.document_template) return;
-    
+
     setLoadingPreview(true);
     setPreviewDialogOpen(true);
-    
+
     try {
       const content = await mergeDocument(
         doc.document_template.template_content,
@@ -361,8 +374,8 @@ export function StudentDocumentTracker() {
                                   siswa.stats.percentage === 100
                                     ? 'bg-emerald-100 text-emerald-700'
                                     : siswa.stats.rejected > 0
-                                    ? 'bg-red-100 text-red-700'
-                                    : 'bg-amber-100 text-amber-700'
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-amber-100 text-amber-700'
                                 )}
                               >
                                 {siswa.stats.percentage}% Lengkap
@@ -531,6 +544,9 @@ export function StudentDocumentTracker() {
         <DialogContent className="max-w-3xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>Preview Dokumen</DialogTitle>
+            <DialogDescription className="sr-only">
+              Pratinjau konten dokumen yang telah dikelola.
+            </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-[60vh]">
             {loadingPreview ? (

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useKumiai } from '@/hooks/useKumiai';
 import { usePerusahaan } from '@/hooks/usePerusahaan';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Perusahaan } from '@/types';
 
 const perusahaanSchema = z.object({
   kode: z.string().min(1, 'Kode perusahaan wajib diisi'),
@@ -29,7 +29,7 @@ type PerusahaanFormData = z.infer<typeof perusahaanSchema>;
 interface PerusahaanFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  perusahaan?: Tables<'perusahaan'> | null;
+  perusahaan?: Perusahaan | null;
 }
 
 export function PerusahaanForm({ open, onOpenChange, perusahaan }: PerusahaanFormProps) {
@@ -66,8 +66,8 @@ export function PerusahaanForm({ open, onOpenChange, perusahaan }: PerusahaanFor
       };
 
       if (perusahaan) {
-        await updatePerusahaan({ 
-          id: perusahaan.id, 
+        await updatePerusahaan({
+          id: perusahaan.id,
           data: submitData
         });
       } else {

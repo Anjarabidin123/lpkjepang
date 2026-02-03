@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\JobOrderPeserta;
+
+class JobOrderPesertaController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = JobOrderPeserta::with('siswa');
+        
+        if ($request->has('job_order_id')) {
+            $query->where('job_order_id', $request->job_order_id);
+        }
+
+        return response()->json($query->get());
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'job_order_id' => 'required|exists:job_orders,id',
+            'siswa_id' => 'required|exists:siswas,id',
+        ]);
+        
+        // Prevent duplicates
+        $exists = JobOrderPeserta::where('job_order_id', $request->job_order_id)
+            ->where('siswa_id', $request->siswa_id)
+            ->exists();
+            
+        if ($exists) {
+            return response()->json(['message' => 'Siswa sudah terdaftar di Job Order ini'], 422);
+        }
+
+        return response()->json(JobOrderPeserta::create($request->all()), 201);
+    }
+
+    public function show($id)
+    {
+        return response()->json(JobOrderPeserta::with('siswa')->findOrFail($id));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $peserta = JobOrderPeserta::findOrFail($id);
+        $peserta->update($request->all());
+        return response()->json($peserta);
+    }
+
+    public function destroy($id)
+    {
+        JobOrderPeserta::destroy($id);
+        return response()->json(null, 204);
+    }
+}

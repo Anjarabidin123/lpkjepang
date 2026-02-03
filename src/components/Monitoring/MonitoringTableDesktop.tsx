@@ -108,10 +108,10 @@ export function MonitoringTableDesktop({
                 {getStatusBadge(item.status)}
               </TableCell>
               <TableCell className="text-right font-mono text-responsive-sm">
-                {item.target.toLocaleString('id-ID')}
+                {item.target.toLocaleString('en-US')}
               </TableCell>
               <TableCell className="text-right font-mono text-responsive-sm">
-                {item.pencapaian.toLocaleString('id-ID')}
+                {item.pencapaian.toLocaleString('en-US')}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">

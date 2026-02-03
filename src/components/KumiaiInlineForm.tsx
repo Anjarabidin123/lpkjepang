@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { useKumiai } from "@/hooks/useKumiai";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Kumiai } from "@/types";
 
 type KumiaiFormData = {
   nama: string;
@@ -23,14 +23,14 @@ type KumiaiFormData = {
 };
 
 interface KumiaiInlineFormProps {
-  kumiai?: Tables<'kumiai'>;
+  kumiai?: Kumiai;
   onCancel: () => void;
   onSuccess: () => void;
 }
 
 export function KumiaiInlineForm({ kumiai, onCancel, onSuccess }: KumiaiInlineFormProps) {
   const { createKumiai, updateKumiai, isCreating, isUpdating } = useKumiai();
-  
+
   const { register, handleSubmit, formState: { errors } } = useForm<KumiaiFormData>({
     defaultValues: {
       nama: kumiai?.nama || '',

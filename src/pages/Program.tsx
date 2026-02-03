@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -16,7 +16,7 @@ import { ProgramInlineForm } from "@/components/ProgramInlineForm";
 import { ProgramDetail } from "@/components/ProgramDetail";
 import { useInlineEdit } from "@/hooks/useInlineEdit";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Program } from "@/types";
 
 export default function Program() {
   const { program, isLoading, deleteProgram, isDeleting } = useProgram();
@@ -30,16 +30,16 @@ export default function Program() {
     cancelEdit,
     isEditing,
     isViewing,
-  } = useInlineEdit<Tables<'program'>>();
+  } = useInlineEdit<Program>();
 
   const getStatusBadge = (status: string) => {
-    return status === "Aktif" 
-      ? "bg-green-100 text-green-800" 
+    return status === "Aktif"
+      ? "bg-green-100 text-green-800"
       : "bg-red-100 text-red-800";
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'IDR'
     }).format(amount);

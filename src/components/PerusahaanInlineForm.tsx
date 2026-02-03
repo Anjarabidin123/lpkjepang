@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { usePerusahaan } from '@/hooks/usePerusahaan';
 import { useKumiai } from '@/hooks/useKumiai';
 import { useToast } from '@/hooks/use-toast';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Perusahaan } from '@/types';
 
 const perusahaanSchema = z.object({
   nama: z.string().min(1, 'Nama perusahaan harus diisi'),
@@ -27,17 +27,17 @@ const perusahaanSchema = z.object({
 type PerusahaanFormData = z.infer<typeof perusahaanSchema>;
 
 interface PerusahaanInlineFormProps {
-  perusahaan?: Tables<'perusahaan'> | null;
+  perusahaan?: Perusahaan | null;
   kumiaiId?: string;
   onCancel: () => void;
   onSuccess: () => void;
 }
 
-export function PerusahaanInlineForm({ 
-  perusahaan, 
+export function PerusahaanInlineForm({
+  perusahaan,
   kumiaiId,
-  onCancel, 
-  onSuccess 
+  onCancel,
+  onSuccess
 }: PerusahaanInlineFormProps) {
   const { createPerusahaan, updatePerusahaan, isCreating, isUpdating } = usePerusahaan();
   const { kumiai } = useKumiai();
@@ -61,7 +61,7 @@ export function PerusahaanInlineForm({
   const onSubmit = async (data: PerusahaanFormData) => {
     try {
       console.log('Submitting perusahaan form:', data);
-      
+
       const submitData = {
         nama: data.nama,
         kode: data.kode,
@@ -75,9 +75,9 @@ export function PerusahaanInlineForm({
       };
 
       if (perusahaan) {
-        await updatePerusahaan({ 
-          id: perusahaan.id, 
-          data: submitData 
+        await updatePerusahaan({
+          id: perusahaan.id,
+          data: submitData
         });
         toast({
           title: "Berhasil",
@@ -86,11 +86,11 @@ export function PerusahaanInlineForm({
       } else {
         await createPerusahaan(submitData);
         toast({
-          title: "Berhasil", 
+          title: "Berhasil",
           description: "Perusahaan berhasil ditambahkan"
         });
       }
-      
+
       onSuccess();
     } catch (error) {
       console.error('Error submitting perusahaan form:', error);
@@ -150,8 +150,8 @@ export function PerusahaanInlineForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Kumiai *</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   defaultValue={field.value}
                   disabled={!!kumiaiId}
                 >
@@ -239,9 +239,9 @@ export function PerusahaanInlineForm({
                 <FormItem>
                   <FormLabel>Kapasitas</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="0" 
+                    <Input
+                      type="number"
+                      placeholder="0"
                       {...field}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                     />
@@ -267,16 +267,16 @@ export function PerusahaanInlineForm({
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={onCancel}
               disabled={isLoading}
             >
               Batal
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading}
             >
               {isLoading ? 'Menyimpan...' : (perusahaan ? 'Perbarui' : 'Simpan')}

@@ -1,7 +1,9 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { kumiaiTable, perusahaanTable } from '@/lib/localStorage/tables';
+// import { kumiaiTable, perusahaanTable } from '@/lib/localStorage/tables';
 import { useToast } from '@/hooks/use-toast';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export interface Kumiai {
   id: string;
@@ -36,22 +38,25 @@ export function useKumiai() {
   const { data: kumiai = [], isLoading, error, refetch } = useQuery({
     queryKey: ['kumiai'],
     queryFn: async () => {
-      console.log('Fetching kumiai from localStorage...');
-      const kumiaiData = kumiaiTable.getAll() as Kumiai[];
-      const perusahaanData = perusahaanTable.getAll() as any[];
+      console.log('Fetching kumiai from Laravel API...');
+      try {
+        const response = await authFetch(endpoints.kumiai);
+        if (!response.ok) throw new Error('Failed to fetch kumiai');
+        const data = await response.json();
 
-      // Join perusahaan to kumiai
-      const processedData = kumiaiData.map(item => {
-        const relatedPerusahaan = perusahaanData.filter(p => p.kumiai_id === item.id);
-        return {
+        // Calculate jumlah_perusahaan if present or default to 0
+        const processedData = data.map((item: any) => ({
           ...item,
-          jumlah_perusahaan: relatedPerusahaan.length,
-          perusahaan: relatedPerusahaan,
-        };
-      });
+          id: item.id.toString(),
+          jumlah_perusahaan: item.perusahaan ? item.perusahaan.length : 0,
+          perusahaan: item.perusahaan?.map((p: any) => ({ ...p, id: p.id.toString(), kumiai_id: p.kumiai_id?.toString() }))
+        }));
 
-      console.log('Kumiai fetched successfully:', processedData.length, 'records');
-      return processedData;
+        return processedData;
+      } catch (err) {
+        console.error("Fetch kumiai error", err);
+        return [];
+      }
     },
     staleTime: 5000,
     refetchOnWindowFocus: false,
@@ -59,13 +64,18 @@ export function useKumiai() {
 
   const createMutation = useMutation({
     mutationFn: async (newKumiai: Omit<Kumiai, 'id' | 'created_at' | 'updated_at' | 'perusahaan'>) => {
-      console.log('Creating kumiai:', newKumiai);
-      const kumiaiData = {
-        ...newKumiai,
-        jumlah_perusahaan: 0,
+      console.log('Creating kumiai via API:', newKumiai);
+      const response = await authFetch(endpoints.kumiai, {
+        method: 'POST',
+        body: JSON.stringify(newKumiai)
+      });
+      if (!response.ok) throw new Error('Failed to create kumiai');
+      const data = await response.json();
+      return {
+        ...data,
+        id: data.id.toString(),
+        perusahaan: data.perusahaan?.map((p: any) => ({ ...p, id: p.id.toString(), kumiai_id: p.kumiai_id?.toString() }))
       };
-      const data = kumiaiTable.create(kumiaiData);
-      return { ...data, perusahaan: [] } as Kumiai;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['kumiai'], (oldData: Kumiai[] | undefined) => {
@@ -76,25 +86,31 @@ export function useKumiai() {
     },
     onError: (error: Error) => {
       console.error('Kumiai creation failed:', error);
-      toast({ 
-        title: "Error", 
-        description: error.message || "Gagal menambah kumiai", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menambah kumiai",
+        variant: "destructive"
       });
     }
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Kumiai> & { id: string }) => {
-      console.log('Updating kumiai:', id, updates);
+      console.log('Updating kumiai via API:', id);
       const { created_at, updated_at, perusahaan, ...updateData } = updates;
-      const data = kumiaiTable.update(id, updateData);
-      if (!data) throw new Error('Kumiai tidak ditemukan');
-      
-      const perusahaanData = perusahaanTable.getAll() as any[];
-      const relatedPerusahaan = perusahaanData.filter(p => p.kumiai_id === id);
-      
-      return { ...data, perusahaan: relatedPerusahaan } as Kumiai;
+
+      const response = await authFetch(`${endpoints.kumiai}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) throw new Error('Failed to update kumiai');
+      const data = await response.json();
+      return {
+        ...data,
+        id: data.id.toString(),
+        perusahaan: data.perusahaan?.map((p: any) => ({ ...p, id: p.id.toString(), kumiai_id: p.kumiai_id?.toString() }))
+      };
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['kumiai'], (oldData: Kumiai[] | undefined) => {
@@ -105,19 +121,22 @@ export function useKumiai() {
     },
     onError: (error: Error) => {
       console.error('Kumiai update failed:', error);
-      toast({ 
-        title: "Error", 
-        description: error.message || "Gagal memperbarui kumiai", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message || "Gagal memperbarui kumiai",
+        variant: "destructive"
       });
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      console.log('Deleting kumiai:', id);
-      const success = kumiaiTable.delete(id);
-      if (!success) throw new Error('Gagal menghapus kumiai');
+      console.log('Deleting kumiai via API:', id);
+      const response = await authFetch(`${endpoints.kumiai}/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) throw new Error('Failed to delete kumiai');
       return id;
     },
     onSuccess: (deletedId) => {
@@ -129,10 +148,10 @@ export function useKumiai() {
     },
     onError: (error: Error) => {
       console.error('Kumiai deletion failed:', error);
-      toast({ 
-        title: "Error", 
-        description: error.message || "Gagal menghapus kumiai", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menghapus kumiai",
+        variant: "destructive"
       });
     }
   });

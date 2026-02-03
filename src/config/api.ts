@@ -1,0 +1,66 @@
+
+export const API_BASE_URL = import.meta.env.PROD
+    ? '/api'
+    : (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api');
+
+export const endpoints = {
+    auth: {
+        login: `${API_BASE_URL}/login`,
+        logout: `${API_BASE_URL}/logout`,
+        user: `${API_BASE_URL}/user`,
+        changePassword: `${API_BASE_URL}/user/change-password`,
+        updateProfile: `${API_BASE_URL}/user/profile`,
+    },
+    siswa: `${API_BASE_URL}/siswa`,
+    siswaMagang: `${API_BASE_URL}/siswa-magang`,
+    jobOrders: `${API_BASE_URL}/job-orders`,
+    jobOrderPeserta: `${API_BASE_URL}/job-order-peserta`,
+    kumiai: `${API_BASE_URL}/kumiai`,
+    perusahaan: `${API_BASE_URL}/perusahaan`,
+    lpkMitra: `${API_BASE_URL}/lpk-mitra`,
+    programs: `${API_BASE_URL}/programs`,
+    jenisKerja: `${API_BASE_URL}/jenis-kerja`,
+    posisiKerja: `${API_BASE_URL}/posisi-kerja`,
+    demografi: {
+        provinces: `${API_BASE_URL}/demografi/provinces`,
+        regencies: `${API_BASE_URL}/demografi/regencies`,
+    },
+    roles: `${API_BASE_URL}/roles`,
+    permissions: `${API_BASE_URL}/permissions`,
+    users: `${API_BASE_URL}/users`,
+    siswaKeluargaIndonesia: `${API_BASE_URL}/siswa-keluarga-indonesia`,
+    siswaKeluargaJepang: `${API_BASE_URL}/siswa-keluarga-jepang`,
+    siswaKontakKeluarga: `${API_BASE_URL}/siswa-kontak-keluarga`,
+    siswaPengalamanKerja: `${API_BASE_URL}/siswa-pengalaman-kerja`,
+    siswaPendidikan: `${API_BASE_URL}/siswa-pendidikan`,
+    itemPembayaran: `${API_BASE_URL}/item-pembayaran`,
+    kewajibanPembayaran: `${API_BASE_URL}/kewajiban-pembayaran`,
+    internalPayments: `${API_BASE_URL}/internal-payments`,
+    arusKas: `${API_BASE_URL}/arus-kas`,
+    kategoriPemasukan: `${API_BASE_URL}/kategori-pemasukan`,
+    pemasukan: `${API_BASE_URL}/pemasukan`,
+    kategoriPengeluaran: `${API_BASE_URL}/kategori-pengeluaran`,
+    pengeluaran: `${API_BASE_URL}/pengeluaran`,
+    invoices: `${API_BASE_URL}/invoices`,
+    invoiceItems: `${API_BASE_URL}/invoice-items`,
+    siswaDocuments: `${API_BASE_URL}/siswa-documents`,
+    monitoring: {
+        kpi: `${API_BASE_URL}/monitoring/kpi`,
+    },
+    reports: {
+        stats: `${API_BASE_URL}/reports/stats`,
+        available: `${API_BASE_URL}/reports/available`,
+        recent: `${API_BASE_URL}/reports/recent`,
+        generate: (type: string) => `${API_BASE_URL}/reports/generate/${type}`,
+    },
+    tasks: {
+        stats: `${API_BASE_URL}/tasks/stats`,
+        list: `${API_BASE_URL}/tasks`,
+        detail: (id: number) => `${API_BASE_URL}/tasks/${id}`,
+    },
+    recruitment: {
+        stats: `${API_BASE_URL}/recruitment/stats`,
+        list: `${API_BASE_URL}/recruitment`,
+        detail: (id: number) => `${API_BASE_URL}/recruitment/${id}`,
+    },
+};

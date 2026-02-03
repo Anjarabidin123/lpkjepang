@@ -1,121 +1,88 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import type { DemografiProvince, CreateDemografiProvinceData, UpdateDemografiProvinceData } from '@/types/demografi';
+import { endpoints } from '@/config/api';
+import { useToast } from '@/hooks/use-toast';
+import { authFetch } from '@/lib/api-client';
 
-const PROVINCES_QUERY_KEY = 'demografi-provinces';
+export interface Province {
+    id: string;
+    nama: string;
+    kode: string;
+}
 
 export function useDemografiProvinces(countryId?: string) {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
 
-  const {
-    data: provinces = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: [PROVINCES_QUERY_KEY, countryId],
-    queryFn: async (): Promise<DemografiProvince[]> => {
-      let query = supabase
-        .from('demografi_provinces')
-        .select(`
-          *,
-          country:demografi_countries(*)
-        `)
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true })
-        .order('nama', { ascending: true });
+    const { data: provinces = [], isLoading, error } = useQuery({
+        queryKey: ['provinces', countryId],
+        queryFn: async () => {
+            const url = countryId
+                ? `${endpoints.demografi.provinces}?country_id=${countryId}`
+                : endpoints.demografi.provinces;
 
-      if (countryId) {
-        query = query.eq('country_id', countryId);
-      }
+            const response = await authFetch(url);
+            if (!response.ok) throw new Error('Failed to fetch provinces');
+            const data = await response.json();
+            return data.map((p: any) => ({
+                ...p,
+                id: p.id.toString()
+            })) as Province[];
+        },
+    });
 
-      const { data, error } = await query;
+    const createMutation = useMutation({
+        mutationFn: async (newProvince: Omit<Province, 'id'>) => {
+            const response = await authFetch(endpoints.demografi.provinces, {
+                method: 'POST',
+                body: JSON.stringify(newProvince)
+            });
+            if (!response.ok) throw new Error('Failed to create province');
+            return await response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['provinces'] });
+            toast({ title: 'Berhasil', description: 'Provinsi berhasil ditambahkan' });
+        }
+    });
 
-      if (error) {
-        console.error('Error fetching provinces:', error);
-        throw new Error(`Failed to fetch provinces: ${error.message}`);
-      }
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, ...data }: Partial<Province> & { id: string }) => {
+            const response = await authFetch(`${endpoints.demografi.provinces}/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error('Failed to update province');
+            return await response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['provinces'] });
+            toast({ title: 'Berhasil', description: 'Provinsi berhasil diperbarui' });
+        }
+    });
 
-      return data as DemografiProvince[];
-    },
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
-  });
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const response = await authFetch(`${endpoints.demografi.provinces}/${id}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) throw new Error('Failed to delete province');
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['provinces'] });
+            toast({ title: 'Berhasil', description: 'Provinsi berhasil dihapus' });
+        }
+    });
 
-  const createProvince = useMutation({
-    mutationFn: async (data: CreateDemografiProvinceData) => {
-      const { data: result, error } = await supabase
-        .from('demografi_provinces')
-        .insert([data])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [PROVINCES_QUERY_KEY] });
-      toast.success('Provinsi berhasil ditambahkan');
-    },
-    onError: (error) => {
-      console.error('Error creating province:', error);
-      toast.error('Gagal menambahkan provinsi');
-    },
-  });
-
-  const updateProvince = useMutation({
-    mutationFn: async ({ id, ...data }: UpdateDemografiProvinceData) => {
-      const { data: result, error } = await supabase
-        .from('demografi_provinces')
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [PROVINCES_QUERY_KEY] });
-      toast.success('Provinsi berhasil diperbarui');
-    },
-    onError: (error) => {
-      console.error('Error updating province:', error);
-      toast.error('Gagal memperbarui provinsi');
-    },
-  });
-
-  const deleteProvince = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('demografi_provinces')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [PROVINCES_QUERY_KEY] });
-      toast.success('Provinsi berhasil dihapus');
-    },
-    onError: (error) => {
-      console.error('Error deleting province:', error);
-      toast.error('Gagal menghapus provinsi');
-    },
-  });
-
-  return {
-    provinces,
-    isLoading,
-    error,
-    refetch,
-    createProvince: createProvince.mutate,
-    updateProvince: updateProvince.mutate,
-    deleteProvince: deleteProvince.mutate,
-    isCreating: createProvince.isPending,
-    isUpdating: updateProvince.isPending,
-    isDeleting: deleteProvince.isPending,
-  };
+    return {
+        provinces,
+        isLoading,
+        error,
+        createProvince: createMutation.mutate,
+        updateProvince: updateMutation.mutate,
+        deleteProvince: deleteMutation.mutate,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
 }

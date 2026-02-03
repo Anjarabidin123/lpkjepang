@@ -2,18 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, ArrowLeft } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Program } from "@/types";
 
 interface ProgramDetailProps {
-  program: Tables<'program'>;
+  program: Program;
   onEdit: () => void;
   onBack: () => void;
 }
 
 export function ProgramDetail({ program, onEdit, onBack }: ProgramDetailProps) {
   const getStatusBadge = (status?: string) => {
-    return status === "Aktif" 
-      ? "bg-green-100 text-green-800" 
+    return status === "Aktif"
+      ? "bg-green-100 text-green-800"
       : "bg-red-100 text-red-800";
   };
 
@@ -84,8 +84,8 @@ export function ProgramDetail({ program, onEdit, onBack }: ProgramDetailProps) {
           <h3 className="font-semibold text-sm text-gray-500 mb-1">Status Program</h3>
           {/* Replace status with a computed status based on dates */}
           <Badge className="bg-green-100 text-green-800">
-            {program.tanggal_selesai && new Date(program.tanggal_selesai) < new Date() 
-              ? 'Selesai' 
+            {program.tanggal_selesai && new Date(program.tanggal_selesai) < new Date()
+              ? 'Selesai'
               : program.tanggal_mulai && new Date(program.tanggal_mulai) <= new Date()
                 ? 'Berlangsung'
                 : 'Belum Dimulai'

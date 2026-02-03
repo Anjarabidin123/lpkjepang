@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePerusahaan } from "@/hooks/usePerusahaan";
 import { useJenisKerja } from "@/hooks/useJenisKerja";
 import { usePosisiKerja } from "@/hooks/usePosisiKerja";
-import type { Tables } from "@/integrations/supabase/types";
+import type { PosisiKerja } from "@/types";
 
 const posisiKerjaSchema = z.object({
   kode: z.string().min(1, "Kode posisi kerja harus diisi"),
@@ -32,7 +32,7 @@ const posisiKerjaSchema = z.object({
 type PosisiKerjaFormData = z.infer<typeof posisiKerjaSchema>;
 
 interface PosisiKerjaInlineFormProps {
-  posisiKerja?: Tables<'posisi_kerja'>;
+  posisiKerja?: PosisiKerja;
   onCancel: () => void;
   onSuccess: () => void;
 }
@@ -79,11 +79,21 @@ export function PosisiKerjaInlineForm({ posisiKerja, onCancel, onSuccess }: Posi
     };
 
     if (posisiKerja) {
-      updatePosisiKerja({ id: posisiKerja.id, data: formData });
+      updatePosisiKerja(
+        { id: posisiKerja.id, data: formData },
+        {
+          onSuccess: () => {
+            onSuccess();
+          },
+        }
+      );
     } else {
-      createPosisiKerja(formData);
+      createPosisiKerja(formData, {
+        onSuccess: () => {
+          onSuccess();
+        },
+      });
     }
-    onSuccess();
   };
 
   return (

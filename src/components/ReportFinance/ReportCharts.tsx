@@ -16,7 +16,7 @@ export function ReportCharts({ data }: ReportChartsProps) {
   
   const formatMonthLabel = (month: string) => {
     const date = new Date(month + '-01');
-    return date.toLocaleDateString('id-ID', { year: 'numeric', month: 'short' });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
   };
 
   const monthlyTrendsFormatted = data.monthlyTrends.map(item => ({

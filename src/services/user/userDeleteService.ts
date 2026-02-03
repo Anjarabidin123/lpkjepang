@@ -1,46 +1,20 @@
-
-import { profilesTable, userRolesTable } from '@/lib/localStorage/tables';
 import { SecurityService } from '../securityService';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 export class UserDeleteService {
   static async deleteUser(id: string): Promise<boolean> {
-    console.log('Deleting user from localStorage:', id);
-    
+    console.log('Deleting user via API:', id);
+
     try {
-      // Log user deletion attempt
-      await SecurityService.logSecurityEvent({
-        event_type: 'user_deletion_attempt',
-        event_details: { target_user_id: id }
-      });
-      
-      // Delete user roles
-      const allRoles = userRolesTable.getAll();
-      const rolesToKeep = allRoles.filter(role => role.user_id !== id);
-      userRolesTable.setAll(rolesToKeep as any);
-
-      // Delete profile
-      const success = profilesTable.delete(id);
-
-      if (!success) {
-        console.error('Error deleting user profile:', id);
-        throw new Error('Failed to delete user');
-      }
-
-      // Log successful user deletion
-      await SecurityService.logSecurityEvent({
-        event_type: 'user_deleted',
-        event_details: { deleted_user_id: id }
+      const response = await authFetch(`${endpoints.users}/${id}`, {
+        method: 'DELETE',
       });
 
+      if (!response.ok) throw new Error('Failed to delete user');
       return true;
     } catch (error) {
-      await SecurityService.logSecurityEvent({
-        event_type: 'user_deletion_error',
-        event_details: { 
-          target_user_id: id,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
-      });
+      console.error("Delete Error", error);
       throw error;
     }
   }

@@ -1,7 +1,9 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { perusahaanTable, kumiaiTable } from '@/lib/localStorage/tables';
+// import { perusahaanTable, kumiaiTable } from '@/lib/localStorage/tables';
 import { useToast } from '@/hooks/use-toast';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 
 interface Perusahaan {
   id: string;
@@ -33,50 +35,34 @@ export function usePerusahaan() {
   const { data: perusahaan, isLoading, error } = useQuery({
     queryKey: ['perusahaan'],
     queryFn: async () => {
-      console.log('Fetching perusahaan from localStorage...');
-      const perusahaanData = perusahaanTable.getAll() as Perusahaan[];
-      const kumiaiData = kumiaiTable.getAll() as any[];
-
-      // Join kumiai to perusahaan
-      const processedData = perusahaanData.map(item => {
-        const relatedKumiai = kumiaiData.find(k => k.id === item.kumiai_id);
-        return {
-          ...item,
-          kumiai: relatedKumiai ? {
-            id: relatedKumiai.id,
-            nama: relatedKumiai.nama,
-            kode: relatedKumiai.kode,
-          } : null,
-        };
-      });
-
-      console.log('Perusahaan fetched successfully:', processedData.length, 'records');
-      return processedData;
+      console.log('Fetching perusahaan from Laravel API...');
+      const response = await authFetch(endpoints.perusahaan);
+      if (!response.ok) throw new Error('Failed to fetch perusahaan');
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        kumiai_id: item.kumiai_id?.toString()
+      })) as Perusahaan[];
     },
     retry: 3,
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: PerusahaanInsert) => {
-      console.log('Creating perusahaan:', data);
-      const result = perusahaanTable.create(data);
-      
-      // Get related kumiai
-      if (result.kumiai_id) {
-        const kumiaiData = kumiaiTable.getById(result.kumiai_id);
-        return {
-          ...result,
-          kumiai: kumiaiData ? {
-            id: kumiaiData.id,
-            nama: kumiaiData.nama,
-            kode: kumiaiData.kode,
-          } : null,
-        } as Perusahaan;
-      }
-      
-      return { ...result, kumiai: null } as Perusahaan;
+      const response = await authFetch(endpoints.perusahaan, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to create perusahaan');
+      const result = await response.json();
+      return {
+        ...result,
+        id: result.id.toString(),
+        kumiai_id: result.kumiai_id?.toString()
+      } as Perusahaan;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['perusahaan'] });
       queryClient.invalidateQueries({ queryKey: ['kumiai'] });
       toast({
@@ -85,7 +71,6 @@ export function usePerusahaan() {
       });
     },
     onError: (error: Error) => {
-      console.error('Perusahaan creation failed:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -96,26 +81,19 @@ export function usePerusahaan() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: PerusahaanUpdate }) => {
-      console.log('Updating perusahaan:', id, data);
-      const result = perusahaanTable.update(id, data);
-      if (!result) throw new Error('Perusahaan tidak ditemukan');
-      
-      // Get related kumiai
-      if (result.kumiai_id) {
-        const kumiaiData = kumiaiTable.getById(result.kumiai_id);
-        return {
-          ...result,
-          kumiai: kumiaiData ? {
-            id: kumiaiData.id,
-            nama: kumiaiData.nama,
-            kode: kumiaiData.kode,
-          } : null,
-        } as Perusahaan;
-      }
-      
-      return { ...result, kumiai: null } as Perusahaan;
+      const response = await authFetch(`${endpoints.perusahaan}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to update perusahaan');
+      const result = await response.json();
+      return {
+        ...result,
+        id: result.id.toString(),
+        kumiai_id: result.kumiai_id?.toString()
+      } as Perusahaan;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['perusahaan'] });
       queryClient.invalidateQueries({ queryKey: ['kumiai'] });
       toast({
@@ -124,7 +102,6 @@ export function usePerusahaan() {
       });
     },
     onError: (error: Error) => {
-      console.error('Perusahaan update failed:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -135,10 +112,10 @@ export function usePerusahaan() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      console.log('Deleting perusahaan:', id);
-      const success = perusahaanTable.delete(id);
-      if (!success) throw new Error('Gagal menghapus perusahaan');
-      return id;
+      const response = await authFetch(`${endpoints.perusahaan}/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Gagal menghapus perusahaan');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['perusahaan'] });
@@ -149,7 +126,6 @@ export function usePerusahaan() {
       });
     },
     onError: (error: Error) => {
-      console.error('Perusahaan deletion failed:', error);
       toast({
         title: "Error",
         description: error.message,

@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { endpoints } from '@/config/api';
+import { authFetch } from '@/lib/api-client';
 import { Role } from '@/types/rbac';
 
 interface RbacUserCreateDialogProps {
@@ -24,6 +25,7 @@ export function RbacUserCreateDialog({
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    passwordConfirmation: '',
     full_name: '',
     phone: ''
   });
@@ -41,7 +43,7 @@ export function RbacUserCreateDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.email || !formData.password || !formData.full_name) {
       toast({
         title: "Error",
@@ -51,64 +53,38 @@ export function RbacUserCreateDialog({
       return;
     }
 
+    if (formData.password !== formData.passwordConfirmation) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
-      // Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.full_name
-          }
-        }
+      // Create user via Laravel API
+      const response = await authFetch(endpoints.users, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: formData.full_name,
+          email: formData.email,
+          password: formData.password,
+          password_confirmation: formData.passwordConfirmation,
+          phone: formData.phone || null,
+          roles: selectedRoleIds // Laravel UserController expects 'roles' array
+        })
       });
 
-      if (authError) {
-        throw new Error(`Failed to create user: ${authError.message}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create user');
       }
 
-      if (!authData.user) {
-        throw new Error('User creation failed');
-      }
-
-      // Update profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: authData.user.id,
-          email: formData.email,
-          full_name: formData.full_name,
-          phone: formData.phone || null,
-          is_active: true
-        });
-
-      if (profileError) {
-        console.error('Error updating profile:', profileError);
-      }
-
-      // Assign roles if selected
-      if (selectedRoleIds.length > 0) {
-        const roleAssignments = selectedRoleIds.map(roleId => ({
-          user_id: authData.user.id,
-          role_id: roleId,
-          is_active: true
-        }));
-
-        const { error: roleError } = await supabase
-          .from('user_role_assignments')
-          .insert(roleAssignments);
-
-        if (roleError) {
-          console.error('Error assigning roles:', roleError);
-          toast({
-            title: "Warning",
-            description: "User created but role assignment failed",
-            variant: "destructive",
-          });
-        }
-      }
+      const result = await response.json();
+      console.log('User created successfully:', result);
 
       toast({
         title: "Success",
@@ -119,6 +95,7 @@ export function RbacUserCreateDialog({
       setFormData({
         email: '',
         password: '',
+        passwordConfirmation: '',
         full_name: '',
         phone: ''
       });
@@ -142,6 +119,9 @@ export function RbacUserCreateDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create New User</DialogTitle>
+          <DialogDescription className="sr-only">
+            Fill in the information to create a new user account and assign roles.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -166,6 +146,17 @@ export function RbacUserCreateDialog({
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 placeholder="Enter password"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="passwordConfirmation">Confirm Password <span className="text-red-500">*</span></Label>
+              <Input
+                id="passwordConfirmation"
+                type="password"
+                value={formData.passwordConfirmation}
+                onChange={(e) => setFormData(prev => ({ ...prev, passwordConfirmation: e.target.value }))}
+                placeholder="Confirm password"
                 required
               />
             </div>

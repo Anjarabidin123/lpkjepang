@@ -26,7 +26,7 @@ export function SiswaInlineDetail({ siswa, onClose }: SiswaInlineDetailProps) {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('id-ID', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: '2-digit',
       month: 'long',
       year: 'numeric'

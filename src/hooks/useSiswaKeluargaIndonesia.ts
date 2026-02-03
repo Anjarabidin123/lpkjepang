@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { endpoints } from '@/config/api';
 import { useToast } from '@/hooks/use-toast';
-import { SiswaKeluargaIndonesia } from './useSiswa';
+import { authFetch } from '@/lib/api-client';
+import { SiswaKeluargaIndonesia } from './siswa/types';
 
 export function useSiswaKeluargaIndonesia(siswaId?: string) {
   const { toast } = useToast();
@@ -12,34 +12,31 @@ export function useSiswaKeluargaIndonesia(siswaId?: string) {
     queryKey: ['siswa-keluarga-indonesia', siswaId],
     queryFn: async () => {
       if (!siswaId) return [];
-      const { data, error } = await supabase
-        .from('siswa_keluarga_indonesia')
-        .select('*')
-        .eq('siswa_id', siswaId)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as SiswaKeluargaIndonesia[];
+      const response = await authFetch(`${endpoints.siswaKeluargaIndonesia}?siswa_id=${siswaId}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
+      const data = await response.json();
+      return data.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        siswa_id: item.siswa_id.toString()
+      })) as SiswaKeluargaIndonesia[];
     },
     enabled: !!siswaId,
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: Omit<SiswaKeluargaIndonesia, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data: result, error } = await supabase
-        .from('siswa_keluarga_indonesia')
-        .insert([{
-          siswa_id: data.siswa_id,
-          nama: data.nama,
-          hubungan: data.hubungan as any,
-          umur: data.umur,
-          pekerjaan: data.pekerjaan,
-        }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return result;
+      const response = await authFetch(endpoints.siswaKeluargaIndonesia, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Failed to create data');
+      }
+      const result = await response.json();
+      return { ...result, id: result.id.toString(), siswa_id: result.siswa_id.toString() };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['siswa-keluarga-indonesia', siswaId] });
@@ -53,20 +50,14 @@ export function useSiswaKeluargaIndonesia(siswaId?: string) {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...data }: Partial<SiswaKeluargaIndonesia> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('siswa_keluarga_indonesia')
-        .update({
-          nama: data.nama,
-          hubungan: data.hubungan as any,
-          umur: data.umur,
-          pekerjaan: data.pekerjaan,
-        })
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return result;
+      const response = await authFetch(`${endpoints.siswaKeluargaIndonesia}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) throw new Error('Failed to update data');
+      const result = await response.json();
+      return { ...result, id: result.id.toString(), siswa_id: result.siswa_id.toString() };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['siswa-keluarga-indonesia', siswaId] });
@@ -80,12 +71,11 @@ export function useSiswaKeluargaIndonesia(siswaId?: string) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('siswa_keluarga_indonesia')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      const response = await authFetch(`${endpoints.siswaKeluargaIndonesia}/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) throw new Error('Failed to delete data');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['siswa-keluarga-indonesia', siswaId] });

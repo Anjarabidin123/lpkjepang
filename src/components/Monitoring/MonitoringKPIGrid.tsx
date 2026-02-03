@@ -34,32 +34,30 @@ interface MonitoringKPIGridProps {
 
 export function MonitoringKPIGrid({ data }: MonitoringKPIGridProps) {
   const formatCurrency = (value: number | null | undefined) => {
-    // Safe currency formatting with null checks
     if (value === null || value === undefined || isNaN(value)) {
       return 'Rp 0';
     }
-    
+
     try {
-      return new Intl.NumberFormat('id-ID', {
+      return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-      }).format(value);
+      }).format(value).replace('IDR', 'Rp');
     } catch (error) {
       console.error('Error formatting currency:', error);
-      return `Rp ${value.toLocaleString('id-ID')}`;
+      return `Rp ${value.toLocaleString('en-US')}`;
     }
   };
 
   const formatNumber = (value: number | null | undefined) => {
-    // Safe number formatting with null checks
     if (value === null || value === undefined || isNaN(value)) {
       return '0';
     }
-    
+
     try {
-      return value.toLocaleString('id-ID');
+      return value.toLocaleString('en-US');
     } catch (error) {
       console.error('Error formatting number:', error);
       return value.toString();
@@ -98,7 +96,7 @@ export function MonitoringKPIGrid({ data }: MonitoringKPIGridProps) {
         formatValue={formatNumber}
         className="border-l-4 border-l-blue-500"
       />
-      
+
       <MonitoringKPICard
         title="Kumiai Aktif"
         target={safeData.kumiaiKPI.target}
@@ -109,7 +107,7 @@ export function MonitoringKPIGrid({ data }: MonitoringKPIGridProps) {
         formatValue={formatNumber}
         className="border-l-4 border-l-green-500"
       />
-      
+
       <MonitoringKPICard
         title="LPK Mitra"
         target={safeData.lpkMitraKPI.target}
@@ -120,7 +118,7 @@ export function MonitoringKPIGrid({ data }: MonitoringKPIGridProps) {
         formatValue={formatNumber}
         className="border-l-4 border-l-purple-500"
       />
-      
+
       <MonitoringKPICard
         title="Rata-rata Gaji"
         target={safeData.gajiKPI.target}
