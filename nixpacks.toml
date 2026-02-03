@@ -3,6 +3,8 @@ nixPkgs = ["php82", "nodejs_20", "php82Packages.composer"]
 
 [phases.install]
 cmds = ["npm install"]
+# Disable automatic cache directories to prevent EBUSY error
+cacheDirectories = []
 
 [phases.build]
 cmds = [
