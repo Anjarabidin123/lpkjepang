@@ -36,7 +36,7 @@ function AttendanceAdminView({ attendance }: { attendance: any[] }) {
                         <UserCheck className="w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-slate-800 font-outfit uppercase">Absensi Harian</h2>
+                        <h2 className="text-xl font-black text-slate-800 font-sans uppercase">Absensi Harian</h2>
                         <p className="text-emerald-600 text-xs font-bold tracking-wide">Input kehadiran siswa secara masal</p>
                     </div>
                 </div>
@@ -98,7 +98,7 @@ function GradesAdminView({ grades, onDelete, onAdd }: { grades: any[], onDelete:
                         <Target className="w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-slate-800 font-outfit uppercase">Penilaian Ujian</h2>
+                        <h2 className="text-xl font-black text-slate-800 font-sans uppercase">Penilaian Ujian</h2>
                         <p className="text-blue-600 text-xs font-bold tracking-wide">Kelola hasil tes dan JLPT/NAT siswa</p>
                     </div>
                 </div>
@@ -130,7 +130,7 @@ function GradesAdminView({ grades, onDelete, onAdd }: { grades: any[], onDelete:
                                     <TableRow key={g.id} className="border-slate-50 hover:bg-slate-50/30 transition-colors">
                                         <TableCell className="pl-8 font-bold text-slate-900 py-5">{g.siswa?.nama}</TableCell>
                                         <TableCell className="font-bold text-slate-600">{g.subject}</TableCell>
-                                        <TableCell className="text-center font-black text-lg font-outfit text-slate-900">{g.score}</TableCell>
+                                        <TableCell className="text-center font-black text-lg font-sans text-slate-900">{g.score}</TableCell>
                                         <TableCell className="text-center">
                                             <Badge className={`rounded-lg font-black text-[10px] tracking-widest ${g.result === 'pass' ? 'bg-emerald-50 text-emerald-600 shadow-none border-emerald-100' : 'bg-red-50 text-red-600 shadow-none border-red-100'}`}>
                                                 {g.result === 'pass' ? 'LULUS' : 'GAGAL'}
@@ -176,7 +176,7 @@ function SchedulesAdminView({ schedules, onDelete, onAdd }: { schedules: any[], 
                         <Calendar className="w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-slate-800 font-outfit uppercase">Jadwal Kelas</h2>
+                        <h2 className="text-xl font-black text-slate-800 font-sans uppercase">Jadwal Kelas</h2>
                         <p className="text-violet-600 text-xs font-bold tracking-wide">Kelola jadwal pelajaran mingguan siswa</p>
                     </div>
                 </div>
@@ -212,7 +212,7 @@ function SchedulesAdminView({ schedules, onDelete, onAdd }: { schedules: any[], 
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="font-bold text-slate-600 font-mono text-xs">{s.start_time.slice(0, 5)} - {s.end_time.slice(0, 5)}</TableCell>
-                                        <TableCell className="font-black text-slate-800 font-outfit uppercase tracking-tight">{s.subject}</TableCell>
+                                        <TableCell className="font-black text-slate-800 font-sans uppercase tracking-tight">{s.subject}</TableCell>
                                         <TableCell className="text-xs font-medium text-slate-500">
                                             {s.room} {s.teacher_name && `• ${s.teacher_name}`}
                                         </TableCell>
@@ -489,7 +489,7 @@ export default function EducationPage() {
             <div className="space-y-8 animate-fade-in p-4">
                 <div className="flex items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight font-outfit uppercase">Pendidikan Saya</h1>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight font-sans uppercase">Pendidikan Saya</h1>
                         <p className="text-slate-500 font-medium tracking-wide">Pantau kehadiran dan kualifikasi bahasa Jepang Anda</p>
                     </div>
                     <div className="flex items-center gap-4 bg-white p-4 rounded-3xl shadow-sm border border-slate-50">
@@ -497,7 +497,7 @@ export default function EducationPage() {
                             <Medal className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <div className="text-3xl font-black text-slate-900 font-outfit leading-none">{presencePercentage}%</div>
+                            <div className="text-3xl font-black text-slate-900 font-sans leading-none">{presencePercentage}%</div>
                             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Presensi Belajar</div>
                         </div>
                     </div>
@@ -575,11 +575,11 @@ export default function EducationPage() {
                                         <div key={g.id} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors">
                                             <div>
                                                 <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">{format(new Date(g.exam_date), 'dd/MM/yyyy')}</div>
-                                                <div className="text-sm font-black text-slate-800 font-outfit uppercase tracking-tight">{g.subject}</div>
+                                                <div className="text-sm font-black text-slate-800 font-sans uppercase tracking-tight">{g.subject}</div>
                                             </div>
                                             <div className="flex items-center gap-5">
                                                 <div className="text-right">
-                                                    <div className={`text-2xl font-black font-outfit ${g.score >= 70 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                    <div className={`text-2xl font-black font-sans ${g.score >= 70 ? 'text-emerald-600' : 'text-red-600'}`}>
                                                         {g.score}
                                                     </div>
                                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nilai Akhir</div>
@@ -606,7 +606,7 @@ export default function EducationPage() {
         <div className="space-y-8 animate-fade-in p-2 sm:p-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight font-outfit uppercase">Pusat Pendidikan LPK</h1>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight font-sans uppercase">Pusat Pendidikan LPK</h1>
                     <p className="text-slate-500 font-medium tracking-wide">Monitoring absensi dan penilaian akademik siswa</p>
                 </div>
                 {isAdmin && (

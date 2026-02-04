@@ -19,7 +19,7 @@ export function MobileDocumentTracking({ steps, getStatusBadge, getStepIcon }: M
     return (
         <div className="space-y-4 pb-10">
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-50">
-                <h1 className="text-lg font-black text-slate-900 font-outfit uppercase">Progress Dokumen</h1>
+                <h1 className="text-lg font-black text-slate-900 font-sans uppercase">Progress Dokumen</h1>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Tracking Keberangkatan</p>
             </div>
 

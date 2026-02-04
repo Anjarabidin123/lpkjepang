@@ -32,7 +32,7 @@ export function MobileProfile({ user, profileData, onProfileUpdate, userRole }: 
                     )}
                 </div>
 
-                <h1 className="text-xl font-black text-slate-900 font-outfit uppercase tracking-tight mb-1">
+                <h1 className="text-xl font-black text-slate-900 font-sans uppercase tracking-tight mb-1">
                     {profileData.full_name || 'Siswa LPK'}
                 </h1>
                 <p className="text-sm text-slate-500 font-medium mb-3">{profileData.email}</p>
@@ -67,7 +67,7 @@ export function MobileProfile({ user, profileData, onProfileUpdate, userRole }: 
                         <div className="h-8 w-8 rounded-full bg-emerald-50 flex items-center justify-center mb-1">
                             <Clock className="w-4 h-4 text-emerald-600" />
                         </div>
-                        <span className="text-lg font-black text-slate-900 font-outfit leading-none">98%</span>
+                        <span className="text-lg font-black text-slate-900 font-sans leading-none">98%</span>
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Hadir</span>
                     </div>
 
@@ -76,7 +76,7 @@ export function MobileProfile({ user, profileData, onProfileUpdate, userRole }: 
                         <div className="h-8 w-8 rounded-full bg-orange-50 flex items-center justify-center mb-1">
                             <Star className="w-4 h-4 text-orange-600" />
                         </div>
-                        <span className="text-lg font-black text-slate-900 font-outfit leading-none">89</span>
+                        <span className="text-lg font-black text-slate-900 font-sans leading-none">89</span>
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Nilai</span>
                     </div>
 
@@ -85,7 +85,7 @@ export function MobileProfile({ user, profileData, onProfileUpdate, userRole }: 
                         <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center mb-1">
                             <FileText className="w-4 h-4 text-blue-600" />
                         </div>
-                        <span className="text-lg font-black text-slate-900 font-outfit leading-none">Ok</span>
+                        <span className="text-lg font-black text-slate-900 font-sans leading-none">Ok</span>
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Dokumen</span>
                     </div>
 

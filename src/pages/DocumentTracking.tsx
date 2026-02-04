@@ -131,7 +131,7 @@ export default function DocumentTrackingPage() {
         return (
             <div className="space-y-4 sm:space-y-6">
                 <div>
-                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-outfit uppercase">Tracking Dokumen Saya</h1>
+                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-sans uppercase">Tracking Dokumen Saya</h1>
                     <p className="text-xs sm:text-sm text-slate-500 font-medium">Pantau setiap tahapan persiapan dokumen Anda</p>
                 </div>
 

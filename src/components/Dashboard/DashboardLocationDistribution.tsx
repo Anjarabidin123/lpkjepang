@@ -29,7 +29,7 @@ export function DashboardLocationDistribution({ siswaMagang }: DashboardLocation
   return (
     <div className="flat-card h-full">
       <div className="p-8 border-b border-slate-50 bg-slate-50/50">
-        <h2 className="flex items-center gap-3 text-lg font-black text-slate-800 font-outfit uppercase tracking-tight">
+        <h2 className="flex items-center gap-3 text-lg font-black text-slate-800 font-sans uppercase tracking-tight">
           <Globe className="w-5 h-5 text-primary" />
           Sebaran Geografis Penempatan
         </h2>
@@ -47,10 +47,10 @@ export function DashboardLocationDistribution({ siswaMagang }: DashboardLocation
                 <div className="flex justify-between items-end">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                    <span className="text-sm font-bold text-slate-700 uppercase tracking-tight font-outfit">{item.city}</span>
+                    <span className="text-sm font-bold text-slate-700 uppercase tracking-tight font-sans">{item.city}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-black text-slate-900 font-outfit">{item.count}</span>
+                    <span className="text-sm font-black text-slate-900 font-sans">{item.count}</span>
                     <span className="text-[10px] font-bold text-slate-400 ml-1">SISWA</span>
                   </div>
                 </div>

@@ -65,7 +65,7 @@ export function DashboardStatsGrid({ stats }: DashboardStatsGridProps) {
           </div>
           <div>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{item.label}</p>
-            <h2 className="text-3xl font-black text-slate-900 font-outfit tracking-tighter">
+            <h2 className="text-3xl font-black text-slate-900 font-sans tracking-tighter">
               {formatNumber(item.value)}
             </h2>
           </div>

@@ -34,7 +34,7 @@ export function MobileStudentDashboard({ user }: { user?: any }) {
                     </div>
                     <div>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Selamat Pagi,</p>
-                        <h1 className="text-lg font-black font-outfit text-slate-900 leading-none capitalize">{user?.name?.split(' ')[0] || 'Siswa'}</h1>
+                        <h1 className="text-lg font-black font-sans text-slate-900 leading-none capitalize">{user?.name?.split(' ')[0] || 'Siswa'}</h1>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -55,7 +55,7 @@ export function MobileStudentDashboard({ user }: { user?: any }) {
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status Program</p>
-                            <h2 className="text-lg font-black font-outfit tracking-tight">{processName}</h2>
+                            <h2 className="text-lg font-black font-sans tracking-tight">{processName}</h2>
                         </div>
                         <div className="bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
                             <span className="text-[9px] font-bold">Langkah {currentStep}/{totalSteps}</span>
@@ -78,21 +78,21 @@ export function MobileStudentDashboard({ user }: { user?: any }) {
                     <div className="h-8 w-8 rounded-full bg-emerald-50 flex items-center justify-center mb-1">
                         <Clock className="w-4 h-4 text-emerald-600" />
                     </div>
-                    <span className="text-lg font-black text-slate-900 font-outfit leading-none">98%</span>
+                    <span className="text-lg font-black text-slate-900 font-sans leading-none">98%</span>
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Hadir</span>
                 </div>
                 <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-1">
                     <div className="h-8 w-8 rounded-full bg-orange-50 flex items-center justify-center mb-1">
                         <BarChart3 className="w-4 h-4 text-orange-600" />
                     </div>
-                    <span className="text-lg font-black text-slate-900 font-outfit leading-none">A-</span>
+                    <span className="text-lg font-black text-slate-900 font-sans leading-none">A-</span>
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Nilai</span>
                 </div>
                 <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-1">
                     <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center mb-1">
                         <FileText className="w-4 h-4 text-blue-600" />
                     </div>
-                    <span className="text-lg font-black text-slate-900 font-outfit leading-none">Ok</span>
+                    <span className="text-lg font-black text-slate-900 font-sans leading-none">Ok</span>
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Dokumen</span>
                 </div>
             </div>

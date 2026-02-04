@@ -19,11 +19,11 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-slate-100 bg-white/50 backdrop-blur-xl">
-      <SidebarHeader className="p-6">
+      <SidebarHeader className="p-4">
         <BrandLogo size="md" />
       </SidebarHeader>
-      <SidebarContent className="px-5 pb-10 space-y-1">
-        <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-3">
+      <SidebarContent className="px-3 pb-6 space-y-0.5">
+        <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-3 mt-2">
           Menu Utama
         </div>
         {filteredMenu.map(item => (

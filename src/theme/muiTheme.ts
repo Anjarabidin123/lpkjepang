@@ -32,7 +32,7 @@ export const muiTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", sans-serif',
     h1: {
       fontSize: '2.5rem',
       fontWeight: 700,

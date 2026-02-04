@@ -31,14 +31,14 @@ export function HierarchicalMenuItem({
   }
 
   const activeLinkClass = "bg-primary/10 text-primary font-bold shadow-sm ring-1 ring-primary/20";
-  const baseLinkClass = "flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all duration-300 hover:bg-slate-50 text-slate-600 hover:text-slate-900";
+  const baseLinkClass = "flex items-center gap-3 py-2 px-3 rounded-xl transition-all duration-300 hover:bg-slate-50 text-slate-600 hover:text-slate-900";
 
   if (item.isCollapsible && item.children) {
     return (
-      <SidebarGroup className="py-0.5">
+      <SidebarGroup className="py-0">
         <Collapsible open={isOpen} onOpenChange={() => onToggle(item.id)}>
           <CollapsibleTrigger asChild>
-            <div className="group flex items-center justify-between w-full px-3 py-2.5 cursor-pointer rounded-xl hover:bg-slate-50 transition-all text-slate-600 hover:text-slate-900">
+            <div className="group flex items-center justify-between w-full px-3 py-2 cursor-pointer rounded-xl hover:bg-slate-50 transition-all text-slate-600 hover:text-slate-900">
               <div className="flex items-center gap-3">
                 <div className={`p-1.5 rounded-lg ${isOpen ? 'bg-primary/10 text-primary' : 'bg-slate-50 text-slate-400'} transition-colors group-hover:bg-primary/10 group-hover:text-primary`}>
                   <item.icon className="h-4 w-4" />
@@ -49,7 +49,7 @@ export function HierarchicalMenuItem({
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <SidebarGroupContent className="mt-1 ml-4 border-l-2 border-slate-50 pl-2 space-y-1">
+            <SidebarGroupContent className="mt-0.5 ml-4 border-l-2 border-slate-50 pl-2 space-y-0.5">
               <SidebarMenu>
                 {item.children.map(child => (
                   <SidebarMenuItem key={child.id}>
@@ -74,7 +74,7 @@ export function HierarchicalMenuItem({
 
   if (item.url) {
     return (
-      <SidebarGroup className="py-0.5">
+      <SidebarGroup className="py-0">
         <SidebarMenu>
           <SidebarMenuItem>
             <NavLink

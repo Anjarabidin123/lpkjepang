@@ -102,6 +102,9 @@ export default {
 			fontSize: {
 				'2xs': ['0.625rem', { lineHeight: '0.75rem' }],
 			},
+			fontFamily: {
+				sans: ["Inter", "sans-serif"],
+			},
 			keyframes: {
 				'accordion-down': {
 					from: {

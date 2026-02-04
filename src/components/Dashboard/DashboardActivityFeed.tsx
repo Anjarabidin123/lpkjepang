@@ -74,7 +74,7 @@ export function DashboardActivityFeed({ siswa = [], siswaMagang = [], kumiai = [
   return (
     <div className="flat-card h-full">
       <div className="p-5 sm:p-8 border-b border-slate-50 bg-slate-50/50">
-        <h2 className="flex items-center gap-3 text-base sm:text-lg font-black text-slate-800 font-outfit uppercase tracking-tight">
+        <h2 className="flex items-center gap-3 text-base sm:text-lg font-black text-slate-800 font-sans uppercase tracking-tight">
           <Activity className="w-5 h-5 text-primary" />
           Log Aktivitas
         </h2>

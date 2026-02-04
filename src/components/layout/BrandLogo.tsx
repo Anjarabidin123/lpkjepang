@@ -35,7 +35,7 @@ export function BrandLogo({ size = 'md', showText = true, className = '' }: Bran
       {showText && (
         <div className="flex flex-col">
           <div className="flex items-center gap-1">
-            <h1 className={`${textSizes[size]} font-black text-slate-900 tracking-tighter font-outfit uppercase`}>
+            <h1 className={`${textSizes[size]} font-black text-slate-900 tracking-tighter font-sans uppercase`}>
               LPK <span className="text-primary">UJC</span>
             </h1>
             <Sparkles className="w-3 h-3 text-orange-400 animate-pulse" />

@@ -29,7 +29,7 @@ export function MobileEducation({ attendance, grades, schedules = [], presencePe
             {/* Minimalist Summary */}
             <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-50">
                 <div>
-                    <h1 className="text-lg font-black text-slate-900 font-outfit uppercase">Pendidikan</h1>
+                    <h1 className="text-lg font-black text-slate-900 font-sans uppercase">Pendidikan</h1>
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Progress Akademik</p>
                 </div>
                 <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
@@ -117,7 +117,7 @@ export function MobileEducation({ attendance, grades, schedules = [], presencePe
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className={`text-lg font-black font-outfit ${g.score >= 70 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    <div className={`text-lg font-black font-sans ${g.score >= 70 ? 'text-emerald-600' : 'text-red-600'}`}>
                                         {g.score}
                                     </div>
                                     <div className="text-[8px] font-bold text-slate-300 uppercase">Score</div>

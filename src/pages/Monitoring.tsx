@@ -28,7 +28,7 @@ export default function MonitoringPage() {
             {/* Dynamic Header with Filters */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-[2rem] border border-slate-50 shadow-sm">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight font-outfit uppercase">Monitoring & KPI</h1>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight font-sans uppercase">Monitoring & KPI</h1>
                     <p className="text-slate-500 font-medium tracking-wide flex items-center gap-2">
                         <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
                         Statistik Real-time Operasional LPK UJC
@@ -72,7 +72,7 @@ export default function MonitoringPage() {
                                 </Badge>
                             </div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-1">{stat.label}</p>
-                            <h2 className="text-4xl font-black text-slate-900 font-outfit tracking-tighter">
+                            <h2 className="text-4xl font-black text-slate-900 font-sans tracking-tighter">
                                 {formatNumber(stat.value)}
                             </h2>
                         </CardContent>
@@ -161,9 +161,9 @@ export default function MonitoringPage() {
                                     <div className="flex justify-between items-end">
                                         <div className="space-y-1">
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
-                                            <p className="text-lg font-black text-slate-800 font-outfit uppercase">{item.current} / {item.target}</p>
+                                            <p className="text-lg font-black text-slate-800 font-sans uppercase">{item.current} / {item.target}</p>
                                         </div>
-                                        <div className="text-2xl font-black text-slate-900 font-outfit">{percentage}%</div>
+                                        <div className="text-2xl font-black text-slate-900 font-sans">{percentage}%</div>
                                     </div>
                                     <div className="h-3 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-0.5">
                                         <div

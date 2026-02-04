@@ -128,7 +128,7 @@ function StudentModuleView({ modules, searchTerm, setSearchTerm, selectedCategor
         <div className={`space-y-4 ${isMobile ? 'pb-24' : ''}`}>
             {/* Header */}
             <div className="flex flex-col gap-1 px-1">
-                <h1 className="text-xl font-black font-outfit text-slate-900 uppercase tracking-tight">Materi Belajar</h1>
+                <h1 className="text-xl font-black font-sans text-slate-900 uppercase tracking-tight">Materi Belajar</h1>
                 <p className="text-xs text-slate-500 font-medium">Modul pembelajaran LPK.</p>
             </div>
 
@@ -227,7 +227,7 @@ function AdminModuleView({ modules, searchTerm, setSearchTerm, createMutation, d
         <div className="space-y-6 pt-4 px-4 pb-20">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-black font-outfit text-slate-900 uppercase tracking-tight">Manajemen Materi</h1>
+                    <h1 className="text-2xl font-black font-sans text-slate-900 uppercase tracking-tight">Manajemen Materi</h1>
                     <p className="text-sm text-slate-500 font-medium">Upload dan kelola bahan ajar.</p>
                 </div>
                 <Button onClick={() => setIsAddOpen(true)} className="bg-primary hover:bg-primary/90 rounded-xl shadow-lg font-bold">
