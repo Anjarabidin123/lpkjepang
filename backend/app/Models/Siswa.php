@@ -57,4 +57,15 @@ class Siswa extends Model
     {
         return $this->hasMany(SiswaPengalamanKerja::class);
     }
+
+    public function pendidikan()
+    {
+        return $this->hasMany(SiswaPendidikan::class);
+    }
+
+    public function siswaMagang()
+    {
+        return $this->hasMany(SiswaMagang::class);
+    }
 }
+

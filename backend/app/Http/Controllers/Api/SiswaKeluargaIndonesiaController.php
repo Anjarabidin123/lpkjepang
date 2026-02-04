@@ -20,7 +20,15 @@ class SiswaKeluargaIndonesiaController extends Controller
 
     public function store(Request $request)
     {
-        $data = SiswaKeluargaIndonesia::create($request->all());
+        $validated = $request->validate([
+            'siswa_id' => 'required|exists:siswas,id',
+            'nama' => 'required|string',
+            'hubungan' => 'nullable|string',
+            'umur' => 'nullable|integer',
+            'pekerjaan' => 'nullable|string',
+        ]);
+
+        $data = SiswaKeluargaIndonesia::create($validated);
         return response()->json($data, 201);
     }
 
@@ -32,7 +40,16 @@ class SiswaKeluargaIndonesiaController extends Controller
     public function update(Request $request, $id)
     {
         $data = SiswaKeluargaIndonesia::findOrFail($id);
-        $data->update($request->all());
+        
+        $validated = $request->validate([
+            'siswa_id' => 'sometimes|required|exists:siswas,id',
+            'nama' => 'sometimes|required|string',
+            'hubungan' => 'nullable|string',
+            'umur' => 'nullable|integer',
+            'pekerjaan' => 'nullable|string',
+        ]);
+        
+        $data->update($validated);
         return response()->json($data);
     }
 

@@ -128,9 +128,11 @@ function SiswaContent() {
       <SiswaDetail
         siswa={viewingItem}
         onBack={cancelEdit}
+        onEdit={(item) => startEdit(item)}
       />
     );
   }
+
 
   return (
     <ModulePageLayout

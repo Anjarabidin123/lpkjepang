@@ -18,6 +18,15 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'kumiai_id' => 'required|exists:kumiais,id',
+            'nomor_invoice' => 'required|string|unique:invoices,nomor_invoice',
+            'nominal' => 'required|numeric',
+            'tanggal_invoice' => 'required|date',
+            'tanggal_jatuh_tempo' => 'required|date',
+            'invoice_items' => 'array',
+        ]);
+
         return DB::transaction(function () use ($request) {
             $invoice = Invoice::create($request->only([
                 'kumiai_id', 'nomor_invoice', 'nominal', 'tanggal_invoice', 
@@ -41,6 +50,15 @@ class InvoiceController extends Controller
 
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'kumiai_id' => 'sometimes|required|exists:kumiais,id',
+            'nomor_invoice' => 'sometimes|required|string|unique:invoices,nomor_invoice,'.$id,
+            'nominal' => 'sometimes|required|numeric',
+            'tanggal_invoice' => 'sometimes|required|date',
+            'tanggal_jatuh_tempo' => 'sometimes|required|date',
+            'invoice_items' => 'array',
+        ]);
+
         return DB::transaction(function () use ($request, $id) {
             $invoice = Invoice::findOrFail($id);
             $invoice->update($request->only([

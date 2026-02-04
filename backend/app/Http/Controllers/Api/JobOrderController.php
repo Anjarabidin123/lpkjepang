@@ -60,6 +60,21 @@ class JobOrderController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'nama_job_order' => 'sometimes|required|string|max:255',
+                'kumiai_id' => 'sometimes|required|exists:kumiais,id',
+                'perusahaan_id' => 'nullable|exists:perusahaans,id',
+                'jenis_kerja_id' => 'nullable|exists:jenis_kerjas,id',
+                'kuota' => 'sometimes|required|integer|min:1',
+                'status' => 'sometimes|required|string',
+                'tanggal_job_order' => 'nullable|date',
+                'catatan' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 422);
+            }
+
             $jobOrder = \App\Models\JobOrder::findOrFail($id);
             $jobOrder->update($request->all());
             return response()->json($jobOrder);

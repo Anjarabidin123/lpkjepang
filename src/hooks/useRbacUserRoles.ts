@@ -62,9 +62,34 @@ export function useRbacUserRoles() {
     }
   };
 
+  const deleteUser = async (userId: string): Promise<boolean> {
+    try {
+      setLoading(true);
+      const success = await UserRoleService.deleteUser(userId);
+      if (success) {
+        toast({
+          title: "Success",
+          description: "User deleted successfully",
+        });
+        await fetchUsers();
+      }
+      return success;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete user",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
-    
+
     const unsubscribe = UserRoleService.subscribeToUserRoles((updatedUsers) => {
       setUsers(updatedUsers);
     });
@@ -78,6 +103,7 @@ export function useRbacUserRoles() {
     assigning,
     fetchUsers,
     assignRoles,
-    getUserRoles
+    getUserRoles,
+    deleteUser
   };
 }

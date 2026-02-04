@@ -17,4 +17,10 @@ class JobOrder extends Model
     {
         return $this->belongsTo(JenisKerja::class);
     }
+
+    public function peserta()
+    {
+        return $this->hasMany(JobOrderPeserta::class);
+    }
 }
+

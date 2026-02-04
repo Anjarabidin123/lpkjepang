@@ -42,6 +42,7 @@ export const endpoints = {
     pengeluaran: `${API_BASE_URL}/pengeluaran`,
     invoices: `${API_BASE_URL}/invoices`,
     invoiceItems: `${API_BASE_URL}/invoice-items`,
+    documentTemplates: `${API_BASE_URL}/document-templates`,
     siswaDocuments: `${API_BASE_URL}/siswa-documents`,
     monitoring: {
         kpi: `${API_BASE_URL}/monitoring/kpi`,

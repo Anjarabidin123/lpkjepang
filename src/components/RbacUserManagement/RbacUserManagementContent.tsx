@@ -10,16 +10,28 @@ import { RbacUserTable } from './RbacUserTable';
 import { RbacUserRoleDialog } from './RbacUserRoleDialog';
 import { RbacUserCreateDialog } from './RbacUserCreateDialog';
 import { UserWithRoles } from '@/types/rbac';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function RbacUserManagementContent() {
-  const { users, loading, assignRoles, assigning } = useRbacUserRoles();
+  const { users, loading, assignRoles, assigning, deleteUser } = useRbacUserRoles();
   const { roles } = useRbacRoles();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserWithRoles | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter(user =>
     user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -35,6 +47,21 @@ export function RbacUserManagementContent() {
   const handleEditUserRoles = (user: UserWithRoles) => {
     setSelectedUser(user);
     setShowRoleDialog(true);
+  };
+
+  const confirmDeleteUser = (user: UserWithRoles) => {
+    setUserToDelete(user);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (userToDelete) {
+      const success = await deleteUser(userToDelete.id);
+      if (success) {
+        setShowDeleteDialog(false);
+        setUserToDelete(null);
+      }
+    }
   };
 
   return (
@@ -87,6 +114,10 @@ export function RbacUserManagementContent() {
             users={filteredUsers}
             loading={loading}
             onEditRoles={handleEditUserRoles}
+            onDelete={(userId) => {
+              const user = users.find(u => u.id === userId);
+              if (user) confirmDeleteUser(user);
+            }}
           />
         </CardContent>
       </Card>
@@ -109,6 +140,28 @@ export function RbacUserManagementContent() {
         onOpenChange={setShowCreateDialog}
         availableRoles={roles}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete user "{userToDelete?.full_name || userToDelete?.email}"?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

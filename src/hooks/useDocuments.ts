@@ -10,33 +10,148 @@ import {
   DocumentCategory,
   VariableCategory,
   VariableFormatType,
+  CreateDocumentTemplateData,
+  UpdateDocumentTemplateData,
 } from '@/types/document';
 import { endpoints } from '@/config/api';
 import { authFetch } from '@/lib/api-client';
 
-// --- Templates (Placeholder / Future API) ---
+// --- Templates ---
 export function useDocumentTemplates() {
   const [templates, setTemplates] = useState<DocumentTemplate[]>([]);
-  const loading = false;
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const { toast } = useToast();
 
   const fetchTemplates = useCallback(async () => {
-    // TODO: Implement API for templates
-    setTemplates([]);
-  }, []);
+    try {
+      setLoading(true);
+      const response = await authFetch(endpoints.documentTemplates);
+      if (!response.ok) throw new Error('Failed to fetch templates');
+      const data = await response.json();
+      setTemplates(data);
+    } catch (error: any) {
+      console.error('Error fetching templates:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal memuat template dokumen',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
-  useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
+  const createTemplate = async (data: CreateDocumentTemplateData): Promise<boolean> => {
+    try {
+      setCreating(true);
+      const response = await authFetch(endpoints.documentTemplates, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create template');
+      }
+
+      toast({ title: 'Berhasil', description: 'Template dokumen berhasil dibuat' });
+      await fetchTemplates();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: `Gagal membuat template: ${error.message}`,
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const updateTemplate = async (id: string, data: UpdateDocumentTemplateData): Promise<boolean> => {
+    try {
+      setUpdating(true);
+      const response = await authFetch(`${endpoints.documentTemplates}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error('Failed to update template');
+
+      toast({ title: 'Berhasil', description: 'Template dokumen berhasil diperbarui' });
+      await fetchTemplates();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: `Gagal memperbarui template: ${error.message}`,
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const deleteTemplate = async (id: string): Promise<boolean> => {
+    try {
+      const response = await authFetch(`${endpoints.documentTemplates}/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete template');
+
+      toast({ title: 'Berhasil', description: 'Template dokumen berhasil dihapus' });
+      await fetchTemplates();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: `Gagal menghapus template: ${error.message}`,
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
 
   const templatesByCategory = useMemo(() => {
-    return {
-      visa: [], kontrak: [], administrasi: [], kesehatan: [], pendidikan: [], keuangan: [], lainnya: [],
+    const grouped = {
+      visa: [],
+      kontrak: [],
+      administrasi: [],
+      kesehatan: [],
+      pendidikan: [],
+      keuangan: [],
+      lainnya: [],
     } as Record<DocumentCategory, DocumentTemplate[]>;
+
+    templates.forEach((t) => {
+      // Ensure the category exists in the grouped object, fallback to 'lainnya'
+      const key = (t.kategori in grouped) ? (t.kategori as DocumentCategory) : 'lainnya';
+      grouped[key].push(t);
+    });
+
+    return grouped;
   }, [templates]);
 
   return {
-    templates, templatesByCategory, loading, creating: false, updating: false,
-    createTemplate: async () => true,
-    updateTemplate: async () => true,
-    deleteTemplate: async () => true,
+    templates,
+    templatesByCategory,
+    loading,
+    creating,
+    updating,
+    createTemplate,
+    updateTemplate,
+    deleteTemplate,
     refetch: fetchTemplates,
   };
 }
@@ -88,7 +203,7 @@ export function useSiswaDocuments(siswa_magang_id?: string) {
 
       const data = await response.json();
 
-      // Transform logic if needed, currently direct mapping usually works
+      // Transform logic if needed
       const mappedData = data.map((d: any) => ({
         ...d,
         document_template: d.template || null // Mapping relation
@@ -111,9 +226,6 @@ export function useSiswaDocuments(siswa_magang_id?: string) {
   }, [fetchDocuments]);
 
   const createDocument = async (data: any): Promise<boolean> => {
-    // Note: 'data' here might be FormData if we changed the UI to support file upload.
-    // If the UI is still passing logic/objects, we need to adapt.
-    // Assuming UI passes: { siswa_magang_id, nama, file: FileObj, keterangan }
     try {
       const formData = new FormData();
       formData.append('siswa_magang_id', data.siswa_magang_id);
@@ -184,7 +296,7 @@ export function useSiswaDocuments(siswa_magang_id?: string) {
   };
 
   const initializeDocumentsForSiswa = async (siswaMagangId: string): Promise<boolean> => {
-    // TODO: Implement initialization logic (copy templates to siswa doc records)
+    // TODO: Implement initialization logic
     return true;
   };
 

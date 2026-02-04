@@ -16,9 +16,11 @@ import { useSiswaKontakKeluarga } from "@/hooks/useSiswaKontakKeluarga";
 interface SiswaDetailProps {
   siswa: Siswa;
   onBack: () => void;
+  onEdit?: (siswa: Siswa) => void;
 }
 
-export function SiswaDetail({ siswa, onBack }: SiswaDetailProps) {
+export function SiswaDetail({ siswa, onBack, onEdit }: SiswaDetailProps) {
+  const { deleteSiswa } = useSiswa();
   const { provinces } = useDemografiProvinces();
   const { regencies } = useDemografiRegencies();
   const { pendidikan } = useSiswaPendidikan(siswa.id);
@@ -120,7 +122,11 @@ export function SiswaDetail({ siswa, onBack }: SiswaDetailProps) {
               <CardTitle className="text-lg">Opsi</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full justify-start" variant="outline">
+              <Button
+                className="w-full justify-start"
+                variant="outline"
+                onClick={() => onEdit?.(siswa)}
+              >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Siswa
               </Button>
@@ -666,27 +672,45 @@ export function SiswaDetail({ siswa, onBack }: SiswaDetailProps) {
               <CardTitle>Opsi</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">
+              <Button
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                onClick={() => onEdit?.(siswa)}
+              >
                 <Edit className="w-4 h-4 mr-2" />
                 Ubah Data Pribadi
               </Button>
-              <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+              <Button
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                onClick={() => onEdit?.(siswa)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Pendidikan
               </Button>
-              <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+              <Button
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                onClick={() => onEdit?.(siswa)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Pengalaman Kerja
               </Button>
-              <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">
+              <Button
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                onClick={() => onEdit?.(siswa)}
+              >
                 <Edit className="w-4 h-4 mr-2" />
                 Ubah Keluarga Yang Bisa Dihubungi
               </Button>
-              <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+              <Button
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                onClick={() => onEdit?.(siswa)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Keluarga di Indonesia
               </Button>
-              <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+              <Button
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                onClick={() => onEdit?.(siswa)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Keluarga/Saudara/Teman di Jepang
               </Button>
@@ -694,7 +718,15 @@ export function SiswaDetail({ siswa, onBack }: SiswaDetailProps) {
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Attachment
               </Button>
-              <Button className="w-full bg-red-500 hover:bg-red-600 text-white">
+              <Button
+                className="w-full bg-red-500 hover:bg-red-600 text-white"
+                onClick={async () => {
+                  if (confirm('Apakah Anda yakin ingin menghapus data siswa ini?')) {
+                    await deleteSiswa(siswa.id);
+                    onBack();
+                  }
+                }}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Hapus Data
               </Button>
@@ -707,6 +739,7 @@ export function SiswaDetail({ siswa, onBack }: SiswaDetailProps) {
                 Print CV
               </Button>
             </CardContent>
+
           </Card>
         </div>
       </div>

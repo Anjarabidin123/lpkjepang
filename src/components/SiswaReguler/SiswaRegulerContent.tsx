@@ -22,13 +22,13 @@ import { toast } from 'sonner';
 import type { SiswaMagang, CreateSiswaMagangData } from '@/types/siswaMagang';
 
 export function SiswaRegulerContent() {
-  const { siswaMagang, isLoading, error, refetch } = useSiswaMagang();
+  const { siswaMagang, isLoading, error, refetch, deleteSiswaMagang, isDeleting: isDeletingProcess } = useSiswaMagang();
   const { siswa } = useSiswa();
   const { program } = useProgram();
   const { kumiai } = useKumiai();
   const { viewMode, setViewMode, sortField, sortDirection, handleSortChange, sortData } = useGridView();
   const { columns, visibleColumns, toggleColumn } = useSiswaColumnVisibility();
-  
+
   // Inline edit state management
   const {
     editingItem,
@@ -41,11 +41,11 @@ export function SiswaRegulerContent() {
     isEditing,
     isViewing,
   } = useInlineEdit<SiswaMagang>();
-  
+
   // Modal state management
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<SiswaMagang | null>(null);
-  
+
   // Filter state
   const [filters, setFilters] = useState<FilterOptions>({
     searchTerm: '',
@@ -61,12 +61,12 @@ export function SiswaRegulerContent() {
   const handleImport = async (data: Partial<CreateSiswaMagangData>[]) => {
     try {
       const result = await importService.importSiswaMagang(data);
-      
+
       if (result.success > 0) {
         await refetch();
         toast.success(`Berhasil mengimpor ${result.success} data siswa magang`);
       }
-      
+
       if (result.failed > 0) {
         console.error('Import errors:', result.errors);
         toast.error(`${result.failed} data gagal diimpor. Periksa console untuk detail error.`);
@@ -78,22 +78,22 @@ export function SiswaRegulerContent() {
   };
 
   // Enhanced filter and sort data with better performance
-    const filteredAndSortedData = useMemo(() => {
-      console.log('Filtering and sorting data...', { filters, sortField, sortDirection });
-      
-      let filtered = siswaMagang || [];
+  const filteredAndSortedData = useMemo(() => {
+    console.log('Filtering and sorting data...', { filters, sortField, sortDirection });
 
-      // Apply search filter
-      if (filters.searchTerm) {
-        const searchLower = filters.searchTerm.toLowerCase();
-        filtered = filtered.filter(item => 
-          (item.siswa?.nama || '').toLowerCase().includes(searchLower) ||
-          (item.lokasi || '').toLowerCase().includes(searchLower) ||
-          (item.siswa?.nik || '').toLowerCase().includes(searchLower) ||
-          (item.kumiai?.nama || '').toLowerCase().includes(searchLower) ||
-          (item.perusahaan?.nama || '').toLowerCase().includes(searchLower)
-        );
-      }
+    let filtered = siswaMagang || [];
+
+    // Apply search filter
+    if (filters.searchTerm) {
+      const searchLower = filters.searchTerm.toLowerCase();
+      filtered = filtered.filter(item =>
+        (item.siswa?.nama || '').toLowerCase().includes(searchLower) ||
+        (item.lokasi || '').toLowerCase().includes(searchLower) ||
+        (item.siswa?.nik || '').toLowerCase().includes(searchLower) ||
+        (item.kumiai?.nama || '').toLowerCase().includes(searchLower) ||
+        (item.perusahaan?.nama || '').toLowerCase().includes(searchLower)
+      );
+    }
 
     // Apply status filter
     if (filters.statusFilter) {
@@ -113,7 +113,7 @@ export function SiswaRegulerContent() {
     // Apply sorting using the grid view hook
     const sorted = sortData(filtered);
     console.log('Filtered and sorted data:', sorted.length, 'items');
-    
+
     return sorted;
   }, [siswaMagang, filters, sortData]);
 
@@ -136,8 +136,10 @@ export function SiswaRegulerContent() {
   };
 
   const handleDelete = async (id: string) => {
-    console.log('Delete action for id:', id);
-    // Delete functionality can be implemented here
+    if (confirm('Apakah Anda yakin ingin menghapus data siswa magang ini?')) {
+      await deleteSiswaMagang(id);
+      refetch();
+    }
   };
 
   const handleModalSuccess = () => {
@@ -202,16 +204,16 @@ export function SiswaRegulerContent() {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Terjadi kesalahan saat memuat data siswa magang. Silakan coba lagi.
         </Typography>
-        <Button 
-          onClick={handleRefresh} 
-          variant="contained" 
+        <Button
+          onClick={handleRefresh}
+          variant="contained"
           color="primary"
           sx={{ mr: 2 }}
         >
           Coba Lagi
         </Button>
-        <Button 
-          onClick={() => window.location.reload()} 
+        <Button
+          onClick={() => window.location.reload()}
           variant="outlined"
         >
           Refresh Halaman
@@ -246,10 +248,10 @@ export function SiswaRegulerContent() {
             filename="data_siswa_magang"
             onImport={handleImport}
           />
-          <Button 
-            variant="contained" 
-            startIcon={<AddIcon />} 
-            size="large" 
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            size="large"
             onClick={handleCreateNew}
             sx={{
               backgroundColor: 'primary.main',
@@ -339,22 +341,22 @@ export function SiswaRegulerContent() {
         <Typography variant="h5" sx={{ mb: 3 }}>
           Daftar Siswa Magang ({filteredAndSortedData.length} siswa)
         </Typography>
-        
-        <SiswaRegulerViewRenderer 
+
+        <SiswaRegulerViewRenderer
           viewMode={viewMode}
           sortedSiswaMagang={filteredAndSortedData}
           searchTerm={filters.searchTerm}
           isCreating={false}
           editingItem={null}
-          isDeleting={false}
+          isDeleting={isDeletingProcess}
           isEditing={false}
           visibleColumns={visibleColumns}
           onCreateNew={handleCreateNew}
           onEdit={handleEdit}
           onView={handleView}
           onDelete={handleDelete}
-          onSave={() => {}}
-          onCancel={() => {}}
+          onSave={() => { }}
+          onCancel={() => { }}
           InlineForm={() => null}
         />
       </div>

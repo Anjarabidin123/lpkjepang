@@ -19,7 +19,7 @@ class SiswaDocumentController extends Controller
                 $query->where('siswa_magang_id', $request->siswa_magang_id);
             }
 
-            $documents = $query->get();
+            $documents = $query->with('template')->get();
             return response()->json($documents);
         } catch (\Exception $e) {
             return response()->json([

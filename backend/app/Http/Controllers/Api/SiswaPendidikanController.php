@@ -20,7 +20,18 @@ class SiswaPendidikanController extends Controller
 
     public function store(Request $request)
     {
-        $data = SiswaPendidikan::create($request->all());
+        $validated = $request->validate([
+            'siswa_id' => 'required|exists:siswas,id',
+            'jenjang_pendidikan' => 'required|string',
+            'nama_institusi' => 'required|string',
+            'jurusan' => 'nullable|string',
+            'tahun_masuk' => 'nullable|integer',
+            'tahun_lulus' => 'nullable|integer',
+            'nilai_akhir' => 'nullable|string',
+            'sertifikat_url' => 'nullable|string',
+        ]);
+
+        $data = SiswaPendidikan::create($validated);
         return response()->json($data, 201);
     }
 
@@ -32,7 +43,19 @@ class SiswaPendidikanController extends Controller
     public function update(Request $request, $id)
     {
         $data = SiswaPendidikan::findOrFail($id);
-        $data->update($request->all());
+        
+        $validated = $request->validate([
+            'siswa_id' => 'sometimes|required|exists:siswas,id',
+            'jenjang_pendidikan' => 'sometimes|required|string',
+            'nama_institusi' => 'sometimes|required|string',
+            'jurusan' => 'nullable|string',
+            'tahun_masuk' => 'nullable|integer',
+            'tahun_lulus' => 'nullable|integer',
+            'nilai_akhir' => 'nullable|string',
+            'sertifikat_url' => 'nullable|string',
+        ]);
+        
+        $data->update($validated);
         return response()->json($data);
     }
 

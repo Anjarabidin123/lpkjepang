@@ -20,7 +20,21 @@ class SiswaKontakKeluargaController extends Controller
 
     public function store(Request $request)
     {
-        $data = SiswaKontakKeluarga::create($request->all());
+        $validated = $request->validate([
+            'siswa_id' => 'required|exists:siswas,id',
+            'nama' => 'required|string',
+            'alamat' => 'nullable|string',
+            'rt_rw' => 'nullable|string',
+            'kelurahan' => 'nullable|string',
+            'kecamatan' => 'nullable|string',
+            'kab_kota' => 'nullable|string',
+            'provinsi' => 'nullable|string',
+            'kode_pos' => 'nullable|string',
+            'no_hp' => 'nullable|string',
+            'penghasilan_per_bulan' => 'nullable|numeric',
+        ]);
+
+        $data = SiswaKontakKeluarga::create($validated);
         return response()->json($data, 201);
     }
 
@@ -32,7 +46,22 @@ class SiswaKontakKeluargaController extends Controller
     public function update(Request $request, $id)
     {
         $data = SiswaKontakKeluarga::findOrFail($id);
-        $data->update($request->all());
+        
+        $validated = $request->validate([
+            'siswa_id' => 'sometimes|required|exists:siswas,id',
+            'nama' => 'sometimes|required|string',
+            'alamat' => 'nullable|string',
+            'rt_rw' => 'nullable|string',
+            'kelurahan' => 'nullable|string',
+            'kecamatan' => 'nullable|string',
+            'kab_kota' => 'nullable|string',
+            'provinsi' => 'nullable|string',
+            'kode_pos' => 'nullable|string',
+            'no_hp' => 'nullable|string',
+            'penghasilan_per_bulan' => 'nullable|numeric',
+        ]);
+        
+        $data->update($validated);
         return response()->json($data);
     }
 

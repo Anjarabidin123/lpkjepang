@@ -50,4 +50,22 @@ export interface SiswaFormData {
   tahun_lulus_sekolah?: number;
   jurusan?: string;
   is_available?: boolean;
+  keluarga_indonesia?: any[];
+  keluarga_jepang?: any[];
+  kontak_keluarga?: any[];
+  pengalaman_kerja?: any[];
+  kontak_darurat_nama?: string;
+  kontak_darurat_no_hp?: string;
+  kontak_darurat_alamat?: string;
+  kontak_darurat_rt_rw?: string;
+  kontak_darurat_kelurahan?: string;
+  kontak_darurat_kecamatan?: string;
+  kontak_darurat_kab_kota?: string;
+  kontak_darurat_provinsi?: string;
+  kontak_darurat_kode_pos?: string;
+  kontak_darurat_penghasilan_per_bulan?: string | number;
+  pendidikan?: any[];
 }
+
+
+

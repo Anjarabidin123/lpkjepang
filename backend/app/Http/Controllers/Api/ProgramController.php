@@ -20,6 +20,12 @@ class ProgramController extends Controller
             'kode' => 'required|string|unique:programs,kode',
             'deskripsi' => 'nullable|string',
             'status' => 'nullable|string',
+            'durasi' => 'nullable|integer',
+            'satuan_durasi' => 'nullable|string',
+            'kuota' => 'nullable|integer',
+            'biaya' => 'nullable|numeric',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date',
         ]);
 
         $program = Program::create($validated);
@@ -40,6 +46,12 @@ class ProgramController extends Controller
             'kode' => 'sometimes|required|string|unique:programs,kode,'.$id,
             'deskripsi' => 'nullable|string',
             'status' => 'nullable|string',
+            'durasi' => 'nullable|integer',
+            'satuan_durasi' => 'nullable|string',
+            'kuota' => 'nullable|integer',
+            'biaya' => 'nullable|numeric',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date',
         ]);
 
         $program->update($validated);

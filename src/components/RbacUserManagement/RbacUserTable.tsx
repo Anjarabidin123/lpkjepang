@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserCog, Mail, Phone } from 'lucide-react';
+import { UserCog, Mail, Phone, Trash2 } from 'lucide-react';
 import { UserWithRoles } from '@/types/rbac';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
@@ -12,9 +12,10 @@ interface RbacUserTableProps {
   users: UserWithRoles[];
   loading: boolean;
   onEditRoles: (user: UserWithRoles) => void;
+  onDelete?: (userId: string) => void;
 }
 
-export function RbacUserTable({ users, loading, onEditRoles }: RbacUserTableProps) {
+export function RbacUserTable({ users, loading, onEditRoles, onDelete }: RbacUserTableProps) {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -95,15 +96,27 @@ export function RbacUserTable({ users, loading, onEditRoles }: RbacUserTableProp
                 </Badge>
               </TableCell>
               <TableCell>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEditRoles(user)}
-                  className="flex items-center gap-2"
-                >
-                  <UserCog className="h-4 w-4" />
-                  Manage Roles
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEditRoles(user)}
+                    className="flex items-center gap-2"
+                  >
+                    <UserCog className="h-4 w-4" />
+                    Manage Roles
+                  </Button>
+                  {onDelete && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => onDelete(user.id)}
+                      className="flex items-center gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}

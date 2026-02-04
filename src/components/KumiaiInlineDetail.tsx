@@ -8,6 +8,7 @@ import { PerusahaanInlineForm } from "@/components/PerusahaanInlineForm";
 import { PerusahaanDetailWithSiswaMagang } from "@/components/PerusahaanDetailWithSiswaMagang";
 import { PerusahaanTable } from "@/components/PerusahaanTable";
 import { SiswaMagangDetailModal } from "@/components/SiswaMagangDetailModal";
+import { SiswaMagangModal } from "@/components/SiswaMagang/SiswaMagangModal";
 import { usePerusahaan } from "@/hooks/usePerusahaan";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -37,6 +38,7 @@ export function KumiaiInlineDetail({ kumiai, onEdit, onBack }: KumiaiInlineDetai
   const [viewingPerusahaan, setViewingPerusahaan] = React.useState<any | null>(null);
   const [viewingSiswaMagang, setViewingSiswaMagang] = React.useState<any | null>(null);
   const [showSiswaMagangModal, setShowSiswaMagangModal] = React.useState(false);
+  const [showSiswaMagangFormModal, setShowSiswaMagangFormModal] = React.useState(false);
   const { createPerusahaan, updatePerusahaan, deletePerusahaan, isCreating, isUpdating, isDeleting } = usePerusahaan();
   const { toast } = useToast();
 
@@ -100,11 +102,8 @@ export function KumiaiInlineDetail({ kumiai, onEdit, onBack }: KumiaiInlineDetai
   };
 
   const handleEditSiswaMagang = (siswaMagang: any) => {
-    // For now, just show a toast - you can implement Siswa Magang editing later
-    toast({
-      title: "Info",
-      description: "Fitur edit siswa magang akan segera tersedia"
-    });
+    setViewingSiswaMagang(siswaMagang);
+    setShowSiswaMagangFormModal(true);
   };
 
   const handleCloseSiswaMagangModal = () => {
@@ -232,6 +231,16 @@ export function KumiaiInlineDetail({ kumiai, onEdit, onBack }: KumiaiInlineDetai
         isOpen={showSiswaMagangModal}
         onClose={handleCloseSiswaMagangModal}
         onEdit={handleEditSiswaMagang}
+      />
+
+      <SiswaMagangModal
+        isOpen={showSiswaMagangFormModal}
+        onClose={() => setShowSiswaMagangFormModal(false)}
+        siswaMagang={viewingSiswaMagang}
+        onSuccess={() => {
+          setShowSiswaMagangFormModal(false);
+          // Refreshing data might be needed here, but usually mutations handle it via query invalidation
+        }}
       />
     </>
   );

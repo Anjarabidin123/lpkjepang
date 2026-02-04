@@ -1,42 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
-
-interface WorkExperience {
-  id: string;
-  tahun_masuk: number | '';
-  tahun_keluar: number | '';
-  nama_perusahaan: string;
-  jenis_pekerjaan: string;
-}
+import { useFormContext, useFieldArray } from "react-hook-form";
 
 export function WorkExperienceTable() {
-  const [workExperiences, setWorkExperiences] = useState<WorkExperience[]>([]);
+  const { control, register } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "pengalaman_kerja"
+  });
 
   const addWorkExperience = () => {
-    const newExperience: WorkExperience = {
-      id: Date.now().toString(),
+    append({
       tahun_masuk: '',
       tahun_keluar: '',
       nama_perusahaan: '',
       jenis_pekerjaan: ''
-    };
-    setWorkExperiences([...workExperiences, newExperience]);
-  };
-
-  const removeWorkExperience = (id: string) => {
-    setWorkExperiences(workExperiences.filter(exp => exp.id !== id));
-  };
-
-  const updateWorkExperience = (id: string, field: keyof WorkExperience, value: any) => {
-    setWorkExperiences(prevExperiences =>
-      prevExperiences.map(exp =>
-        exp.id === id ? { ...exp, [field]: value } : exp
-      )
-    );
+    });
   };
 
   return (
@@ -75,13 +57,12 @@ export function WorkExperienceTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {workExperiences.map((experience) => (
-            <TableRow key={experience.id}>
+          {fields.map((field, index) => (
+            <TableRow key={field.id}>
               <TableCell className="border-r border-gray-400">
                 <Input
                   type="number"
-                  value={experience.tahun_masuk}
-                  onChange={(e) => updateWorkExperience(experience.id, 'tahun_masuk', parseInt(e.target.value) || '')}
+                  {...register(`pengalaman_kerja.${index}.tahun_masuk` as const)}
                   placeholder="2020"
                   className="text-center"
                 />
@@ -89,23 +70,20 @@ export function WorkExperienceTable() {
               <TableCell className="border-r border-gray-400">
                 <Input
                   type="number"
-                  value={experience.tahun_keluar}
-                  onChange={(e) => updateWorkExperience(experience.id, 'tahun_keluar', parseInt(e.target.value) || '')}
+                  {...register(`pengalaman_kerja.${index}.tahun_keluar` as const)}
                   placeholder="2023"
                   className="text-center"
                 />
               </TableCell>
               <TableCell className="border-r border-gray-400">
                 <Input
-                  value={experience.nama_perusahaan}
-                  onChange={(e) => updateWorkExperience(experience.id, 'nama_perusahaan', e.target.value)}
+                  {...register(`pengalaman_kerja.${index}.nama_perusahaan` as const)}
                   placeholder="Nama perusahaan"
                 />
               </TableCell>
               <TableCell className="border-r border-gray-400">
                 <Input
-                  value={experience.jenis_pekerjaan}
-                  onChange={(e) => updateWorkExperience(experience.id, 'jenis_pekerjaan', e.target.value)}
+                  {...register(`pengalaman_kerja.${index}.jenis_pekerjaan` as const)}
                   placeholder="Posisi/jabatan"
                 />
               </TableCell>
@@ -114,7 +92,7 @@ export function WorkExperienceTable() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeWorkExperience(experience.id)}
+                  onClick={() => remove(index)}
                   className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -122,7 +100,7 @@ export function WorkExperienceTable() {
               </TableCell>
             </TableRow>
           ))}
-          {workExperiences.length === 0 && (
+          {fields.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-center text-gray-500 py-8">
                 Belum ada data pengalaman kerja. Klik "Tambah Pengalaman" untuk menambah.
@@ -134,3 +112,4 @@ export function WorkExperienceTable() {
     </div>
   );
 }
+

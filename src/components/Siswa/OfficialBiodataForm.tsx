@@ -17,6 +17,7 @@ import { SiswaFormData } from "@/types/siswaForm";
 import type { Siswa } from "@/hooks/useSiswa";
 import { FamilyInformationTables } from "./FamilyInformationTables";
 import { WorkExperienceTable } from "./WorkExperienceTable";
+import { EducationTable } from "./EducationTable";
 
 interface OfficialBiodataFormProps {
   siswa?: Siswa;
@@ -78,6 +79,21 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
       tahun_lulus_sekolah: siswa?.tahun_lulus_sekolah || undefined,
       jurusan: siswa?.jurusan || '',
       is_available: siswa?.is_available !== undefined ? siswa.is_available : true,
+      keluarga_indonesia: siswa?.keluarga_indonesia || [],
+      keluarga_jepang: siswa?.keluarga_jepang || [],
+      pengalaman_kerja: siswa?.pengalaman_kerja || [],
+      pendidikan: siswa?.pendidikan || [],
+      // Map first contact if exists
+      kontak_darurat_nama: siswa?.kontak_keluarga?.[0]?.nama || '',
+      kontak_darurat_no_hp: siswa?.kontak_keluarga?.[0]?.no_hp || '',
+      kontak_darurat_alamat: siswa?.kontak_keluarga?.[0]?.alamat || '',
+      kontak_darurat_rt_rw: siswa?.kontak_keluarga?.[0]?.rt_rw || '',
+      kontak_darurat_kelurahan: siswa?.kontak_keluarga?.[0]?.kelurahan || '',
+      kontak_darurat_kecamatan: siswa?.kontak_keluarga?.[0]?.kecamatan || '',
+      kontak_darurat_kab_kota: siswa?.kontak_keluarga?.[0]?.kab_kota || '',
+      kontak_darurat_provinsi: siswa?.kontak_keluarga?.[0]?.provinsi || '',
+      kontak_darurat_kode_pos: siswa?.kontak_keluarga?.[0]?.kode_pos || '',
+      kontak_darurat_penghasilan_per_bulan: siswa?.kontak_keluarga?.[0]?.penghasilan_per_bulan || '',
     }
   });
 
@@ -95,6 +111,24 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
       demografi_regency_id: data.demografi_regency_id || null,
       foto_siswa: data.foto_siswa || data.foto_url || null,
       foto_url: data.foto_siswa || data.foto_url || null,
+      // Wrap emergency contact in array for backend hasMany
+      kontak_keluarga: data.kontak_darurat_nama ? [{
+        nama: data.kontak_darurat_nama,
+        no_hp: data.kontak_darurat_no_hp,
+        alamat: data.kontak_darurat_alamat,
+        rt_rw: data.kontak_darurat_rt_rw,
+        kelurahan: data.kontak_darurat_kelurahan,
+        kecamatan: data.kontak_darurat_kecamatan,
+        kab_kota: data.kontak_darurat_kab_kota,
+        provinsi: data.kontak_darurat_provinsi,
+        kode_pos: data.kontak_darurat_kode_pos,
+        penghasilan_per_bulan: data.kontak_darurat_penghasilan_per_bulan,
+      }] : [],
+      // Remove single-row education fields to favor the nested array
+      nama_sekolah: undefined,
+      tahun_masuk_sekolah: undefined,
+      tahun_lulus_sekolah: undefined,
+      jurusan: undefined
     };
 
     if (siswa) {
@@ -526,61 +560,7 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
           </div>
 
           {/* Education History Section */}
-          <div className="border-t-2 border-gray-400 pt-6 mt-8">
-            <h3 className="text-lg font-bold mb-4">学歴 Riwayat Pendidikan / Education History</h3>
-            <div className="border border-gray-400">
-              <div className="grid grid-cols-5 gap-0 bg-gray-100 border-b border-gray-400">
-                <div className="p-3 border-r border-gray-400 text-sm font-medium text-center">
-                  入学年 FROM
-                </div>
-                <div className="p-3 border-r border-gray-400 text-sm font-medium text-center">
-                  卒業年 TO
-                </div>
-                <div className="p-3 border-r border-gray-400 text-sm font-medium text-center">
-                  学校名 School Name
-                </div>
-                <div className="p-3 border-r border-gray-400 text-sm font-medium text-center">
-                  専攻 Major
-                </div>
-                <div className="p-3 text-sm font-medium text-center">
-                  備考 Notes
-                </div>
-              </div>
-              <div className="grid grid-cols-5 gap-0">
-                <div className="p-3 border-r border-gray-400">
-                  <Input
-                    type="number"
-                    {...form.register("tahun_masuk_sekolah", { valueAsNumber: true })}
-                    placeholder="2020"
-                    className="text-center"
-                  />
-                </div>
-                <div className="p-3 border-r border-gray-400">
-                  <Input
-                    type="number"
-                    {...form.register("tahun_lulus_sekolah", { valueAsNumber: true })}
-                    placeholder="2023"
-                    className="text-center"
-                  />
-                </div>
-                <div className="p-3 border-r border-gray-400">
-                  <Input
-                    {...form.register("nama_sekolah")}
-                    placeholder="Nama sekolah"
-                  />
-                </div>
-                <div className="p-3 border-r border-gray-400">
-                  <Input
-                    {...form.register("jurusan")}
-                    placeholder="Jurusan"
-                  />
-                </div>
-                <div className="p-3">
-                  <Input placeholder="Catatan" />
-                </div>
-              </div>
-            </div>
-          </div>
+          <EducationTable />
 
           {/* Work Experience Table */}
           <WorkExperienceTable />

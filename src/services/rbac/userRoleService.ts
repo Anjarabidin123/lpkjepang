@@ -52,6 +52,20 @@ export class UserRoleService {
     }
   }
 
+  static async deleteUser(userId: string): Promise<boolean> {
+    console.log('Deleting user via API:', userId);
+    try {
+      const response = await authFetch(`${endpoints.users}/${userId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete user');
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
+
   static subscribeToUserRoles(callback: (users: UserWithRoles[]) => void) {
     return () => { };
   }

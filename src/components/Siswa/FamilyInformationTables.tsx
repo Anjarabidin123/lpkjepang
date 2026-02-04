@@ -1,31 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
-
-interface FamilyMember {
-  id: string;
-  nama: string;
-  hubungan: string;
-  umur: number | '';
-  pekerjaan: string;
-}
-
-interface ContactPerson {
-  nama: string;
-  alamat: string;
-  rt_rw: string;
-  kelurahan: string;
-  kecamatan: string;
-  kab_kota: string;
-  provinsi: string;
-  kode_pos: string;
-  no_hp: string;
-  penghasilan_per_bulan: number | '';
-}
+import { useFormContext, useFieldArray, Controller } from "react-hook-form";
 
 const hubunganOptions = [
   "Ayah", "Ibu", "Suami", "Istri", "Anak", "Kakak", "Adik",
@@ -33,24 +13,20 @@ const hubunganOptions = [
 ];
 
 export function FamilyInformationTables() {
-  const [familyIndonesia, setFamilyIndonesia] = useState<FamilyMember[]>([]);
-  const [familyJapan, setFamilyJapan] = useState<FamilyMember[]>([]);
-  const [emergencyContact, setEmergencyContact] = useState<ContactPerson>({
-    nama: '',
-    alamat: '',
-    rt_rw: '',
-    kelurahan: '',
-    kecamatan: '',
-    kab_kota: '',
-    provinsi: '',
-    kode_pos: '',
-    no_hp: '',
-    penghasilan_per_bulan: ''
+  const { control, register } = useFormContext();
+
+  const { fields: fieldsIndonesia, append: appendIndonesia, remove: removeIndonesia } = useFieldArray({
+    control,
+    name: "keluarga_indonesia"
+  });
+
+  const { fields: fieldsJapan, append: appendJapan, remove: removeJapan } = useFieldArray({
+    control,
+    name: "keluarga_jepang"
   });
 
   const addFamilyMember = (type: 'indonesia' | 'japan') => {
-    const newMember: FamilyMember = {
-      id: Date.now().toString(),
+    const newMember = {
       nama: '',
       hubungan: '',
       umur: '',
@@ -58,35 +34,10 @@ export function FamilyInformationTables() {
     };
 
     if (type === 'indonesia') {
-      setFamilyIndonesia([...familyIndonesia, newMember]);
+      appendIndonesia(newMember);
     } else {
-      setFamilyJapan([...familyJapan, newMember]);
+      appendJapan(newMember);
     }
-  };
-
-  const removeFamilyMember = (type: 'indonesia' | 'japan', id: string) => {
-    if (type === 'indonesia') {
-      setFamilyIndonesia(familyIndonesia.filter(member => member.id !== id));
-    } else {
-      setFamilyJapan(familyJapan.filter(member => member.id !== id));
-    }
-  };
-
-  const updateFamilyMember = (type: 'indonesia' | 'japan', id: string, field: keyof FamilyMember, value: any) => {
-    const updateList = (members: FamilyMember[]) =>
-      members.map(member =>
-        member.id === id ? { ...member, [field]: value } : member
-      );
-
-    if (type === 'indonesia') {
-      setFamilyIndonesia(updateList(familyIndonesia));
-    } else {
-      setFamilyJapan(updateList(familyJapan));
-    }
-  };
-
-  const updateEmergencyContact = (field: keyof ContactPerson, value: any) => {
-    setEmergencyContact(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -98,8 +49,7 @@ export function FamilyInformationTables() {
           <div>
             <Label className="text-sm font-medium">名前 Nama / Name</Label>
             <Input
-              value={emergencyContact.nama}
-              onChange={(e) => updateEmergencyContact('nama', e.target.value)}
+              {...register('kontak_darurat_nama')}
               className="mt-1"
               placeholder="Nama lengkap kontak darurat"
             />
@@ -107,8 +57,7 @@ export function FamilyInformationTables() {
           <div>
             <Label className="text-sm font-medium">電話番号 No. HP / Phone</Label>
             <Input
-              value={emergencyContact.no_hp}
-              onChange={(e) => updateEmergencyContact('no_hp', e.target.value)}
+              {...register('kontak_darurat_no_hp')}
               className="mt-1"
               placeholder="+62"
             />
@@ -118,8 +67,7 @@ export function FamilyInformationTables() {
         <div className="mt-4">
           <Label className="text-sm font-medium">住所 Alamat / Address</Label>
           <Input
-            value={emergencyContact.alamat}
-            onChange={(e) => updateEmergencyContact('alamat', e.target.value)}
+            {...register('kontak_darurat_alamat')}
             className="mt-1"
             placeholder="Alamat lengkap"
           />
@@ -129,8 +77,7 @@ export function FamilyInformationTables() {
           <div>
             <Label className="text-sm">RT/RW</Label>
             <Input
-              value={emergencyContact.rt_rw}
-              onChange={(e) => updateEmergencyContact('rt_rw', e.target.value)}
+              {...register('kontak_darurat_rt_rw')}
               className="mt-1"
               placeholder="001/002"
             />
@@ -138,24 +85,21 @@ export function FamilyInformationTables() {
           <div>
             <Label className="text-sm">Kelurahan</Label>
             <Input
-              value={emergencyContact.kelurahan}
-              onChange={(e) => updateEmergencyContact('kelurahan', e.target.value)}
+              {...register('kontak_darurat_kelurahan')}
               className="mt-1"
             />
           </div>
           <div>
             <Label className="text-sm">Kecamatan</Label>
             <Input
-              value={emergencyContact.kecamatan}
-              onChange={(e) => updateEmergencyContact('kecamatan', e.target.value)}
+              {...register('kontak_darurat_kecamatan')}
               className="mt-1"
             />
           </div>
           <div>
             <Label className="text-sm">Kab/Kota</Label>
             <Input
-              value={emergencyContact.kab_kota}
-              onChange={(e) => updateEmergencyContact('kab_kota', e.target.value)}
+              {...register('kontak_darurat_kab_kota')}
               className="mt-1"
             />
           </div>
@@ -165,16 +109,14 @@ export function FamilyInformationTables() {
           <div>
             <Label className="text-sm">Provinsi</Label>
             <Input
-              value={emergencyContact.provinsi}
-              onChange={(e) => updateEmergencyContact('provinsi', e.target.value)}
+              {...register('kontak_darurat_provinsi')}
               className="mt-1"
             />
           </div>
           <div>
             <Label className="text-sm">Kode Pos</Label>
             <Input
-              value={emergencyContact.kode_pos}
-              onChange={(e) => updateEmergencyContact('kode_pos', e.target.value)}
+              {...register('kontak_darurat_kode_pos')}
               className="mt-1"
             />
           </div>
@@ -182,8 +124,7 @@ export function FamilyInformationTables() {
             <Label className="text-sm">収入 Penghasilan/Bulan (Rp)</Label>
             <Input
               type="number"
-              value={emergencyContact.penghasilan_per_bulan}
-              onChange={(e) => updateEmergencyContact('penghasilan_per_bulan', parseInt(e.target.value) || '')}
+              {...register('kontak_darurat_penghasilan_per_bulan', { valueAsNumber: true })}
               className="mt-1"
               placeholder="0"
             />
@@ -227,44 +168,44 @@ export function FamilyInformationTables() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {familyIndonesia.map((member) => (
-              <TableRow key={member.id}>
+            {fieldsIndonesia.map((field, index) => (
+              <TableRow key={field.id}>
                 <TableCell className="border-r border-gray-400">
                   <Input
-                    value={member.nama}
-                    onChange={(e) => updateFamilyMember('indonesia', member.id, 'nama', e.target.value)}
+                    {...register(`keluarga_indonesia.${index}.nama` as const)}
                     placeholder="Nama lengkap"
                   />
                 </TableCell>
                 <TableCell className="border-r border-gray-400">
-                  <Select
-                    value={member.hubungan}
-                    onValueChange={(value) => updateFamilyMember('indonesia', member.id, 'hubungan', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih hubungan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {hubunganOptions.map((hubungan) => (
-                        <SelectItem key={hubungan} value={hubungan}>
-                          {hubungan}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name={`keluarga_indonesia.${index}.hubungan`}
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <Select value={value} onValueChange={onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih hubungan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {hubunganOptions.map((hubungan) => (
+                            <SelectItem key={hubungan} value={hubungan}>
+                              {hubungan}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </TableCell>
                 <TableCell className="border-r border-gray-400">
                   <Input
                     type="number"
-                    value={member.umur}
-                    onChange={(e) => updateFamilyMember('indonesia', member.id, 'umur', parseInt(e.target.value) || '')}
+                    {...register(`keluarga_indonesia.${index}.umur` as const, { valueAsNumber: true })}
                     placeholder="Umur"
                   />
                 </TableCell>
                 <TableCell className="border-r border-gray-400">
                   <Input
-                    value={member.pekerjaan}
-                    onChange={(e) => updateFamilyMember('indonesia', member.id, 'pekerjaan', e.target.value)}
+                    {...register(`keluarga_indonesia.${index}.pekerjaan` as const)}
                     placeholder="Pekerjaan"
                   />
                 </TableCell>
@@ -273,7 +214,7 @@ export function FamilyInformationTables() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeFamilyMember('indonesia', member.id)}
+                    onClick={() => removeIndonesia(index)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -281,7 +222,7 @@ export function FamilyInformationTables() {
                 </TableCell>
               </TableRow>
             ))}
-            {familyIndonesia.length === 0 && (
+            {fieldsIndonesia.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-gray-500 py-8">
                   Belum ada data keluarga. Klik "Tambah Anggota" untuk menambah.
@@ -328,46 +269,46 @@ export function FamilyInformationTables() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {familyJapan.map((member) => (
-              <TableRow key={member.id}>
+            {fieldsJapan.map((field, index) => (
+              <TableRow key={field.id}>
                 <TableCell className="border-r border-gray-400">
                   <Input
-                    value={member.nama}
-                    onChange={(e) => updateFamilyMember('japan', member.id, 'nama', e.target.value)}
+                    {...register(`keluarga_jepang.${index}.nama` as const)}
                     placeholder="Nama lengkap"
                   />
                 </TableCell>
                 <TableCell className="border-r border-gray-400">
-                  <Select
-                    value={member.hubungan}
-                    onValueChange={(value) => updateFamilyMember('japan', member.id, 'hubungan', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih hubungan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {hubunganOptions.map((hubungan) => (
-                        <SelectItem key={hubungan} value={hubungan}>
-                          {hubungan}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value="Teman">友人 Teman</SelectItem>
-                      <SelectItem value="Kenalan">知人 Kenalan</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name={`keluarga_jepang.${index}.hubungan`}
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <Select value={value} onValueChange={onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih hubungan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {hubunganOptions.map((hubungan) => (
+                            <SelectItem key={hubungan} value={hubungan}>
+                              {hubungan}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="Teman">友人 Teman</SelectItem>
+                          <SelectItem value="Kenalan">知人 Kenalan</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </TableCell>
                 <TableCell className="border-r border-gray-400">
                   <Input
                     type="number"
-                    value={member.umur}
-                    onChange={(e) => updateFamilyMember('japan', member.id, 'umur', parseInt(e.target.value) || '')}
+                    {...register(`keluarga_jepang.${index}.umur` as const, { valueAsNumber: true })}
                     placeholder="Umur"
                   />
                 </TableCell>
                 <TableCell className="border-r border-gray-400">
                   <Input
-                    value={member.pekerjaan}
-                    onChange={(e) => updateFamilyMember('japan', member.id, 'pekerjaan', e.target.value)}
+                    {...register(`keluarga_jepang.${index}.pekerjaan` as const)}
                     placeholder="Pekerjaan"
                   />
                 </TableCell>
@@ -376,7 +317,7 @@ export function FamilyInformationTables() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeFamilyMember('japan', member.id)}
+                    onClick={() => removeJapan(index)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -384,7 +325,7 @@ export function FamilyInformationTables() {
                 </TableCell>
               </TableRow>
             ))}
-            {familyJapan.length === 0 && (
+            {fieldsJapan.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-gray-500 py-8">
                   Belum ada data keluarga/teman di Jepang. Klik "Tambah Kontak" untuk menambah.
@@ -397,3 +338,4 @@ export function FamilyInformationTables() {
     </div>
   );
 }
+

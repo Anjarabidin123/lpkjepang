@@ -20,7 +20,15 @@ class SiswaPengalamanKerjaController extends Controller
 
     public function store(Request $request)
     {
-        $data = SiswaPengalamanKerja::create($request->all());
+        $validated = $request->validate([
+            'siswa_id' => 'required|exists:siswas,id',
+            'nama_perusahaan' => 'required|string',
+            'jenis_pekerjaan' => 'nullable|string',
+            'tahun_masuk' => 'nullable|integer',
+            'tahun_keluar' => 'nullable|integer',
+        ]);
+
+        $data = SiswaPengalamanKerja::create($validated);
         return response()->json($data, 201);
     }
 
@@ -32,7 +40,16 @@ class SiswaPengalamanKerjaController extends Controller
     public function update(Request $request, $id)
     {
         $data = SiswaPengalamanKerja::findOrFail($id);
-        $data->update($request->all());
+        
+        $validated = $request->validate([
+            'siswa_id' => 'sometimes|required|exists:siswas,id',
+            'nama_perusahaan' => 'sometimes|required|string',
+            'jenis_pekerjaan' => 'nullable|string',
+            'tahun_masuk' => 'nullable|integer',
+            'tahun_keluar' => 'nullable|integer',
+        ]);
+        
+        $data->update($validated);
         return response()->json($data);
     }
 
