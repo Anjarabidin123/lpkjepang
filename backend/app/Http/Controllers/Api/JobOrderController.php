@@ -76,7 +76,7 @@ class JobOrderController extends Controller
             }
 
             $jobOrder = \App\Models\JobOrder::findOrFail($id);
-            $jobOrder->update($request->all());
+            $jobOrder->update($validator->validated());
             return response()->json($jobOrder);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);

@@ -33,8 +33,9 @@ class ProfileController extends Controller
             $user->email = $request->email;
         }
         
-        // Note: Phone field might need to be added to users table migration
-        // For now, we'll skip it if the column doesn't exist
+        if ($request->has('phone')) {
+            $user->phone = $request->phone;
+        }
         
         $user->save();
 

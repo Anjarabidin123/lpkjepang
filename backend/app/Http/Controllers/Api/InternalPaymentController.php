@@ -16,7 +16,17 @@ class InternalPaymentController extends Controller
 
     public function store(Request $request)
     {
-        $data = InternalPayment::create($request->all());
+        $validated = $request->validate([
+            'siswa_id' => 'required|exists:siswas,id',
+            'item_pembayaran_id' => 'required|exists:item_pembayarans,id',
+            'nominal' => 'required|numeric',
+            'tanggal_bayar' => 'required|date',
+            'metode_pembayaran' => 'nullable|string',
+            'referensi_transaksi' => 'nullable|string',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        $data = InternalPayment::create($validated);
         return response()->json($data->load(['siswa', 'itemPembayaran']), 201);
     }
 
@@ -28,7 +38,18 @@ class InternalPaymentController extends Controller
     public function update(Request $request, $id)
     {
         $data = InternalPayment::findOrFail($id);
-        $data->update($request->all());
+        
+        $validated = $request->validate([
+            'siswa_id' => 'sometimes|required|exists:siswas,id',
+            'item_pembayaran_id' => 'sometimes|required|exists:item_pembayarans,id',
+            'nominal' => 'sometimes|required|numeric',
+            'tanggal_bayar' => 'sometimes|required|date',
+            'metode_pembayaran' => 'nullable|string',
+            'referensi_transaksi' => 'nullable|string',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        $data->update($validated);
         return response()->json($data->load(['siswa', 'itemPembayaran']));
     }
 

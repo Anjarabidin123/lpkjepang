@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -45,14 +46,14 @@ class AuthController extends Controller
         $user = $request->user();
 
         // Verify current password
-        if (!Auth::guard('web')->attempt(['email' => $user->email, 'password' => $request->current_password])) {
+        if (!Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'message' => 'Current password is incorrect'
             ], 422);
         }
 
         // Update password
-        $user->password = bcrypt($request->new_password);
+        $user->password = Hash::make($request->new_password);
         $user->save();
 
         return response()->json([

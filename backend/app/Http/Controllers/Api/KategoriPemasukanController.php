@@ -16,7 +16,12 @@ class KategoriPemasukanController extends Controller
 
     public function store(Request $request)
     {
-        $data = KategoriPemasukan::create($request->all());
+        $validated = $request->validate([
+            'nama_kategori' => 'required|string|max:225|unique:kategori_pemasukans,nama_kategori',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        $data = KategoriPemasukan::create($validated);
         return response()->json($data, 201);
     }
 
@@ -28,7 +33,13 @@ class KategoriPemasukanController extends Controller
     public function update(Request $request, $id)
     {
         $data = KategoriPemasukan::findOrFail($id);
-        $data->update($request->all());
+        
+        $validated = $request->validate([
+            'nama_kategori' => 'sometimes|required|string|max:225|unique:kategori_pemasukans,nama_kategori,'.$id,
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        $data->update($validated);
         return response()->json($data);
     }
 

@@ -8,11 +8,10 @@ use App\Models\SiswaMagang;
 
 class SiswaMagangController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            // Load all necessary relationships for the dashboard
-            $data = SiswaMagang::with([
+            $query = SiswaMagang::with([
                 'siswa', 
                 'kumiai', 
                 'perusahaan', 
@@ -22,7 +21,29 @@ class SiswaMagangController extends Controller
                 'lpkMitra', 
                 'demografiProvince', 
                 'demografiRegency'
-            ])->orderBy('created_at', 'desc')->get();
+            ]);
+
+            // Filter by search (name or NIK)
+            if ($request->has('search')) {
+                $search = $request->search;
+                $query->whereHas('siswa', function($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%")
+                      ->orWhere('nik', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by relationships
+            if ($request->has('kumiai_id') && $request->kumiai_id !== 'all') {
+                $query->where('kumiai_id', $request->kumiai_id);
+            }
+            if ($request->has('perusahaan_id') && $request->perusahaan_id !== 'all') {
+                $query->where('perusahaan_id', $request->perusahaan_id);
+            }
+            if ($request->has('status_magang') && $request->status_magang !== 'all') {
+                $query->where('status_magang', $request->status_magang);
+            }
+
+            $data = $query->orderBy('created_at', 'desc')->get();
             
             return response()->json($data);
         } catch (\Exception $e) {

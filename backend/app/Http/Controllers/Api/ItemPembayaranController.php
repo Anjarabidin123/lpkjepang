@@ -16,7 +16,13 @@ class ItemPembayaranController extends Controller
 
     public function store(Request $request)
     {
-        $data = ItemPembayaran::create($request->all());
+        $validated = $request->validate([
+            'nama_item' => 'required|string|max:225',
+            'nominal_default' => 'nullable|numeric',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        $data = ItemPembayaran::create($validated);
         return response()->json($data, 201);
     }
 
@@ -28,7 +34,14 @@ class ItemPembayaranController extends Controller
     public function update(Request $request, $id)
     {
         $data = ItemPembayaran::findOrFail($id);
-        $data->update($request->all());
+        
+        $validated = $request->validate([
+            'nama_item' => 'sometimes|required|string|max:225',
+            'nominal_default' => 'nullable|numeric',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        $data->update($validated);
         return response()->json($data);
     }
 
