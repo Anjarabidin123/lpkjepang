@@ -34,17 +34,23 @@ class SiswaMagangController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'siswa_id' => 'required|exists:siswas,id',
-            'kumiai_id' => 'nullable|exists:kumiais,id',
-            'perusahaan_id' => 'nullable|exists:perusahaans,id',
-            'program_id' => 'nullable|exists:programs,id',
-            'status_magang' => 'nullable|string',
-        ]);
-        
-        $siswaMagang = SiswaMagang::create($request->all());
-        
-        return response()->json($siswaMagang->load('siswa'), 201);
+        try {
+            $validated = $request->validate([
+                'siswa_id' => 'required|exists:siswas,id',
+                'kumiai_id' => 'nullable|exists:kumiais,id',
+                'perusahaan_id' => 'nullable|exists:perusahaans,id',
+                'program_id' => 'nullable|exists:programs,id',
+                'status_magang' => 'nullable|string',
+            ]);
+            
+            $siswaMagang = SiswaMagang::create($request->all());
+            
+            return response()->json($siswaMagang->load('siswa'), 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
+        }
     }
 
     public function show($id)
