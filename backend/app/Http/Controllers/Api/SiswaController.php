@@ -54,6 +54,7 @@ class SiswaController extends Controller
                     'jenis_kelamin' => 'nullable|string',
                     'alamat' => 'nullable|string',
                     'foto_siswa' => 'nullable|string',
+                    'foto_url' => 'nullable|string',
                     
                     // Physical Bio
                     'tinggi_badan' => 'nullable|integer',
@@ -64,9 +65,10 @@ class SiswaController extends Controller
                     'golongan_darah' => 'nullable|string',
                     'mata_kanan' => 'nullable|string',
                     'mata_kiri' => 'nullable|string',
-                    'buta_warna' => 'boolean',
+                    'buta_warna' => 'nullable|boolean',
                     'warna_buta' => 'nullable|string',
                     'penggunaan_tangan' => 'nullable|string',
+                    'umur' => 'nullable|integer',
 
                     // Social & Habits
                     'status_pernikahan' => 'nullable|string',
@@ -102,6 +104,7 @@ class SiswaController extends Controller
                     'tanggal_daftar' => 'nullable|date',
                     'tanggal_masuk_lpk' => 'nullable|date',
                     'lama_belajar' => 'nullable|string',
+                    'is_available' => 'nullable|boolean',
                 ]);
 
                 $siswa = Siswa::create($validated);
@@ -125,8 +128,10 @@ class SiswaController extends Controller
 
                 return response()->json($siswa->load(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra', 'keluargaIndonesia', 'keluargaJepang', 'kontakKeluarga', 'pengalamanKerja', 'pendidikan']), 201);
             } catch (\Illuminate\Validation\ValidationException $e) {
+                \Log::error('Siswa Store Validation Error:', $e->errors());
                 return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);
             } catch (\Exception $e) {
+                \Log::error('Siswa Store Server Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
                 return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
             }
         });
@@ -137,7 +142,7 @@ class SiswaController extends Controller
         try {
             $siswa = Siswa::with([
                 'user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra',
-                'keluargaIndonesia', 'keluargaJepang', 'kontakKeluarga', 'pengalamanKerja'
+                'keluargaIndonesia', 'keluargaJepang', 'kontakKeluarga', 'pengalamanKerja', 'pendidikan'
             ])->findOrFail($id);
             return response()->json($siswa);
         } catch (\Exception $e) {
@@ -172,6 +177,7 @@ class SiswaController extends Controller
                     'jenis_kelamin' => 'nullable|string',
                     'alamat' => 'nullable|string',
                     'foto_siswa' => 'nullable|string',
+                    'foto_url' => 'nullable|string',
                     
                     // Physical Bio
                     'tinggi_badan' => 'nullable|integer',
@@ -182,9 +188,10 @@ class SiswaController extends Controller
                     'golongan_darah' => 'nullable|string',
                     'mata_kanan' => 'nullable|string',
                     'mata_kiri' => 'nullable|string',
-                    'buta_warna' => 'boolean',
+                    'buta_warna' => 'nullable|boolean',
                     'warna_buta' => 'nullable|string',
                     'penggunaan_tangan' => 'nullable|string',
+                    'umur' => 'nullable|integer',
 
                     // Social & Habits
                     'status_pernikahan' => 'nullable|string',
@@ -220,36 +227,44 @@ class SiswaController extends Controller
                     'tanggal_daftar' => 'nullable|date',
                     'tanggal_masuk_lpk' => 'nullable|date',
                     'lama_belajar' => 'nullable|string',
+                    'is_available' => 'nullable|boolean',
                 ]);
                 
                 $siswa->update($validated);
 
-                // Update Hubungan (Sync)
+                // Update Hubungan (Sync) - Filter out empty rows to avoid crashes
                 if ($request->has('keluarga_indonesia')) {
                     $siswa->keluargaIndonesia()->delete();
-                    $siswa->keluargaIndonesia()->createMany($request->keluarga_indonesia);
+                    $data = collect($request->keluarga_indonesia)->filter(fn($item) => !empty($item['nama']))->toArray();
+                    if (!empty($data)) $siswa->keluargaIndonesia()->createMany($data);
                 }
                 if ($request->has('keluarga_jepang')) {
                     $siswa->keluargaJepang()->delete();
-                    $siswa->keluargaJepang()->createMany($request->keluarga_jepang);
+                    $data = collect($request->keluarga_jepang)->filter(fn($item) => !empty($item['nama']))->toArray();
+                    if (!empty($data)) $siswa->keluargaJepang()->createMany($data);
                 }
                 if ($request->has('kontak_keluarga')) {
                     $siswa->kontakKeluarga()->delete();
-                    $siswa->kontakKeluarga()->createMany($request->kontak_keluarga);
+                    $data = collect($request->kontak_keluarga)->filter(fn($item) => !empty($item['nama']))->toArray();
+                    if (!empty($data)) $siswa->kontakKeluarga()->createMany($data);
                 }
                 if ($request->has('pengalaman_kerja')) {
                     $siswa->pengalamanKerja()->delete();
-                    $siswa->pengalamanKerja()->createMany($request->pengalaman_kerja);
+                    $data = collect($request->pengalaman_kerja)->filter(fn($item) => !empty($item['nama_perusahaan']))->toArray();
+                    if (!empty($data)) $siswa->pengalamanKerja()->createMany($data);
                 }
                 if ($request->has('pendidikan')) {
                     $siswa->pendidikan()->delete();
-                    $siswa->pendidikan()->createMany($request->pendidikan);
+                    $data = collect($request->pendidikan)->filter(fn($item) => !empty($item['nama_institusi']))->toArray();
+                    if (!empty($data)) $siswa->pendidikan()->createMany($data);
                 }
 
                 return response()->json($siswa->load(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra', 'keluargaIndonesia', 'keluargaJepang', 'kontakKeluarga', 'pengalamanKerja', 'pendidikan']));
             } catch (\Illuminate\Validation\ValidationException $e) {
+                \Log::error('Siswa Update Validation Error:', $e->errors());
                 return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);
             } catch (\Exception $e) {
+                \Log::error('Siswa Update Server Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
                 return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
             }
         });
@@ -257,8 +272,11 @@ class SiswaController extends Controller
 
     public function destroy($id)
     {
-        Siswa::destroy($id);
-        return response()->json(null, 204);
+        try {
+            Siswa::destroy($id);
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Delete failed', 'details' => $e->getMessage()], 500);
+        }
     }
 }
-

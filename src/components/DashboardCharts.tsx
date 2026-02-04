@@ -28,48 +28,55 @@ export function DashboardCharts({
 
   const monthlyTargetData = React.useMemo(() => {
     let result: any[] = [];
-    if (jobOrdersData.length > 0) {
+    if (jobOrdersData && jobOrdersData.length > 0) {
       const monthlyData = jobOrdersData.reduce((acc, job) => {
-        const month = new Date(job.created_at).toLocaleDateString('id-ID', { month: 'short' });
+        if (!job) return acc;
+        // Use current date as fallback if created_at is missing
+        const dateStr = job.created_at || new Date().toISOString();
+        const month = new Date(dateStr).toLocaleDateString('id-ID', { month: 'short' });
         acc[month] = (acc[month] || 0) + 1;
         return acc;
       }, {});
 
-      result = Object.entries(monthlyData).map(([month, count], index) => ({
-        month,
-        target: (index + 1) * 3 + 10,
+      // Sort months chronologically or at least ensure they are consistent
+      result = Object.entries(monthlyData).map(([name, count], index) => ({
+        month: name,
+        target: 10 + (index * 2),
         achievement: count as number,
       }));
     }
-    console.log('monthlyTargetData calculated:', result.length, result);
+    console.log('monthlyTargetData calculated result:', result);
     return result;
   }, [jobOrdersData]);
 
   const statusDistribution = React.useMemo(() => {
     let result: any[] = [];
-    if (siswaData.length > 0) {
-      const statusCounts = siswaData.reduce((acc, siswa) => {
-        const status = siswa.status || 'Lainnya';
+    if (siswaData && siswaData.length > 0) {
+      const statusCounts = siswaData.reduce((acc, s) => {
+        if (!s) return acc;
+        const status = s.status || 'Belum Ada Status';
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       }, {});
 
-      const colors = {
+      const colors: Record<string, string> = {
         'Aktif': '#3b82f6',
         'Lulus': '#10b981',
-        'Proses': '#f59e0b',
-        'Lainnya': '#94a3b8'
+        'Proses': '#f39c12',
+        'Diterima': '#8e44ad',
+        'Belum Ada Status': '#95a5a6'
       };
 
       result = Object.entries(statusCounts).map(([name, value]) => ({
         name,
         value: value as number,
-        color: colors[name as keyof typeof colors] || '#94a3b8'
+        color: colors[name] || '#bdc3c7'
       }));
     }
-    console.log('statusDistribution calculated:', result.length, result);
+    console.log('statusDistribution calculated result:', result);
     return result;
   }, [siswaData]);
+
 
 
   const chartConfig = {
