@@ -20,7 +20,9 @@ class DatabaseSeeder extends Seeder
             JapanDemografiSeeder::class,
             MasterDataSeeder::class,
             UserSeeder::class,
+            RolePermissionSeeder::class,
             SiswaSeeder::class,
+
             RealDataSeeder::class, // Tambahkan ini agar semua data asli masuk
             DemoEducationSeeder::class,
         ]);

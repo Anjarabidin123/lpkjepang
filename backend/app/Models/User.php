@@ -52,8 +52,21 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class);
     }
 
+    public function hasPermission($permission)
+    {
+        // Super admin has all permissions
+        if ($this->roles()->where('name', 'super_admin')->exists()) {
+            return true;
+        }
+
+        return $this->roles()->whereHas('permissions', function ($query) use ($permission) {
+            $query->where('name', $permission);
+        })->exists();
+    }
+
     public function siswa()
     {
         return $this->hasOne(Siswa::class);
     }
 }
+

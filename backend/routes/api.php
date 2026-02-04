@@ -96,9 +96,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ============================================
-    // ADMIN & REKRUTMENT ROUTES
+    // SISWA & REKRUTMENT ROUTES
     // ============================================
-    Route::middleware('role:admin,instructor,super_admin')->group(function () {
+    Route::middleware('permission:siswa_access')->group(function () {
         // Siswa Management
         Route::apiResource('siswa', SiswaController::class);
         Route::apiResource('siswa-magang', SiswaMagangController::class);
@@ -116,10 +116,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('siswa-pendidikan', SiswaPendidikanController::class);
     });
 
+
     // ============================================
-    // ADMIN & KEUANGAN ROUTES
+    // KEUANGAN ROUTES
     // ============================================
-    Route::middleware('role:admin,finance,super_admin')->group(function () {
+    Route::middleware('permission:finance_access')->group(function () {
         // Financial Management
         Route::apiResource('arus-kas', ArusKasController::class);
         Route::apiResource('kategori-pemasukan', KategoriPemasukanController::class);
@@ -133,44 +134,56 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('internal-payments', InternalPaymentController::class);
     });
 
+
     // ============================================
     // SHARED ROUTES (All Authenticated Users)
     // ============================================
-    // Master Data (Read for all, Write for admin/rekrutment)
-    Route::apiResource('kumiai', KumiaiController::class);
-    Route::apiResource('lpk-mitra', LpkMitraController::class);
-    Route::apiResource('perusahaan', PerusahaanController::class);
-    Route::apiResource('programs', ProgramController::class);
-    Route::apiResource('jenis-kerja', JenisKerjaController::class);
-    Route::apiResource('posisi-kerja', PosisiKerjaController::class);
-    Route::apiResource('profil-lpk', ProfilLpkController::class);
-    Route::apiResource('document-templates', DocumentTemplateController::class);
+    // Master Data
+    Route::middleware('permission:master_access')->group(function () {
+        Route::apiResource('kumiai', KumiaiController::class);
+        Route::apiResource('lpk-mitra', LpkMitraController::class);
+        Route::apiResource('perusahaan', PerusahaanController::class);
+        Route::apiResource('programs', ProgramController::class);
+        Route::apiResource('jenis-kerja', JenisKerjaController::class);
+        Route::apiResource('posisi-kerja', PosisiKerjaController::class);
+        Route::apiResource('profil-lpk', ProfilLpkController::class);
+        Route::apiResource('document-templates', DocumentTemplateController::class);
+    });
     
-    // Monitoring KPI (All authenticated users can view)
-    Route::get('/monitoring/kpi', [MonitoringController::class, 'getKPIData']);
+    // Monitoring & Reports
+    Route::middleware('permission:report_access')->group(function () {
+        Route::get('/monitoring/kpi', [MonitoringController::class, 'getKPIData']);
+        Route::get('/reports/stats', [ReportController::class, 'getStats']);
+        Route::get('/reports/available', [ReportController::class, 'getAvailableReports']);
+        Route::get('/reports/recent', [ReportController::class, 'getRecentReports']);
+        Route::post('/reports/generate/{type}', [ReportController::class, 'generateReport']);
+    });
     
-    // Reports (All authenticated users can view)
-    Route::get('/reports/stats', [ReportController::class, 'getStats']);
-    Route::get('/reports/available', [ReportController::class, 'getAvailableReports']);
-    Route::get('/reports/recent', [ReportController::class, 'getRecentReports']);
-    Route::post('/reports/generate/{type}', [ReportController::class, 'generateReport']);
+    // Tasks
+    Route::middleware('permission:task_access')->group(function () {
+        Route::get('/tasks/stats', [TaskController::class, 'getStats']);
+        Route::apiResource('tasks', TaskController::class);
+    });
     
-    // Tasks (All authenticated users can manage)
-    Route::get('/tasks/stats', [TaskController::class, 'getStats']);
-    Route::apiResource('tasks', TaskController::class);
-    
-    // Recruitment (All authenticated users can manage)
-    Route::get('/recruitment/stats', [RecruitmentController::class, 'getStats']);
-    Route::apiResource('recruitment', RecruitmentController::class);
+    // Recruitment
+    Route::middleware('permission:recruitment_access')->group(function () {
+        Route::get('/recruitment/stats', [RecruitmentController::class, 'getStats']);
+        Route::apiResource('recruitment', RecruitmentController::class);
+    });
 
     // Document Tracking
-    Route::get('/document-tracking/stats', [DocumentTrackingController::class, 'getStats']);
-    Route::apiResource('document-tracking', DocumentTrackingController::class);
+    Route::middleware('permission:document_access')->group(function () {
+        Route::get('/document-tracking/stats', [DocumentTrackingController::class, 'getStats']);
+        Route::apiResource('document-tracking', DocumentTrackingController::class);
+    });
 
     // Education (Attendance & Grades)
-    Route::post('/education/bulk-attendance', [StudentAttendanceController::class, 'bulkStore']);
-    Route::apiResource('/education/attendance', StudentAttendanceController::class);
-    Route::apiResource('/education/grades', StudentGradeController::class);
-    Route::apiResource('/education/schedules', ClassScheduleController::class);
-    Route::apiResource('/learning-modules', LearningModuleController::class);
+    Route::middleware('permission:education_access')->group(function () {
+        Route::post('/education/bulk-attendance', [StudentAttendanceController::class, 'bulkStore']);
+        Route::apiResource('/education/attendance', StudentAttendanceController::class);
+        Route::apiResource('/education/grades', StudentGradeController::class);
+        Route::apiResource('/education/schedules', ClassScheduleController::class);
+        Route::apiResource('/learning-modules', LearningModuleController::class);
+    });
+
 });
