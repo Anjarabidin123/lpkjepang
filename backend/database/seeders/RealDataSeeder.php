@@ -248,14 +248,17 @@ class RealDataSeeder extends Seeder
         $siswaForRecruitment = Siswa::whereIn('status', ['Proses', 'Matching'])->take(5)->get();
         
         foreach ($siswaForRecruitment as $index => $siswa) {
-            RecruitmentApplication::create([
-                'application_number' => 'APP-' . date('Ym') . '-' . str_pad($index + 1, 4, '0', STR_PAD_LEFT),
-                'siswa_id' => $siswa->id,
-                'program_id' => $siswa->program_id,
-                'status' => ['new', 'review', 'interview', 'accepted'][$index % 4],
-                'application_date' => now()->subDays(rand(1, 60)),
-                'score' => $index % 4 == 3 ? rand(70, 95) : null,
-            ]);
+            $appNumber = 'APP-' . date('Ym') . '-' . str_pad($index + 1, 4, '0', STR_PAD_LEFT);
+            RecruitmentApplication::firstOrCreate(
+                ['application_number' => $appNumber],
+                [
+                    'siswa_id' => $siswa->id,
+                    'program_id' => $siswa->program_id,
+                    'status' => ['new', 'review', 'interview', 'accepted'][$index % 4],
+                    'application_date' => now()->subDays(rand(1, 60)),
+                    'score' => $index % 4 == 3 ? rand(70, 95) : null,
+                ]
+            );
         }
 
         $this->command->info('✅ Real data seeded successfully!');
