@@ -15,8 +15,12 @@ class SiswaController extends Controller
 
     public function store(Request $request)
     {
-        $siswa = Siswa::create($request->all());
-        return response()->json($siswa, 201);
+        try {
+            $siswa = Siswa::create($request->all());
+            return response()->json($siswa, 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
+        }
     }
 
     public function show($id)

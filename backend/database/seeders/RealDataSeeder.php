@@ -225,9 +225,9 @@ class RealDataSeeder extends Seeder
         for ($i = 0; $i < 10; $i++) {
             ArusKas::create([
                 'tanggal' => now()->subDays(rand(1, 90)),
-                'jenis_transaksi' => $i % 2 == 0 ? 'pemasukan' : 'pengeluaran',
-                'kategori_id' => $i % 2 == 0 ? $katPemasukan->id : $katPengeluaran->id,
-                'jumlah' => rand(1000000, 10000000),
+                'jenis' => $i % 2 == 0 ? 'Pemasukan' : 'Pengeluaran',
+                'kategori' => $i % 2 == 0 ? $katPemasukan->nama : $katPengeluaran->nama,
+                'nominal' => rand(1000000, 10000000),
                 'keterangan' => 'Transaksi ' . ($i + 1),
             ]);
         }
