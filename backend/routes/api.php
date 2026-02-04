@@ -45,6 +45,7 @@ use App\Http\Controllers\Api\StudentAttendanceController;
 use App\Http\Controllers\Api\StudentGradeController;
 use App\Http\Controllers\Api\LearningModuleController;
 use App\Http\Controllers\ClassScheduleController;
+use App\Http\Controllers\Api\ProfilLpkController;
 
 Route::get('/health', function () {
     try {
@@ -141,6 +142,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('programs', ProgramController::class);
     Route::apiResource('jenis-kerja', JenisKerjaController::class);
     Route::apiResource('posisi-kerja', PosisiKerjaController::class);
+    Route::apiResource('profil-lpk', ProfilLpkController::class);
     
     // Monitoring KPI (All authenticated users can view)
     Route::get('/monitoring/kpi', [MonitoringController::class, 'getKPIData']);
