@@ -111,14 +111,24 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div className="lg:col-span-8 space-y-8">
-                    <DashboardCharts />
-                    <DashboardLocationDistribution />
+                    <DashboardCharts
+                        jobOrdersData={jobOrders}
+                        siswaData={siswa}
+                    />
+                    <DashboardLocationDistribution
+                        siswaMagang={siswaMagang}
+                    />
                 </div>
 
                 <div className="lg:col-span-4">
-                    <DashboardActivityFeed />
+                    <DashboardActivityFeed
+                        siswa={siswa}
+                        siswaMagang={siswaMagang}
+                        kumiai={kumiai}
+                    />
                 </div>
             </div>
         </div>
     );
 }
+

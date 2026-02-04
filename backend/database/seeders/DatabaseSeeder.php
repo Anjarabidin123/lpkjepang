@@ -28,12 +28,18 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Default Admin fallback
-        User::updateOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'admin@orchids.com'],
             [
                 'name' => 'Admin Orchids',
                 'password' => bcrypt('password'),
             ]
         );
+
+        $superAdminRole = \App\Models\Role::where('name', 'super_admin')->first();
+        if ($superAdminRole) {
+            $admin->roles()->sync([$superAdminRole->id]);
+        }
+
     }
 }
