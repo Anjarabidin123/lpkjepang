@@ -32,8 +32,24 @@ class SiswaController extends Controller
     public function store(Request $request)
     {
         try {
-            $siswa = Siswa::create($request->all());
+            $validated = $request->validate([
+                'user_id' => 'nullable|exists:users,id',
+                'nama' => 'required|string|max:255',
+                'nik' => 'required|string|max:20|unique:siswas,nik',
+                'email' => 'nullable|email|max:255',
+                'telepon' => 'nullable|string|max:20',
+                'demografi_province_id' => 'nullable|exists:demografi_provinces,id',
+                'demografi_regency_id' => 'nullable|exists:demografi_regencies,id',
+                'program_id' => 'nullable|exists:programs,id',
+                'posisi_kerja_id' => 'nullable|exists:posisi_kerjas,id',
+                'lpk_mitra_id' => 'nullable|exists:lpk_mitras,id',
+                'status' => 'nullable|string',
+            ]);
+
+            $siswa = Siswa::create($validated);
             return response()->json($siswa->load(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra']), 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
         }
@@ -54,9 +70,29 @@ class SiswaController extends Controller
 
     public function update(Request $request, $id)
     {
-        $siswa = Siswa::findOrFail($id);
-        $siswa->update($request->all());
-        return response()->json($siswa);
+        try {
+            $siswa = Siswa::findOrFail($id);
+            
+            $validated = $request->validate([
+                'nama' => 'sometimes|required|string|max:255',
+                'nik' => 'sometimes|required|string|max:20|unique:siswas,nik,'.$id,
+                'email' => 'nullable|email|max:255',
+                'telepon' => 'nullable|string|max:20',
+                'demografi_province_id' => 'nullable|exists:demografi_provinces,id',
+                'demografi_regency_id' => 'nullable|exists:demografi_regencies,id',
+                'program_id' => 'nullable|exists:programs,id',
+                'posisi_kerja_id' => 'nullable|exists:posisi_kerjas,id',
+                'lpk_mitra_id' => 'nullable|exists:lpk_mitras,id',
+                'status' => 'nullable|string',
+            ]);
+            
+            $siswa->update($validated);
+            return response()->json($siswa->load(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra']));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
+        }
     }
 
     public function destroy($id)
