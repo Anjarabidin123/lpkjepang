@@ -18,6 +18,9 @@ import type { Siswa } from "@/hooks/useSiswa";
 import { FamilyInformationTables } from "./FamilyInformationTables";
 import { WorkExperienceTable } from "./WorkExperienceTable";
 import { EducationTable } from "./EducationTable";
+import { useProgram } from "@/hooks/useProgram";
+import { usePosisiKerja } from "@/hooks/usePosisiKerja";
+import { useLpkMitra } from "@/hooks/useLpkMitra";
 
 interface OfficialBiodataFormProps {
   siswa?: Siswa;
@@ -27,6 +30,9 @@ interface OfficialBiodataFormProps {
 
 export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiodataFormProps) {
   const { createSiswa, updateSiswa, isCreating, isUpdating } = useSiswa();
+  const { program: programs } = useProgram();
+  const { posisiKerja } = usePosisiKerja();
+  const { lpkMitras } = useLpkMitra();
 
   const form = useForm<SiswaFormData>({
     defaultValues: {
@@ -78,6 +84,10 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
       tahun_masuk_sekolah: siswa?.tahun_masuk_sekolah || undefined,
       tahun_lulus_sekolah: siswa?.tahun_lulus_sekolah || undefined,
       jurusan: siswa?.jurusan || '',
+      status: siswa?.status || 'Proses',
+      program_id: siswa?.program_id?.toString() || '',
+      posisi_kerja_id: siswa?.posisi_kerja_id?.toString() || '',
+      lpk_mitra_id: siswa?.lpk_mitra_id?.toString() || '',
       is_available: siswa?.is_available !== undefined ? siswa.is_available : true,
       keluarga_indonesia: siswa?.keluarga_indonesia || [],
       keluarga_jepang: siswa?.keluarga_jepang || [],
@@ -146,10 +156,18 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold mb-2">履歴書 BIODATA - CV</h1>
-        <div className="text-lg font-semibold">
-          NIK: <span className="border-b-2 border-gray-400 px-2 py-1 min-w-[200px] inline-block">
-            {form.watch('nik') || '________________'}
-          </span>
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <span>NIK:</span>
+            <Input
+              {...form.register("nik", { required: "NIK wajib diisi" })}
+              className="border-b-2 border-t-0 border-x-0 border-gray-400 rounded-none focus-visible:ring-0 px-2 h-10 w-64 text-center font-bold bg-transparent"
+              placeholder="________________"
+            />
+          </div>
+          {form.formState.errors.nik && (
+            <span className="text-xs text-red-500 font-medium">{form.formState.errors.nik.message}</span>
+          )}
         </div>
       </div>
 
@@ -567,6 +585,93 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
 
           {/* Family Information Tables */}
           <FamilyInformationTables />
+
+          {/* Operational Information Section */}
+          <div className="border-t-2 border-gray-400 pt-6 mt-8">
+            <h3 className="text-lg font-bold mb-4">運営情報 Informasi Operasional / Operational Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div>
+                <Label className="text-sm font-medium">ステータス Status</Label>
+                <Select
+                  value={form.watch('status')}
+                  onValueChange={(value) => form.setValue('status', value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Pilih Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Proses">Proses</SelectItem>
+                    <SelectItem value="Aktif">Aktif</SelectItem>
+                    <SelectItem value="Lulus">Lulus</SelectItem>
+                    <SelectItem value="Diterima">Diterima</SelectItem>
+                    <SelectItem value="Mengundurkan Diri">Mengundurkan Diri</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">プログラム Program</Label>
+                <Select
+                  value={form.watch('program_id')}
+                  onValueChange={(value) => form.setValue('program_id', value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Pilih Program" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {programs?.map((p: any) => (
+                      <SelectItem key={p.id} value={p.id.toString()}>{p.nama}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">職種 Posisi Kerja</Label>
+                <Select
+                  value={form.watch('posisi_kerja_id')}
+                  onValueChange={(value) => form.setValue('posisi_kerja_id', value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Pilih Posisi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {posisiKerja?.map((pk: any) => (
+                      <SelectItem key={pk.id} value={pk.id.toString()}>{pk.posisi || pk.nama}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">日本側パートナー LPK Mitra</Label>
+                <Select
+                  value={form.watch('lpk_mitra_id')}
+                  onValueChange={(value) => form.setValue('lpk_mitra_id', value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Pilih LPK Mitra" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lpkMitras?.map((l: any) => (
+                      <SelectItem key={l.id} value={l.id.toString()}>{l.nama}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 mt-4">
+              <Checkbox
+                id="is_available"
+                checked={form.watch('is_available')}
+                onCheckedChange={(checked) => form.setValue('is_available', !!checked)}
+              />
+              <Label htmlFor="is_available" className="text-sm font-medium">
+                利用可能 (募集中) Tersedia untuk Magang / Available for Internship
+              </Label>
+            </div>
+          </div>
 
           {/* LPK Information Section */}
           <div className="border-t-2 border-gray-400 pt-6 mt-8">

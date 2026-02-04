@@ -43,6 +43,10 @@ export interface SiswaFormData {
   tanggal_masuk_lpk?: string;
   lama_belajar?: string;
   catatan?: string;
+  status?: string;
+  program_id?: string;
+  posisi_kerja_id?: string;
+  lpk_mitra_id?: string;
   foto_siswa?: string;
   foto_url?: string;
   nama_sekolah?: string;

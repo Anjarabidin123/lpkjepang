@@ -58,6 +58,11 @@ export interface Siswa {
   // Demografi fields
   demografi_province_id?: string | null;
   demografi_regency_id?: string | null;
+  keluarga_indonesia?: SiswaKeluargaIndonesia[];
+  keluarga_jepang?: SiswaKeluargaJepang[];
+  kontak_keluarga?: SiswaKontakKeluarga[];
+  pengalaman_kerja?: SiswaPengalamanKerja[];
+  pendidikan?: SiswaPendidikan[];
 }
 
 // Additional interfaces for family data
@@ -107,6 +112,19 @@ export interface SiswaPengalamanKerja {
   jenis_pekerjaan?: string | null;
   tahun_masuk?: number | null;
   tahun_keluar?: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SiswaPendidikan {
+  id: string;
+  siswa_id: string;
+  jenjang_pendidikan: string;
+  nama_institusi: string;
+  jurusan?: string | null;
+  tahun_masuk?: number | null;
+  tahun_lulus?: number | null;
+  nilai_akhir?: string | null;
   created_at?: string;
   updated_at?: string;
 }
