@@ -109,21 +109,26 @@ class SiswaController extends Controller
 
                 $siswa = Siswa::create($validated);
 
-                // Handle Hubungan
+                // Handle Hubungan - Filter out empty rows to avoid crashes
                 if ($request->has('keluarga_indonesia')) {
-                    $siswa->keluargaIndonesia()->createMany($request->keluarga_indonesia);
+                    $data = collect($request->keluarga_indonesia)->filter(fn($item) => !empty($item['nama']))->toArray();
+                    if (!empty($data)) $siswa->keluargaIndonesia()->createMany($data);
                 }
                 if ($request->has('keluarga_jepang')) {
-                    $siswa->keluargaJepang()->createMany($request->keluarga_jepang);
+                    $data = collect($request->keluarga_jepang)->filter(fn($item) => !empty($item['nama']))->toArray();
+                    if (!empty($data)) $siswa->keluargaJepang()->createMany($data);
                 }
                 if ($request->has('kontak_keluarga')) {
-                    $siswa->kontakKeluarga()->createMany($request->kontak_keluarga);
+                    $data = collect($request->kontak_keluarga)->filter(fn($item) => !empty($item['nama']))->toArray();
+                    if (!empty($data)) $siswa->kontakKeluarga()->createMany($data);
                 }
                 if ($request->has('pengalaman_kerja')) {
-                    $siswa->pengalamanKerja()->createMany($request->pengalaman_kerja);
+                    $data = collect($request->pengalaman_kerja)->filter(fn($item) => !empty($item['nama_perusahaan']))->toArray();
+                    if (!empty($data)) $siswa->pengalamanKerja()->createMany($data);
                 }
                 if ($request->has('pendidikan')) {
-                    $siswa->pendidikan()->createMany($request->pendidikan);
+                    $data = collect($request->pendidikan)->filter(fn($item) => !empty($item['nama_institusi']))->toArray();
+                    if (!empty($data)) $siswa->pendidikan()->createMany($data);
                 }
 
                 return response()->json($siswa->load(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra', 'keluargaIndonesia', 'keluargaJepang', 'kontakKeluarga', 'pengalamanKerja', 'pendidikan']), 201);
