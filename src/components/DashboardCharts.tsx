@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, Tooltip } from "recharts";
 import { TrendingUp, Target, Award, PieChart as PieIcon, Activity } from "lucide-react";
 
 interface DashboardChartsProps {
@@ -18,8 +18,16 @@ export function DashboardCharts({
   programData = [],
   siswaMagangData = []
 }: DashboardChartsProps) {
+  console.log('DashboardCharts received props:', {
+    jobOrdersCount: jobOrdersData.length,
+    siswaCount: siswaData.length,
+    programCount: programData.length,
+    siswaMagangCount: siswaMagangData.length
+  });
+
 
   const monthlyTargetData = React.useMemo(() => {
+    let result: any[] = [];
     if (jobOrdersData.length > 0) {
       const monthlyData = jobOrdersData.reduce((acc, job) => {
         const month = new Date(job.created_at).toLocaleDateString('id-ID', { month: 'short' });
@@ -27,16 +35,18 @@ export function DashboardCharts({
         return acc;
       }, {});
 
-      return Object.entries(monthlyData).map(([month, count], index) => ({
+      result = Object.entries(monthlyData).map(([month, count], index) => ({
         month,
         target: (index + 1) * 3 + 10,
         achievement: count as number,
       }));
     }
-    return [];
+    console.log('monthlyTargetData calculated:', result.length, result);
+    return result;
   }, [jobOrdersData]);
 
   const statusDistribution = React.useMemo(() => {
+    let result: any[] = [];
     if (siswaData.length > 0) {
       const statusCounts = siswaData.reduce((acc, siswa) => {
         const status = siswa.status || 'Lainnya';
@@ -51,14 +61,16 @@ export function DashboardCharts({
         'Lainnya': '#94a3b8'
       };
 
-      return Object.entries(statusCounts).map(([name, value]) => ({
+      result = Object.entries(statusCounts).map(([name, value]) => ({
         name,
         value: value as number,
         color: colors[name as keyof typeof colors] || '#94a3b8'
       }));
     }
-    return [];
+    console.log('statusDistribution calculated:', result.length, result);
+    return result;
   }, [siswaData]);
+
 
   const chartConfig = {
     target: { label: "Target", color: "#6366f1" },

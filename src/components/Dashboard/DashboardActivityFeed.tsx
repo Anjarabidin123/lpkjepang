@@ -17,44 +17,59 @@ interface DashboardActivityFeedProps {
   kumiai?: any[];
 }
 
-export function DashboardActivityFeed({ siswa, siswaMagang, kumiai }: DashboardActivityFeedProps) {
+export function DashboardActivityFeed({ siswa = [], siswaMagang = [], kumiai = [] }: DashboardActivityFeedProps) {
+  console.log('DashboardActivityFeed incoming data:', {
+    siswaCount: siswa?.length,
+    magangCount: siswaMagang?.length,
+    kumiaiCount: kumiai?.length
+  });
+
   const activities: ActivityItem[] = [];
 
   if (siswa && siswa.length > 0) {
     const latestSiswa = siswa[siswa.length - 1];
-    activities.push({
-      type: 'success',
-      title: 'Siswa Baru',
-      description: `${latestSiswa.nama} mendaftar`,
-      time: new Date(latestSiswa.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-      icon: Users,
-      color: 'text-blue-600 bg-blue-50'
-    });
+    if (latestSiswa) {
+      activities.push({
+        type: 'success',
+        title: 'Siswa Baru',
+        description: `${latestSiswa.nama} mendaftar`,
+        time: latestSiswa.created_at ? new Date(latestSiswa.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-',
+        icon: Users,
+        color: 'text-blue-600 bg-blue-50'
+      });
+    }
   }
 
   if (siswaMagang && siswaMagang.length > 0) {
     const latestMagang = siswaMagang[siswaMagang.length - 1];
-    activities.push({
-      type: 'success',
-      title: 'Status Magang',
-      description: `${latestMagang.siswa?.nama || 'Siswa'} mulai magang`,
-      time: new Date(latestMagang.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-      icon: GraduationCap,
-      color: 'text-emerald-600 bg-emerald-50'
-    });
+    if (latestMagang) {
+      activities.push({
+        type: 'success',
+        title: 'Status Magang',
+        description: `${latestMagang.siswa?.nama || 'Siswa'} mulai magang`,
+        time: latestMagang.created_at ? new Date(latestMagang.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-',
+        icon: GraduationCap,
+        color: 'text-emerald-600 bg-emerald-50'
+      });
+    }
   }
 
   if (kumiai && kumiai.length > 0) {
     const latestKumiai = kumiai[kumiai.length - 1];
-    activities.push({
-      type: 'info',
-      title: 'Update Kumiai',
-      description: `${latestKumiai.nama} diperbarui`,
-      time: new Date(latestKumiai.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-      icon: Building2,
-      color: 'text-orange-600 bg-orange-50'
-    });
+    if (latestKumiai) {
+      activities.push({
+        type: 'info',
+        title: 'Update Kumiai',
+        description: `${latestKumiai.nama} diperbarui`,
+        time: latestKumiai.created_at ? new Date(latestKumiai.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-',
+        icon: Building2,
+        color: 'text-orange-600 bg-orange-50'
+      });
+    }
   }
+
+  console.log('Total activities generated:', activities.length);
+
 
   return (
     <div className="flat-card h-full">
