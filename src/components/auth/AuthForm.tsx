@@ -34,43 +34,43 @@ export function AuthForm() {
   const roleDetails = {
     'superadmin@lpkujc.com': {
       label: 'Super Admin',
-      description: 'Kendali penuh seluruh sistem & manajemen user.',
+      description: 'Kasta tertinggi. Pengelola seluruh ekosistem aplikasi & manajemen tingkat sistem.',
       icon: Shield,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
-      can: ['Akses penuh sistem', 'Kelola semua user & role', 'Hapus semua data', 'Pengaturan server'],
+      can: ['Akses Semua Menu Tanpa Batas', 'Manajemen User & Role (RBAC)', 'Pengaturan Sistem & Server', 'Kelola Seluruh Master Data'],
     },
     'admin@lpkujc.com': {
       label: 'Admin Operasional',
-      description: 'Kelola data siswa, job order, dan operasional SO.',
+      description: 'Manajer operasional harian. Mengelola alur kerja siswa & administrasi kantor.',
       icon: Briefcase,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
-      can: ['Kelola Siswa & Magang', 'Tracking Dokumen CoE', 'Kelola Job Order', 'Task Management'],
+      can: ['Kelola Siswa & Siswa Magang', 'Manajemen Job Order & Rekrutmen', 'Monitoring Absensi & Nilai', 'Kelola Kumiai & Perusahaan'],
     },
     'finance@lpkujc.com': {
       label: 'Staff Finance',
-      description: 'Manajemen invoice, arus kas, dan pembayaran.',
+      description: 'Fokus pada pengelolaan arus kas, invoice, dan laporan keuangan perusahaan.',
       icon: Wallet,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
-      can: ['Kelola Invoice & Gaji', 'Lihat Laporan Arus Kas', 'Kelola Pembayaran', 'Invoice ke Kumiai'],
+      can: ['Manajemen Arus Kas & Invoice', 'Kelola Pemasukan & Pengeluaran', 'Laporan Keuangan & Statistik', 'Akses Data Tagihan Kumiai'],
     },
     'instructor@lpkujc.com': {
       label: 'Instruktur',
-      description: 'Input absensi harian dan nilai kualifikasi bahasa.',
+      description: 'Bertanggung jawab atas proses belajar, absensi harian, dan kualifikasi siswa.',
       icon: GraduationCap,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
-      can: ['Input Absensi Harian', 'Input Nilai Ujian Bahasa', 'Lihat Jadwal Pelatihan', 'Melihat profil siswa'],
+      can: ['Input Absensi Harian Siswa', 'Input Nilai Ujian & Kualifikasi', 'Kelola Materi Belajar & Modul', 'Melihat Profil Detail Siswa'],
     },
     'student@lpkujc.com': {
       label: 'Siswa (Student)',
-      description: 'Portal mandiri untuk pantau progress & dokumen.',
+      description: 'Portal mandiri (self-service) khusus siswa untuk memantau progress pribadi.',
       icon: Users,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-100',
-      can: ['Lihat Progress Dokumen CoE', 'Lihat Nilai & Absensi', 'Update profil pribadi', 'Lihat jadwal belajar'],
+      can: ['Pantau Progress Dokumen (COE/Visa)', 'Lihat Histori Absensi & Nilai', 'Download Materi Belajar', 'Update Profil Pribadi'],
     }
   };
 
@@ -164,8 +164,8 @@ export function AuthForm() {
                 <div
                   key={rEmail}
                   className={`group relative p-5 rounded-3xl cursor-pointer transition-all duration-500 ${isActive
-                      ? 'bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] border-2 border-primary ring-4 ring-primary/5'
-                      : 'bg-white/50 border-2 border-slate-100 hover:border-slate-300 hover:bg-white hover:shadow-lg'
+                    ? 'bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] border-2 border-primary ring-4 ring-primary/5'
+                    : 'bg-white/50 border-2 border-slate-100 hover:border-slate-300 hover:bg-white hover:shadow-lg'
                     }`}
                   onClick={() => handleDemoLogin(rEmail)}
                 >
@@ -178,9 +178,20 @@ export function AuthForm() {
                         <h3 className="font-bold text-slate-900 text-base">{info.label}</h3>
                         {isActive && <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
                       </div>
-                      <p className="text-xs text-slate-500 leading-snug font-medium line-clamp-2">
+                      <p className={`text-xs leading-snug font-medium transition-colors ${isActive ? 'text-slate-600' : 'text-slate-500 line-clamp-2'}`}>
                         {info.description}
                       </p>
+
+                      {isActive && info.can && (
+                        <div className="pt-3 space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                          {info.can.map((capability, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                              <span className="text-[10px] sm:text-xs text-slate-600 font-medium">{capability}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
