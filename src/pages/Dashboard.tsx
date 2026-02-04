@@ -18,10 +18,13 @@ export default function DashboardPage() {
     const {
         siswa,
         jobOrders,
+        programs,
+        siswaMagang,
         kumiai,
         perusahaan,
         isLoading
     } = useDashboardData();
+
 
     if (isLoading) {
         return (
@@ -114,6 +117,8 @@ export default function DashboardPage() {
                     <DashboardCharts
                         jobOrdersData={jobOrders}
                         siswaData={siswa}
+                        programData={programs}
+                        siswaMagangData={siswaMagang}
                     />
                     <DashboardLocationDistribution
                         siswaMagang={siswaMagang}
