@@ -23,6 +23,16 @@ class SiswaMagangController extends Controller
                 'demografiRegency'
             ]);
 
+            $user = $request->user();
+            if ($user && $user->roles->contains('name', 'student')) {
+                $siswa = $user->siswa;
+                if ($siswa) {
+                    $query->where('siswa_id', $siswa->id);
+                } else {
+                    return response()->json([]);
+                }
+            }
+
             // Filter by search (name or NIK)
             if ($request->has('search')) {
                 $search = $request->search;

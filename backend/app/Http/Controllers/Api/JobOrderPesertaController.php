@@ -35,7 +35,7 @@ class JobOrderPesertaController extends Controller
             return response()->json(['message' => 'Siswa sudah terdaftar di Job Order ini'], 422);
         }
 
-        return response()->json(JobOrderPeserta::create($request->all()), 201);
+        return response()->json(JobOrderPeserta::create($validated), 201);
     }
 
     public function show($id)
@@ -46,7 +46,13 @@ class JobOrderPesertaController extends Controller
     public function update(Request $request, $id)
     {
         $peserta = JobOrderPeserta::findOrFail($id);
-        $peserta->update($request->all());
+        
+        $validated = $request->validate([
+            'job_order_id' => 'sometimes|required|exists:job_orders,id',
+            'siswa_id' => 'sometimes|required|exists:siswas,id',
+        ]);
+
+        $peserta->update($validated);
         return response()->json($peserta);
     }
 

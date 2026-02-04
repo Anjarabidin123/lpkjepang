@@ -27,6 +27,10 @@ class ProfileController extends Controller
         
         if ($request->has('name')) {
             $user->name = $request->name;
+            // Sync with Siswa record if exists
+            if ($user->siswa) {
+                $user->siswa->update(['nama' => $request->name]);
+            }
         }
         
         if ($request->has('email')) {

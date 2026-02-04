@@ -15,7 +15,16 @@ class SiswaDocumentController extends Controller
             // Load with siswaMagang instead of template to avoid issues
             $query = SiswaDocument::query();
             
-            if ($request->has('siswa_magang_id')) {
+            $user = $request->user();
+            if ($user && $user->roles->contains('name', 'student')) {
+                $siswa = $user->siswa;
+                if ($siswa) {
+                    $magangIds = $siswa->siswaMagang()->pluck('id');
+                    $query->whereIn('siswa_magang_id', $magangIds);
+                } else {
+                    return response()->json([]);
+                }
+            } elseif ($request->has('siswa_magang_id')) {
                 $query->where('siswa_magang_id', $request->siswa_magang_id);
             }
 

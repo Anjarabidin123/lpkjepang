@@ -21,6 +21,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone' => ['nullable', 'string', 'max:20'],
             'roles' => ['array'], // Array ID role
         ]);
 
@@ -28,6 +29,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'phone' => $request->phone,
         ]);
 
         if ($request->has('roles')) {
@@ -47,13 +49,16 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         
         $request->validate([
-            'name' => ['string', 'max:255'],
-            'email' => ['string', 'email', 'max:255', 'unique:users,email,'.$id],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'email' => ['sometimes', 'string', 'email', 'max:255', 'unique:users,email,'.$id],
+            'password' => ['sometimes', 'confirmed', Rules\Password::defaults()],
+            'phone' => ['nullable', 'string', 'max:20'],
             'roles' => ['array'],
         ]);
 
         if ($request->has('name')) $user->name = $request->name;
         if ($request->has('email')) $user->email = $request->email;
+        if ($request->has('phone')) $user->phone = $request->phone;
         if ($request->filled('password')) $user->password = Hash::make($request->password);
         
         $user->save();

@@ -16,8 +16,7 @@ class DocumentTrackingController extends Controller
         
         // Jika user adalah siswa, kembalikan hanya data tracking miliknya
         if ($user->roles->contains('name', 'student')) {
-            // Cari data siswa yang emailnya sama dengan user
-            $siswa = Siswa::where('email', $user->email)->first();
+            $siswa = $user->siswa;
             if (!$siswa) {
                 return response()->json([], 200);
             }

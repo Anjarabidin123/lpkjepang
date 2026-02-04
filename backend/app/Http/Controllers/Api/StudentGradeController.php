@@ -14,7 +14,7 @@ class StudentGradeController extends Controller
         $user = $request->user();
         
         if ($user->roles->contains('name', 'student')) {
-            $siswa = Siswa::where('email', $user->email)->first();
+            $siswa = $user->siswa;
             if (!$siswa) return response()->json([]);
             return StudentGrade::where('siswa_id', $siswa->id)->get();
         }
@@ -40,7 +40,16 @@ class StudentGradeController extends Controller
     public function update(Request $request, $id)
     {
         $grade = StudentGrade::findOrFail($id);
-        $grade->update($request->all());
+        $validated = $request->validate([
+            'siswa_id' => 'sometimes|required|exists:siswas,id',
+            'subject' => 'sometimes|required|string',
+            'score' => 'sometimes|required|integer',
+            'exam_date' => 'sometimes|required|date',
+            'result' => 'sometimes|required|in:pass,fail,remidi',
+            'teacher_comments' => 'nullable|string'
+        ]);
+
+        $grade->update($validated);
         return response()->json($grade);
     }
 

@@ -46,6 +46,16 @@ class RecruitmentController extends Controller
         try {
             $query = RecruitmentApplication::with(['siswa', 'program', 'reviewer']);
 
+            $user = $request->user();
+            if ($user && $user->roles->contains('name', 'student')) {
+                $siswa = $user->siswa;
+                if ($siswa) {
+                    $query->where('siswa_id', $siswa->id);
+                } else {
+                    return response()->json([]);
+                }
+            }
+
             // Filter by status
             if ($request->has('status') && $request->status !== 'all') {
                 $query->where('status', $request->status);

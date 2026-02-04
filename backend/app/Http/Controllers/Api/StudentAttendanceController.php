@@ -15,7 +15,7 @@ class StudentAttendanceController extends Controller
         $user = $request->user();
         
         if ($user->roles->contains('name', 'student')) {
-            $siswa = Siswa::where('email', $user->email)->first();
+            $siswa = $user->siswa;
             if (!$siswa) return response()->json([]);
             return StudentAttendance::where('siswa_id', $siswa->id)->get();
         }
@@ -47,7 +47,7 @@ class StudentAttendanceController extends Controller
         $validated = $request->validate([
             'siswa_id' => 'required|exists:siswas,id',
             'date' => 'required|date',
-            'status' => 'required|in:hadiir,izin,sakit,alpha',
+            'status' => 'required|in:hadir,izin,sakit,alpha',
             'notes' => 'nullable|string'
         ]);
 
