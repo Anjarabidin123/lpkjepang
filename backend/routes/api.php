@@ -47,7 +47,18 @@ use App\Http\Controllers\Api\LearningModuleController;
 use App\Http\Controllers\ClassScheduleController;
 
 Route::get('/health', function () {
-    return response()->json(['status' => 'ok', 'timestamp' => now()]);
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $dbStatus = 'Connected';
+    } catch (\Exception $e) {
+        $dbStatus = 'Error: ' . $e->getMessage();
+    }
+
+    return response()->json([
+        'status' => 'ok',
+        'database' => $dbStatus,
+        'timestamp' => now()
+    ]);
 });
 
 // ============================================
