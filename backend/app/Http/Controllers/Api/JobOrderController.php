@@ -23,30 +23,61 @@ class JobOrderController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $validated = $request->validate([
+                'nama_job_order' => 'required|string|max:255',
+                'kumiai_id' => 'required|exists:kumiais,id',
+                'perusahaan_id' => 'nullable|exists:perusahaans,id',
+                'jenis_kerja_id' => 'nullable|exists:jenis_kerjas,id',
+                'kuota' => 'required|integer|min:1',
+                'status' => 'required|string',
+                'tanggal_job_order' => 'nullable|date',
+                'catatan' => 'nullable|string',
+            ]);
+
+            $jobOrder = \App\Models\JobOrder::create($validated);
+            return response()->json($jobOrder, 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        return response()->json(
+            \App\Models\JobOrder::with(['kumiai', 'jenisKerja'])->findOrFail($id)
+        );
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            $jobOrder = \App\Models\JobOrder::findOrFail($id);
+            $jobOrder->update($request->all());
+            return response()->json($jobOrder);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            \App\Models\JobOrder::destroy($id);
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
+        }
     }
 }

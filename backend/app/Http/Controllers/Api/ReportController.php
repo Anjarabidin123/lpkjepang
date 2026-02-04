@@ -207,8 +207,8 @@ class ReportController extends Controller
     private function generateFinancialReport()
     {
         $invoices = Invoice::sum('total_amount');
-        $pemasukan = ArusKas::where('jenis_transaksi', 'pemasukan')->sum('jumlah');
-        $pengeluaran = ArusKas::where('jenis_transaksi', 'pengeluaran')->sum('jumlah');
+        $pemasukan = ArusKas::where('jenis', 'Pemasukan')->sum('nominal');
+        $pengeluaran = ArusKas::where('jenis', 'Pengeluaran')->sum('nominal');
 
         return response()->json([
             'type' => 'financial',

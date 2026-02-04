@@ -19,13 +19,6 @@ class ProgramController extends Controller
             'nama' => 'required|string|max:255',
             'kode' => 'required|string|unique:programs,kode',
             'deskripsi' => 'nullable|string',
-            'tanggal_mulai' => 'nullable|date',
-            'tanggal_selesai' => 'nullable|date',
-            'durasi' => 'nullable|integer',
-            'satuan_durasi' => 'nullable|string',
-            'biaya' => 'nullable|numeric',
-            'kuota' => 'nullable|integer',
-            'peserta_terdaftar' => 'nullable|integer',
             'status' => 'nullable|string',
         ]);
 
@@ -46,13 +39,6 @@ class ProgramController extends Controller
             'nama' => 'sometimes|required|string|max:255',
             'kode' => 'sometimes|required|string|unique:programs,kode,'.$id,
             'deskripsi' => 'nullable|string',
-            'tanggal_mulai' => 'nullable|date',
-            'tanggal_selesai' => 'nullable|date',
-            'durasi' => 'nullable|integer',
-            'satuan_durasi' => 'nullable|string',
-            'biaya' => 'nullable|numeric',
-            'kuota' => 'nullable|integer',
-            'peserta_terdaftar' => 'nullable|integer',
             'status' => 'nullable|string',
         ]);
 

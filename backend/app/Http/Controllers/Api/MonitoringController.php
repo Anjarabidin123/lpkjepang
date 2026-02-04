@@ -69,11 +69,6 @@ class MonitoringController extends Controller
             // Get table data (recent siswa magang with stats)
             $tableData = $this->getTableData($siswaMagangQuery);
 
-            // Calculate average gaji (if exists in posisi_kerja)
-            $avgGaji = DB::table('siswa_magangs')
-                ->join('posisi_kerjas', 'siswa_magangs.posisi_kerja_id', '=', 'posisi_kerjas.id')
-                ->whereNotNull('posisi_kerjas.gaji_harian')
-                ->avg('posisi_kerjas.gaji_harian');
 
             return response()->json([
                 'siswaMagangKPI' => [
@@ -96,7 +91,7 @@ class MonitoringController extends Controller
                 ],
                 'gajiKPI' => [
                     'target' => 150000,
-                    'pencapaian' => round($avgGaji ?? 0),
+                    'pencapaian' => round(\App\Models\SiswaMagang::avg('gaji') ?? 0),
                     'pertumbuhan' => 0,
                     'trend' => 'stable'
                 ],

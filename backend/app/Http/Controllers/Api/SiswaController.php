@@ -8,16 +8,32 @@ use App\Models\Siswa;
 
 class SiswaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Siswa::with(['province', 'regency', 'program', 'posisiKerja', 'lpkMitra'])->get());
+        try {
+            $query = Siswa::with(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra']);
+
+            if ($request->has('search')) {
+                $search = $request->query('search');
+                $query->where('nama', 'like', "%{$search}%")
+                      ->orWhere('nik', 'like', "%{$search}%");
+            }
+
+            if ($request->has('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+
+            return response()->json($query->orderBy('nama')->get());
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Query Error', 'details' => $e->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)
     {
         try {
             $siswa = Siswa::create($request->all());
-            return response()->json($siswa, 201);
+            return response()->json($siswa->load(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra']), 201);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
         }
@@ -25,7 +41,15 @@ class SiswaController extends Controller
 
     public function show($id)
     {
-        return response()->json(Siswa::with(['province', 'regency', 'program', 'posisiKerja', 'lpkMitra'])->findOrFail($id));
+        try {
+            $siswa = Siswa::with([
+                'user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra',
+                'keluargaIndonesia', 'keluargaJepang', 'kontakKeluarga', 'pengalamanKerja'
+            ])->findOrFail($id);
+            return response()->json($siswa);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Not Found', 'details' => $e->getMessage()], 404);
+        }
     }
 
     public function update(Request $request, $id)
