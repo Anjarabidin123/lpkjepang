@@ -78,13 +78,6 @@ export function DetailsFields({ form, visibleColumns }: DetailsFieldsProps) {
         options={statusOptions}
       />
 
-      {/* Avatar URL Field - Optional */}
-      <BaseFormField
-        form={form}
-        name="avatar_url"
-        label="Avatar URL"
-        placeholder="URL avatar siswa"
-      />
     </>
   );
 }
