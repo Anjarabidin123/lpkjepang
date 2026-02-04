@@ -17,6 +17,7 @@ export const endpoints = {
     perusahaan: `${API_BASE_URL}/perusahaan`,
     lpkMitra: `${API_BASE_URL}/lpk-mitra`,
     programs: `${API_BASE_URL}/programs`,
+    profilLpk: `${API_BASE_URL}/profil-lpk`,
     jenisKerja: `${API_BASE_URL}/jenis-kerja`,
     posisiKerja: `${API_BASE_URL}/posisi-kerja`,
     demografi: {
