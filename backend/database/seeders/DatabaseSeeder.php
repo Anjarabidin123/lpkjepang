@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             MasterDataSeeder::class,
             UserSeeder::class,
             SiswaSeeder::class,
+            RealDataSeeder::class, // Tambahkan ini agar semua data asli masuk
+            DemoEducationSeeder::class,
         ]);
 
         // Default Admin fallback
