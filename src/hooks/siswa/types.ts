@@ -21,7 +21,7 @@ export interface Siswa {
   target_gaji?: string | null;
   pengalaman_jepang?: string | null;
   skill_bahasa_jepang?: string | null;
-  status?: 'Aktif' | 'Diterima' | 'Proses' | 'Ditolak';
+  status?: 'Aktif' | 'Diterima' | 'Proses' | 'Ditolak' | 'Lulus' | 'Mengundurkan Diri';
   program_id?: string | null;
   posisi_kerja_id?: string | null;
   lpk_mitra_id?: string | null;

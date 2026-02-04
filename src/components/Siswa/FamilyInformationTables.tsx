@@ -6,6 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
 import { useFormContext, useFieldArray, Controller } from "react-hook-form";
+import { useDemografiProvinces } from '@/hooks/useDemografiProvinces';
+import { useDemografiRegencies } from '@/hooks/useDemografiRegencies';
+import { formatRibuan } from "@/utils/formHelpers";
+import { useEffect, useState } from "react";
 
 const hubunganOptions = [
   "Ayah", "Ibu", "Suami", "Istri", "Anak", "Kakak", "Adik",
@@ -13,7 +17,16 @@ const hubunganOptions = [
 ];
 
 export function FamilyInformationTables() {
-  const { control, register } = useFormContext();
+  const { control, register, watch, setValue } = useFormContext();
+  const [selectedProvinceId, setSelectedProvinceId] = useState<string | null>(null);
+
+  const { provinces } = useDemografiProvinces();
+  const { regencies } = useDemografiRegencies(selectedProvinceId || undefined);
+
+  // Initial sync for province name to ID if needed
+  // But usually demografi master data is for IDs. 
+  // If the field is 'provinsi' (string), we might need to find by name or just use IDs.
+  // The user wants dropdowns, so we'll use master data.
 
   const { fields: fieldsIndonesia, append: appendIndonesia, remove: removeIndonesia } = useFieldArray({
     control,
@@ -56,11 +69,16 @@ export function FamilyInformationTables() {
           </div>
           <div>
             <Label className="text-sm font-medium">電話番号 No. HP / Phone</Label>
-            <Input
-              {...register('kontak_darurat_no_hp')}
-              className="mt-1"
-              placeholder="+62"
-            />
+            <div className="flex mt-1">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-400 text-sm font-semibold">
+                +62
+              </span>
+              <Input
+                {...register('kontak_darurat_no_hp')}
+                className="rounded-l-none"
+                placeholder="812345678"
+              />
+            </div>
           </div>
         </div>
 
@@ -73,7 +91,7 @@ export function FamilyInformationTables() {
           />
         </div>
 
-        <div className="grid grid-cols-4 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           <div>
             <Label className="text-sm">RT/RW</Label>
             <Input
@@ -96,21 +114,56 @@ export function FamilyInformationTables() {
               className="mt-1"
             />
           </div>
-          <div>
-            <Label className="text-sm">Kab/Kota</Label>
-            <Input
-              {...register('kontak_darurat_kab_kota')}
-              className="mt-1"
-            />
-          </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           <div>
             <Label className="text-sm">Provinsi</Label>
-            <Input
-              {...register('kontak_darurat_provinsi')}
-              className="mt-1"
+            <Controller
+              name="kontak_darurat_provinsi"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={(val) => {
+                    field.onChange(val);
+                    const prov = provinces.find(p => p.nama === val);
+                    if (prov) setSelectedProvinceId(prov.id);
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Pilih Provinsi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {provinces.map(p => (
+                      <SelectItem key={p.id} value={p.nama}>{p.nama}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+          <div>
+            <Label className="text-sm">Kab/Kota</Label>
+            <Controller
+              name="kontak_darurat_kab_kota"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={!selectedProvinceId}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Pilih Kab/Kota" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regencies.map(r => (
+                      <SelectItem key={r.id} value={r.nama}>{r.nama}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             />
           </div>
           <div>
@@ -120,13 +173,28 @@ export function FamilyInformationTables() {
               className="mt-1"
             />
           </div>
-          <div>
-            <Label className="text-sm">収入 Penghasilan/Bulan (Rp)</Label>
-            <Input
-              type="number"
-              {...register('kontak_darurat_penghasilan_per_bulan', { valueAsNumber: true })}
-              className="mt-1"
-              placeholder="0"
+        </div>
+
+        <div className="mt-4">
+          <Label className="text-sm font-medium">収入 Penghasilan/Bulan (Rp)</Label>
+          <div className="flex mt-1">
+            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-400 text-sm">
+              Rp
+            </span>
+            <Controller
+              name="kontak_darurat_penghasilan_per_bulan"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  className="rounded-l-none"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    field.onChange(formatRibuan(val));
+                  }}
+                  placeholder="0"
+                />
+              )}
             />
           </div>
         </div>

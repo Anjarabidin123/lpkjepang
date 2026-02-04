@@ -21,6 +21,8 @@ import { EducationTable } from "./EducationTable";
 import { useProgram } from "@/hooks/useProgram";
 import { usePosisiKerja } from "@/hooks/usePosisiKerja";
 import { useLpkMitra } from "@/hooks/useLpkMitra";
+import { formatRibuan } from "@/utils/formHelpers";
+import { Controller } from "react-hook-form";
 
 interface OfficialBiodataFormProps {
   siswa?: Siswa;
@@ -114,9 +116,15 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
       finalAge = calculateAge(data.tanggal_lahir) || undefined;
     }
 
+    const cleanRibuan = (val: any) => val ? val.toString().replace(/\./g, '') : null;
+    const formatPhone = (val: any) => val ? (val.startsWith('+62') ? val : `+62${val}`) : null;
+
     const submitData = {
       ...data,
       umur: finalAge,
+      telepon: formatPhone(data.telepon),
+      target_gaji: cleanRibuan(data.target_gaji),
+      target_menabung: cleanRibuan(data.target_menabung),
       demografi_province_id: data.demografi_province_id || null,
       demografi_regency_id: data.demografi_regency_id || null,
       foto_siswa: data.foto_siswa || data.foto_url || null,
@@ -124,7 +132,7 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
       // Wrap emergency contact in array for backend hasMany
       kontak_keluarga: data.kontak_darurat_nama ? [{
         nama: data.kontak_darurat_nama,
-        no_hp: data.kontak_darurat_no_hp,
+        no_hp: formatPhone(data.kontak_darurat_no_hp),
         alamat: data.kontak_darurat_alamat,
         rt_rw: data.kontak_darurat_rt_rw,
         kelurahan: data.kontak_darurat_kelurahan,
@@ -132,7 +140,7 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
         kab_kota: data.kontak_darurat_kab_kota,
         provinsi: data.kontak_darurat_provinsi,
         kode_pos: data.kontak_darurat_kode_pos,
-        penghasilan_per_bulan: data.kontak_darurat_penghasilan_per_bulan,
+        penghasilan_per_bulan: cleanRibuan(data.kontak_darurat_penghasilan_per_bulan),
       }] : [],
       // Remove single-row education fields to favor the nested array
       nama_sekolah: undefined,
@@ -142,9 +150,9 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
     };
 
     if (siswa) {
-      updateSiswa({ id: siswa.id, ...submitData });
+      updateSiswa({ id: siswa.id, ...submitData } as any);
     } else {
-      createSiswa(submitData);
+      createSiswa(submitData as any);
     }
     onSuccess();
   };
@@ -245,11 +253,16 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
 
                 <div className="col-span-2">
                   <Label className="text-sm font-medium">電話番号 No. Telepon</Label>
-                  <Input
-                    {...form.register("telepon")}
-                    className="mt-1"
-                    placeholder="+62"
-                  />
+                  <div className="flex mt-1">
+                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-400 text-sm font-semibold">
+                      +62
+                    </span>
+                    <Input
+                      {...form.register("telepon")}
+                      className="rounded-l-none"
+                      placeholder="812345678"
+                    />
+                  </div>
                 </div>
                 <div className="col-span-4">
                   <Label className="text-sm font-medium">Email</Label>
@@ -523,20 +536,50 @@ export function OfficialBiodataForm({ siswa, onCancel, onSuccess }: OfficialBiod
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <Label className="text-sm font-medium">目標給与 Target Gaji / Target Salary</Label>
-                <Input
-                  {...form.register("target_gaji")}
-                  className="mt-1"
-                  placeholder="例: 150,000 yen/月"
-                />
+                <Label className="text-sm font-medium">目標給与 Target Gaji / Target Salary (Yen)</Label>
+                <div className="flex mt-1">
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-400 text-sm">
+                    ¥
+                  </span>
+                  <Controller
+                    name="target_gaji"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        className="rounded-l-none"
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          field.onChange(formatRibuan(val));
+                        }}
+                        placeholder="150.000"
+                      />
+                    )}
+                  />
+                </div>
               </div>
               <div>
-                <Label className="text-sm font-medium">貯金目標 Target Menabung / Savings Goal</Label>
-                <Input
-                  {...form.register("target_menabung")}
-                  className="mt-1"
-                  placeholder="例: 50,000 yen/月"
-                />
+                <Label className="text-sm font-medium">貯金目標 Target Menabung / Savings Goal (Yen)</Label>
+                <div className="flex mt-1">
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-400 text-sm">
+                    ¥
+                  </span>
+                  <Controller
+                    name="target_menabung"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        className="rounded-l-none"
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          field.onChange(formatRibuan(val));
+                        }}
+                        placeholder="50.000"
+                      />
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
