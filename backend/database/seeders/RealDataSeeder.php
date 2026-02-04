@@ -201,21 +201,21 @@ class RealDataSeeder extends Seeder
 
         // Seed Kategori Pemasukan & Pengeluaran
         $kategoriPemasukan = [
-            ['nama' => 'Biaya Pendaftaran', 'deskripsi' => 'Pendaftaran awal siswa'],
-            ['nama' => 'Management Fee', 'deskripsi' => 'Biaya pengelolaan dari Kumiai'],
+            ['nama_kategori' => 'Biaya Pendaftaran', 'deskripsi' => 'Pendaftaran awal siswa'],
+            ['nama_kategori' => 'Management Fee', 'deskripsi' => 'Biaya pengelolaan dari Kumiai'],
         ];
 
         foreach ($kategoriPemasukan as $kat) {
-            KategoriPemasukan::firstOrCreate(['nama' => $kat['nama']], $kat);
+            KategoriPemasukan::firstOrCreate(['nama_kategori' => $kat['nama_kategori']], $kat);
         }
 
         $kategoriPengeluaran = [
-            ['nama' => 'Gaji Karyawan', 'deskripsi' => 'Gaji staff internal'],
-            ['nama' => 'Operasional Kantor', 'deskripsi' => 'Listrik, air, internet'],
+            ['nama_kategori' => 'Gaji Karyawan', 'deskripsi' => 'Gaji staff internal'],
+            ['nama_kategori' => 'Operasional Kantor', 'deskripsi' => 'Listrik, air, internet'],
         ];
 
         foreach ($kategoriPengeluaran as $kat) {
-            KategoriPengeluaran::firstOrCreate(['nama' => $kat['nama']], $kat);
+            KategoriPengeluaran::firstOrCreate(['nama_kategori' => $kat['nama_kategori']], $kat);
         }
 
         // Seed Arus Kas
@@ -226,7 +226,7 @@ class RealDataSeeder extends Seeder
             ArusKas::create([
                 'tanggal' => now()->subDays(rand(1, 90)),
                 'jenis' => $i % 2 == 0 ? 'Pemasukan' : 'Pengeluaran',
-                'kategori' => $i % 2 == 0 ? $katPemasukan->nama : $katPengeluaran->nama,
+                'kategori' => $i % 2 == 0 ? $katPemasukan->nama_kategori : $katPengeluaran->nama_kategori,
                 'nominal' => rand(1000000, 10000000),
                 'keterangan' => 'Transaksi ' . ($i + 1),
             ]);
