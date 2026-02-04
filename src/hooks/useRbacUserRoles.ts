@@ -62,7 +62,7 @@ export function useRbacUserRoles() {
     }
   };
 
-  const deleteUser = async (userId: string): Promise<boolean> {
+  const deleteUser = async (userId: string): Promise<boolean> => {
     try {
       setLoading(true);
       const success = await UserRoleService.deleteUser(userId);
