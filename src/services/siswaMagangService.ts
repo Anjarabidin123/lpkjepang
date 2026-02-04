@@ -67,7 +67,8 @@ export const siswaMagangService = {
 
     if (!response.ok) {
       const err = await response.json();
-      throw new Error(err.message || 'Failed to create siswa magang');
+      const errorMessage = err.details ? `${err.message}: ${err.details}` : (err.message || 'Failed to create siswa magang');
+      throw new Error(errorMessage);
     }
     const data = await response.json();
     return mapSiswaMagang(data);

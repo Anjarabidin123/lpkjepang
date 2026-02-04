@@ -63,7 +63,12 @@ class SiswaMagangController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Server Error',
+                'details' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
     }
 
