@@ -11,24 +11,25 @@ class SiswaMagangController extends Controller
     public function index()
     {
         try {
-            // Try to load with relationships, but handle gracefully if they fail
+            // Load all necessary relationships for the dashboard
             $data = SiswaMagang::with([
-                'siswa', 'kumiai', 'perusahaan', 'program', 
-                'jenisKerja', 'posisiKerja', 'lpkMitra', 
-                'demografiProvince', 'demografiRegency'
-            ])->get();
+                'siswa', 
+                'kumiai', 
+                'perusahaan', 
+                'program', 
+                'jenisKerja', 
+                'posisiKerja', 
+                'lpkMitra', 
+                'demografiProvince', 
+                'demografiRegency'
+            ])->orderBy('created_at', 'desc')->get();
+            
             return response()->json($data);
         } catch (\Exception $e) {
-            // If relationships fail, return basic data
-            try {
-                $data = SiswaMagang::all();
-                return response()->json($data);
-            } catch (\Exception $e2) {
-                return response()->json([
-                    'error' => 'Failed to fetch siswa magang',
-                    'message' => $e2->getMessage()
-                ], 500);
-            }
+            return response()->json([
+                'message' => 'Query Error',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
