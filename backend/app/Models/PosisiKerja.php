@@ -13,7 +13,7 @@ class PosisiKerja extends Model
         return $this->belongsTo(Perusahaan::class);
     }
 
-    public function jenisKerja()
+    public function jenis_kerja()
     {
         return $this->belongsTo(JenisKerja::class);
     }

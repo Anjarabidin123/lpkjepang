@@ -131,7 +131,10 @@ class SiswaController extends Controller
                     if (!empty($data)) $siswa->pendidikan()->createMany($data);
                 }
 
-                return response()->json($siswa->load(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra', 'keluargaIndonesia', 'keluargaJepang', 'kontakKeluarga', 'pengalamanKerja', 'pendidikan']), 201);
+                return response()->json($siswa->load([
+                    'user', 'province', 'regency', 'program', 'posisi_kerja', 'lpk_mitra', 
+                    'keluarga_indonesia', 'keluarga_jepang', 'kontak_keluarga', 'pengalaman_kerja', 'pendidikan'
+                ]), 201);
             } catch (\Illuminate\Validation\ValidationException $e) {
                 \Log::error('Siswa Store Validation Error:', $e->errors());
                 return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);
@@ -146,8 +149,8 @@ class SiswaController extends Controller
     {
         try {
             $siswa = Siswa::with([
-                'user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra',
-                'keluargaIndonesia', 'keluargaJepang', 'kontakKeluarga', 'pengalamanKerja', 'pendidikan'
+                'user', 'province', 'regency', 'program', 'posisi_kerja', 'lpk_mitra',
+                'keluarga_indonesia', 'keluarga_jepang', 'kontak_keluarga', 'pengalaman_kerja', 'pendidikan'
             ])->findOrFail($id);
             return response()->json($siswa);
         } catch (\Exception $e) {
@@ -239,24 +242,24 @@ class SiswaController extends Controller
 
                 // Update Hubungan (Sync) - Filter out empty rows to avoid crashes
                 if ($request->has('keluarga_indonesia')) {
-                    $siswa->keluargaIndonesia()->delete();
+                    $siswa->keluarga_indonesia()->delete();
                     $data = collect($request->keluarga_indonesia)->filter(fn($item) => !empty($item['nama']))->toArray();
-                    if (!empty($data)) $siswa->keluargaIndonesia()->createMany($data);
+                    if (!empty($data)) $siswa->keluarga_indonesia()->createMany($data);
                 }
                 if ($request->has('keluarga_jepang')) {
-                    $siswa->keluargaJepang()->delete();
+                    $siswa->keluarga_jepang()->delete();
                     $data = collect($request->keluarga_jepang)->filter(fn($item) => !empty($item['nama']))->toArray();
-                    if (!empty($data)) $siswa->keluargaJepang()->createMany($data);
+                    if (!empty($data)) $siswa->keluarga_jepang()->createMany($data);
                 }
                 if ($request->has('kontak_keluarga')) {
-                    $siswa->kontakKeluarga()->delete();
+                    $siswa->kontak_keluarga()->delete();
                     $data = collect($request->kontak_keluarga)->filter(fn($item) => !empty($item['nama']))->toArray();
-                    if (!empty($data)) $siswa->kontakKeluarga()->createMany($data);
+                    if (!empty($data)) $siswa->kontak_keluarga()->createMany($data);
                 }
                 if ($request->has('pengalaman_kerja')) {
-                    $siswa->pengalamanKerja()->delete();
+                    $siswa->pengalaman_kerja()->delete();
                     $data = collect($request->pengalaman_kerja)->filter(fn($item) => !empty($item['nama_perusahaan']))->toArray();
-                    if (!empty($data)) $siswa->pengalamanKerja()->createMany($data);
+                    if (!empty($data)) $siswa->pengalaman_kerja()->createMany($data);
                 }
                 if ($request->has('pendidikan')) {
                     $siswa->pendidikan()->delete();
@@ -264,7 +267,7 @@ class SiswaController extends Controller
                     if (!empty($data)) $siswa->pendidikan()->createMany($data);
                 }
 
-                return response()->json($siswa->load(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra', 'keluargaIndonesia', 'keluargaJepang', 'kontakKeluarga', 'pengalamanKerja', 'pendidikan']));
+                return response()->json($siswa->load(['user', 'province', 'regency', 'program', 'posisi_kerja', 'lpk_mitra', 'keluarga_indonesia', 'keluarga_jepang', 'kontak_keluarga', 'pengalaman_kerja', 'pendidikan']));
             } catch (\Illuminate\Validation\ValidationException $e) {
                 \Log::error('Siswa Update Validation Error:', $e->errors());
                 return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);

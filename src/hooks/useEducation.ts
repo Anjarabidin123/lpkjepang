@@ -6,7 +6,7 @@ export interface Attendance {
     siswa_id: string;
     siswa?: { nama: string; nik: string };
     date: string;
-    status: 'hadiir' | 'izin' | 'sakit' | 'alpha';
+    status: 'hadir' | 'izin' | 'sakit' | 'alpha';
     notes?: string;
 }
 

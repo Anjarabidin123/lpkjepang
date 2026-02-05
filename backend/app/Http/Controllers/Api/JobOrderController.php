@@ -14,7 +14,7 @@ class JobOrderController extends Controller
     {
         // Sesuaikan nama relasi jika perlu. Asumsi relasi di model sudah ada (atau nanti saya cek)
         return response()->json(
-            \App\Models\JobOrder::with(['kumiai', 'jenisKerja'])->get()
+            \App\Models\JobOrder::with(['kumiai', 'perusahaan', 'jenis_kerja'])->get()
         );
     }
 
@@ -50,7 +50,7 @@ class JobOrderController extends Controller
     public function show($id)
     {
         return response()->json(
-            \App\Models\JobOrder::with(['kumiai', 'jenisKerja'])->findOrFail($id)
+            \App\Models\JobOrder::with(['kumiai', 'perusahaan', 'jenis_kerja'])->findOrFail($id)
         );
     }
 

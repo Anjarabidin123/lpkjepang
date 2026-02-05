@@ -13,7 +13,7 @@ class InvoiceItem extends Model
         return $this->belongsTo(Invoice::class);
     }
 
-    public function siswaMagang()
+    public function siswa_magang()
     {
         return $this->belongsTo(SiswaMagang::class);
     }

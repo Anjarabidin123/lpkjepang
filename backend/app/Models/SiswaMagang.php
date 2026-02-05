@@ -12,9 +12,9 @@ class SiswaMagang extends Model
     public function kumiai() { return $this->belongsTo(Kumiai::class); }
     public function perusahaan() { return $this->belongsTo(Perusahaan::class); }
     public function program() { return $this->belongsTo(Program::class); }
-    public function jenisKerja() { return $this->belongsTo(JenisKerja::class); }
-    public function posisiKerja() { return $this->belongsTo(PosisiKerja::class); }
-    public function lpkMitra() { return $this->belongsTo(LpkMitra::class); }
-    public function demografiProvince() { return $this->belongsTo(DemografiProvince::class); }
-    public function demografiRegency() { return $this->belongsTo(DemografiRegency::class); }
+    public function jenis_kerja() { return $this->belongsTo(JenisKerja::class); }
+    public function posisi_kerja() { return $this->belongsTo(PosisiKerja::class); }
+    public function lpk_mitra() { return $this->belongsTo(LpkMitra::class); }
+    public function demografi_province() { return $this->belongsTo(DemografiProvince::class); }
+    public function demografi_regency() { return $this->belongsTo(DemografiRegency::class); }
 }

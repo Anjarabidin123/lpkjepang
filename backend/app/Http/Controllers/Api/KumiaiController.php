@@ -25,6 +25,7 @@ class KumiaiController extends Controller
                 'alamat' => 'nullable|string',
                 'telepon' => 'nullable|string|max:20',
                 'tanggal_kerjasama' => 'nullable|date',
+                'jumlah_perusahaan' => 'nullable|integer',
             ]);
             
             $kumiai = Kumiai::create($validated);
@@ -59,6 +60,7 @@ class KumiaiController extends Controller
                 'alamat' => 'nullable|string',
                 'telepon' => 'nullable|string|max:20',
                 'tanggal_kerjasama' => 'nullable|date',
+                'jumlah_perusahaan' => 'nullable|integer',
             ]);
             
             $kumiai->update($validated);

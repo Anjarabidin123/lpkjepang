@@ -18,12 +18,13 @@ class InternalPaymentController extends Controller
     {
         $validated = $request->validate([
             'siswa_id' => 'required|exists:siswas,id',
-            'item_pembayaran_id' => 'required|exists:item_pembayarans,id',
+            'item_pembayaran_id' => 'required|exists:item_pembayaran,id',
             'nominal' => 'required|numeric',
-            'tanggal_bayar' => 'required|date',
+            'tanggal_pembayaran' => 'required|date',
             'metode_pembayaran' => 'nullable|string',
             'referensi_transaksi' => 'nullable|string',
             'keterangan' => 'nullable|string',
+            'status' => 'nullable|string',
         ]);
 
         $data = InternalPayment::create($validated);
@@ -41,12 +42,13 @@ class InternalPaymentController extends Controller
         
         $validated = $request->validate([
             'siswa_id' => 'sometimes|required|exists:siswas,id',
-            'item_pembayaran_id' => 'sometimes|required|exists:item_pembayarans,id',
+            'item_pembayaran_id' => 'sometimes|required|exists:item_pembayaran,id',
             'nominal' => 'sometimes|required|numeric',
-            'tanggal_bayar' => 'sometimes|required|date',
+            'tanggal_pembayaran' => 'sometimes|required|date',
             'metode_pembayaran' => 'nullable|string',
             'referensi_transaksi' => 'nullable|string',
             'keterangan' => 'nullable|string',
+            'status' => 'nullable|string',
         ]);
 
         $data->update($validated);

@@ -197,7 +197,7 @@ export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
         await createSiswa(submitData);
         toast.success('Siswa berhasil ditambahkan');
       }
-      
+
       onSave();
     } catch (error) {
       console.error('Error saving siswa:', error);
@@ -281,8 +281,8 @@ export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
                 </div>
                 <div>
                   <Label htmlFor="jenis_kelamin">Jenis Kelamin</Label>
-                  <Select 
-                    value={form.watch('jenis_kelamin') || ''} 
+                  <Select
+                    value={form.watch('jenis_kelamin') || ''}
                     onValueChange={(value) => form.setValue('jenis_kelamin', value as 'Laki-laki' | 'Perempuan')}
                   >
                     <SelectTrigger>
@@ -372,7 +372,7 @@ export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
                 </div>
                 <div>
                   <Label htmlFor="golongan_darah">Golongan Darah</Label>
-                  <Select 
+                  <Select
                     value={form.watch('golongan_darah') || ''}
                     onValueChange={(value) => form.setValue('golongan_darah', value)}
                   >
@@ -386,6 +386,143 @@ export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
                       <SelectItem value="O">O</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              {/* Biometric & Health */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Biometrik & Kesehatan</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <Label htmlFor="ukuran_kepala">Ukuran Kepala</Label>
+                    <Input
+                      id="ukuran_kepala"
+                      type="number"
+                      {...form.register("ukuran_kepala", { valueAsNumber: true })}
+                      placeholder="58"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ukuran_pinggang">Ukuran Pinggang (cm)</Label>
+                    <Input
+                      id="ukuran_pinggang"
+                      type="number"
+                      {...form.register("ukuran_pinggang", { valueAsNumber: true })}
+                      placeholder="80"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="mata_kanan">Mata Kanan</Label>
+                    <Input
+                      id="mata_kanan"
+                      {...form.register("mata_kanan")}
+                      placeholder="1.0 / Normal"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="mata_kiri">Mata Kiri</Label>
+                    <Input
+                      id="mata_kiri"
+                      {...form.register("mata_kiri")}
+                      placeholder="1.0 / Normal"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="buta_warna">Buta Warna</Label>
+                    <div className="flex items-center space-x-2 mt-2">
+                      <input
+                        type="checkbox"
+                        id="buta_warna"
+                        className="w-4 h-4"
+                        checked={form.watch('buta_warna')}
+                        onChange={(e) => form.setValue('buta_warna', e.target.checked)}
+                      />
+                      <span>Ya, Buta Warna</span>
+                    </div>
+                  </div>
+                  {form.watch('buta_warna') && (
+                    <div>
+                      <Label htmlFor="warna_buta">Jenis Buta Warna</Label>
+                      <Input
+                        id="warna_buta"
+                        {...form.register("warna_buta")}
+                        placeholder="Parsial / Total"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <Label htmlFor="penggunaan_tangan">Penggunaan Tangan</Label>
+                    <Select
+                      value={form.watch('penggunaan_tangan') || 'Kanan'}
+                      onValueChange={(value) => form.setValue('penggunaan_tangan', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih tangan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Kanan">Kanan</SelectItem>
+                        <SelectItem value="Kiri">Kiri</SelectItem>
+                        <SelectItem value="Keduanya">Keduanya</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Habits Section */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Kebiasaan</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="merokok_sekarang">Merokok Sekarang?</Label>
+                    <Select
+                      value={form.watch('merokok_sekarang') || ''}
+                      onValueChange={(value) => form.setValue('merokok_sekarang', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Ya">Ya</SelectItem>
+                        <SelectItem value="Tidak">Tidak</SelectItem>
+                        <SelectItem value="Kadang-kadang">Kadang-kadang</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="merokok_jepang">Merokok di Jepang?</Label>
+                    <Select
+                      value={form.watch('merokok_jepang') || ''}
+                      onValueChange={(value) => form.setValue('merokok_jepang', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Ya">Ya</SelectItem>
+                        <SelectItem value="Tidak">Tidak</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="minum_sake">Minum Sake/Alkohol?</Label>
+                    <Select
+                      value={form.watch('minum_sake') || ''}
+                      onValueChange={(value) => form.setValue('minum_sake', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Ya">Ya</SelectItem>
+                        <SelectItem value="Tidak">Tidak</SelectItem>
+                        <SelectItem value="Kadang-kadang">Kadang-kadang</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
@@ -472,7 +609,7 @@ export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
                   >
                     {lpkMitras?.map((lpk) => (
                       <SelectItem key={lpk.id} value={lpk.id}>
-                        {lpk.nama_lpk} - {lpk.kode}
+                        {lpk.nama} - {lpk.kode}
                       </SelectItem>
                     ))}
                   </SelectWithPlaceholder>
@@ -534,6 +671,102 @@ export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
                       <SelectItem value="Cerai">Cerai</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              {/* LPK & Program Timeline */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Riwayat & Status LPK</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="tanggal_masuk_lpk">Tanggal Masuk LPK</Label>
+                    <Input
+                      id="tanggal_masuk_lpk"
+                      type="date"
+                      {...form.register("tanggal_masuk_lpk")}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lama_belajar">Lama Belajar</Label>
+                    <Input
+                      id="lama_belajar"
+                      {...form.register("lama_belajar")}
+                      placeholder="Contoh: 6 Bulan / 1 Tahun"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Advanced Profile Info */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Profil Lanjutan</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="bakat_khusus">Bakat Khusus</Label>
+                    <Textarea
+                      id="bakat_khusus"
+                      {...form.register("bakat_khusus")}
+                      placeholder="Masukkan bakat khusus"
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="kelebihan">Kelebihan</Label>
+                    <Textarea
+                      id="kelebihan"
+                      {...form.register("kelebihan")}
+                      placeholder="Kekuatan Anda"
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="kekurangan">Kekurangan</Label>
+                    <Textarea
+                      id="kekurangan"
+                      {...form.register("kekurangan")}
+                      placeholder="Hal yang perlu diperbaiki"
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="minat">Minat / Ketertarikan</Label>
+                    <Textarea
+                      id="minat"
+                      {...form.register("minat")}
+                      placeholder="Apa yang Anda minati di Jepang?"
+                      rows={2}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label htmlFor="tujuan_jepang">Tujuan ke Jepang</Label>
+                    <Textarea
+                      id="tujuan_jepang"
+                      {...form.register("tujuan_jepang")}
+                      placeholder="Mengapa Anda ingin ke Jepang?"
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="target_menabung">Target Menabung</Label>
+                    <Input
+                      id="target_menabung"
+                      {...form.register("target_menabung")}
+                      placeholder="Contoh: 50 Juta / Tahun"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <Label htmlFor="pengalaman">Pengalaman Lainnya</Label>
+                  <Textarea
+                    id="pengalaman"
+                    {...form.register("pengalaman")}
+                    placeholder="Pengalaman organisasi/sosial"
+                    rows={2}
+                  />
                 </div>
               </div>
 

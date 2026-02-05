@@ -85,7 +85,7 @@ export function MobileEducation({ attendance, grades, schedules = [], presencePe
                                     <div className="text-xs font-bold text-slate-700">
                                         {format(new Date(a.date), 'dd MMM yyyy', { locale: id })}
                                     </div>
-                                    <Badge className={`rounded-lg font-black text-[9px] tracking-widest ${a.status === 'hadiir' ? 'bg-emerald-50 text-emerald-600 border-none' : 'bg-red-50 text-red-600 border-none'}`}>
+                                    <Badge className={`rounded-lg font-black text-[9px] tracking-widest ${a.status === 'hadir' ? 'bg-emerald-50 text-emerald-600 border-none' : 'bg-red-50 text-red-600 border-none'}`}>
                                         {a.status.toUpperCase()}
                                     </Badge>
                                 </div>

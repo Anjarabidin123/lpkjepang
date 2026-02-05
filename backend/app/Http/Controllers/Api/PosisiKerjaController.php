@@ -10,7 +10,7 @@ class PosisiKerjaController extends Controller
 {
     public function index()
     {
-        return response()->json(PosisiKerja::with(['perusahaan', 'jenisKerja'])->get());
+        return response()->json(PosisiKerja::with(['perusahaan', 'jenis_kerja'])->get());
     }
 
     public function store(Request $request)
@@ -18,7 +18,16 @@ class PosisiKerjaController extends Controller
         $validated = $request->validate([
             'kode' => 'required|string|unique:posisi_kerjas,kode',
             'nama' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
+            'posisi' => 'nullable|string',
+            'lokasi' => 'nullable|string',
+            'kuota' => 'nullable|integer',
+            'terisi' => 'nullable|integer',
+            'gaji_harian' => 'nullable|numeric',
+            'jam_kerja' => 'nullable|string',
+            'persyaratan' => 'nullable|string',
+            'status' => 'nullable|string',
+            'tanggal_buka' => 'nullable|date',
+            'tanggal_tutup' => 'nullable|date',
             'perusahaan_id' => 'nullable|exists:perusahaans,id',
             'jenis_kerja_id' => 'nullable|exists:jenis_kerjas,id',
         ]);
@@ -40,7 +49,16 @@ class PosisiKerjaController extends Controller
         $validated = $request->validate([
             'nama' => 'sometimes|required|string|max:255',
             'kode' => 'sometimes|required|string|unique:posisi_kerjas,kode,'.$id,
-            'deskripsi' => 'nullable|string',
+            'posisi' => 'nullable|string',
+            'lokasi' => 'nullable|string',
+            'kuota' => 'nullable|integer',
+            'terisi' => 'nullable|integer',
+            'gaji_harian' => 'nullable|numeric',
+            'jam_kerja' => 'nullable|string',
+            'persyaratan' => 'nullable|string',
+            'status' => 'nullable|string',
+            'tanggal_buka' => 'nullable|date',
+            'tanggal_tutup' => 'nullable|date',
             'perusahaan_id' => 'nullable|exists:perusahaans,id',
             'jenis_kerja_id' => 'nullable|exists:jenis_kerjas,id',
         ]);

@@ -68,7 +68,7 @@ function AttendanceAdminView({ attendance }: { attendance: any[] }) {
                                         <TableCell className="pl-8 font-bold text-slate-400 text-[11px]">{format(new Date(a.date), 'dd/MM/yyyy')}</TableCell>
                                         <TableCell className="font-bold text-slate-900 py-5">{a.siswa?.nama}</TableCell>
                                         <TableCell>
-                                            <Badge className={`rounded-lg font-black text-[10px] tracking-widest ${a.status === 'hadiir' ? 'bg-emerald-50 text-emerald-600 shadow-none border-emerald-100' : 'bg-red-50 text-red-600 shadow-none border-red-100'}`}>
+                                            <Badge className={`rounded-lg font-black text-[10px] tracking-widest ${a.status === 'hadir' ? 'bg-emerald-50 text-emerald-600 shadow-none border-emerald-100' : 'bg-red-50 text-red-600 shadow-none border-red-100'}`}>
                                                 {a.status.toUpperCase()}
                                             </Badge>
                                         </TableCell>
@@ -409,12 +409,12 @@ function BulkAttendanceModal({ isOpen, onClose, onSave }: { isOpen: boolean, onC
                             <div key={s.id} className="flex items-center justify-between p-4 bg-white border border-slate-50 rounded-2xl hover:border-slate-200 transition-all">
                                 <div className="font-bold text-slate-700">{s.nama}</div>
                                 <div className="flex gap-2">
-                                    {['hadiir', 'izin', 'sakit', 'alpha'].map((status) => (
+                                    {['hadir', 'izin', 'sakit', 'alpha'].map((status) => (
                                         <Button
                                             key={status}
                                             variant="ghost"
                                             size="sm"
-                                            className={`rounded-lg px-3 h-8 font-black text-[10px] uppercase tracking-widest transition-all ${attendanceData[s.id] === status ? (status === 'hadiir' ? 'bg-emerald-50 text-emerald-600 shadow-lg shadow-emerald-100' : 'bg-red-500 text-white shadow-lg shadow-red-100') : 'text-slate-400 hover:bg-slate-100'}`}
+                                            className={`rounded-lg px-3 h-8 font-black text-[10px] uppercase tracking-widest transition-all ${attendanceData[s.id] === status ? (status === 'hadir' ? 'bg-emerald-50 text-emerald-600 shadow-lg shadow-emerald-100' : 'bg-red-500 text-white shadow-lg shadow-red-100') : 'text-slate-400 hover:bg-slate-100'}`}
                                             onClick={() => setAttendanceData({ ...attendanceData, [s.id]: status })}
                                         >
                                             {status.slice(0, 1)}
@@ -469,7 +469,7 @@ export default function EducationPage() {
     // STUDENT VIEW
     if (userRole === 'student') {
         const presencePercentage = Array.isArray(attendance) && attendance.length > 0
-            ? Math.round((attendance.filter((a: any) => a.status === 'hadiir').length / attendance.length) * 100)
+            ? Math.round((attendance.filter((a: any) => a.status === 'hadir').length / attendance.length) * 100)
             : 100;
 
         if (isMobile) {
@@ -549,7 +549,7 @@ export default function EducationPage() {
                                             <div className="text-sm font-bold text-slate-700">
                                                 {format(new Date(a.date), 'eeee, dd MMMM yyyy', { locale: id })}
                                             </div>
-                                            <Badge className={`rounded-lg font-black text-[10px] tracking-widest ${a.status === 'hadiir' ? 'bg-emerald-50 text-emerald-600 shadow-none border-emerald-100' : 'bg-red-50 text-red-600 shadow-none border-red-100'}`}>
+                                            <Badge className={`rounded-lg font-black text-[10px] tracking-widest ${a.status === 'hadir' ? 'bg-emerald-50 text-emerald-600 shadow-none border-emerald-100' : 'bg-red-50 text-red-600 shadow-none border-red-100'}`}>
                                                 {a.status.toUpperCase()}
                                             </Badge>
                                         </div>

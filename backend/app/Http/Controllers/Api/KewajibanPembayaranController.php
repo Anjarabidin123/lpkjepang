@@ -22,7 +22,7 @@ class KewajibanPembayaranController extends Controller
     {
         $validated = $request->validate([
             'siswa_id' => 'required|exists:siswas,id',
-            'item_pembayaran_id' => 'required|exists:item_pembayarans,id',
+            'item_pembayaran_id' => 'required|exists:item_pembayaran,id',
             'nominal' => 'required|numeric',
             'deadline' => 'nullable|date',
             'keterangan' => 'nullable|string',
@@ -44,7 +44,7 @@ class KewajibanPembayaranController extends Controller
         
         $validated = $request->validate([
             'siswa_id' => 'sometimes|required|exists:siswas,id',
-            'item_pembayaran_id' => 'sometimes|required|exists:item_pembayarans,id',
+            'item_pembayaran_id' => 'sometimes|required|exists:item_pembayaran,id',
             'nominal' => 'sometimes|required|numeric',
             'deadline' => 'nullable|date',
             'keterangan' => 'nullable|string',

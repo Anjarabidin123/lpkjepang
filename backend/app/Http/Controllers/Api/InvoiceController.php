@@ -13,7 +13,7 @@ class InvoiceController extends Controller
 {
     public function index()
     {
-        return response()->json(Invoice::with(['kumiai', 'invoiceItems.siswaMagang.siswa'])->orderBy('tanggal_invoice', 'desc')->get());
+        return response()->json(Invoice::with(['kumiai', 'invoice_items.siswa_magang.siswa'])->orderBy('tanggal_invoice', 'desc')->get());
     }
 
     public function store(Request $request)
@@ -28,24 +28,34 @@ class InvoiceController extends Controller
         ]);
 
         return DB::transaction(function () use ($request) {
-            $invoice = Invoice::create($request->only([
+            $data = $request->only([
                 'kumiai_id', 'nomor_invoice', 'nominal', 'tanggal_invoice', 
                 'tanggal_jatuh_tempo', 'keterangan', 'status'
-            ]));
+            ]);
 
-            if ($request->has('invoice_items')) {
-                foreach ($request->invoice_items as $item) {
-                    $invoice->invoiceItems()->create($item);
+            // Auto-calculate nominal from items if items exist
+            if ($request->has('invoice_items') && !empty($request->invoice_items)) {
+                $total = collect($request->invoice_items)->sum('nominal_fee');
+                if ($total > 0) {
+                    $data['nominal'] = $total;
                 }
             }
 
-            return response()->json($invoice->load('invoiceItems'), 201);
+            $invoice = Invoice::create($data);
+
+            if ($request->has('invoice_items')) {
+                foreach ($request->invoice_items as $item) {
+                    $invoice->invoice_items()->create($item);
+                }
+            }
+
+            return response()->json($invoice->load('invoice_items'), 201);
         });
     }
 
     public function show($id)
     {
-        return response()->json(Invoice::with(['kumiai', 'invoiceItems.siswaMagang.siswa'])->findOrFail($id));
+        return response()->json(Invoice::with(['kumiai', 'invoice_items.siswa_magang.siswa'])->findOrFail($id));
     }
 
     public function update(Request $request, $id)
@@ -61,19 +71,29 @@ class InvoiceController extends Controller
 
         return DB::transaction(function () use ($request, $id) {
             $invoice = Invoice::findOrFail($id);
-            $invoice->update($request->only([
+            $data = $request->only([
                 'kumiai_id', 'nomor_invoice', 'nominal', 'tanggal_invoice', 
                 'tanggal_jatuh_tempo', 'keterangan', 'status'
-            ]));
+            ]);
 
-            if ($request->has('invoice_items')) {
-                $invoice->invoiceItems()->delete();
-                foreach ($request->invoice_items as $item) {
-                    $invoice->invoiceItems()->create($item);
+            // Auto-calculate nominal from items if items exist
+            if ($request->has('invoice_items') && !empty($request->invoice_items)) {
+                $total = collect($request->invoice_items)->sum('nominal_fee');
+                if ($total > 0) {
+                    $data['nominal'] = $total;
                 }
             }
 
-            return response()->json($invoice->load('invoiceItems'));
+            $invoice->update($data);
+
+            if ($request->has('invoice_items')) {
+                $invoice->invoice_items()->delete();
+                foreach ($request->invoice_items as $item) {
+                    $invoice->invoice_items()->create($item);
+                }
+            }
+
+            return response()->json($invoice->load('invoice_items'));
         });
     }
 

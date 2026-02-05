@@ -24,6 +24,8 @@ class LpkMitraController extends Controller
                 'phone' => 'nullable|string|max:20',
                 'alamat' => 'nullable|string',
                 'status' => 'nullable|string',
+                'website' => 'nullable|string|max:255',
+                'logo_url' => 'nullable|string',
             ]);
             
             $lpk = LpkMitra::create($validated);
@@ -57,6 +59,8 @@ class LpkMitraController extends Controller
                 'phone' => 'nullable|string|max:20',
                 'alamat' => 'nullable|string',
                 'status' => 'nullable|string',
+                'website' => 'nullable|string|max:255',
+                'logo_url' => 'nullable|string',
             ]);
             
             $lpk->update($validated);

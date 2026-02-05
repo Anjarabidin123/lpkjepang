@@ -28,32 +28,32 @@ class Siswa extends Model
         return $this->belongsTo(Program::class);
     }
 
-    public function posisiKerja()
+    public function posisi_kerja()
     {
         return $this->belongsTo(PosisiKerja::class);
     }
 
-    public function lpkMitra()
+    public function lpk_mitra()
     {
         return $this->belongsTo(LpkMitra::class);
     }
 
-    public function keluargaIndonesia()
+    public function keluarga_indonesia()
     {
         return $this->hasMany(SiswaKeluargaIndonesia::class);
     }
 
-    public function keluargaJepang()
+    public function keluarga_jepang()
     {
         return $this->hasMany(SiswaKeluargaJepang::class);
     }
 
-    public function kontakKeluarga()
+    public function kontak_keluarga()
     {
         return $this->hasMany(SiswaKontakKeluarga::class);
     }
 
-    public function pengalamanKerja()
+    public function pengalaman_kerja()
     {
         return $this->hasMany(SiswaPengalamanKerja::class);
     }
@@ -63,7 +63,7 @@ class Siswa extends Model
         return $this->hasMany(SiswaPendidikan::class);
     }
 
-    public function siswaMagang()
+    public function siswa_magang()
     {
         return $this->hasMany(SiswaMagang::class);
     }

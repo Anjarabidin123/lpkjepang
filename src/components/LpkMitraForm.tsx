@@ -17,11 +17,13 @@ interface LpkMitraFormProps {
 export function LpkMitraForm({ lpkMitra, onSave, onCancel, isLoading }: LpkMitraFormProps) {
   const [formData, setFormData] = useState({
     kode: lpkMitra?.kode || '',
-    nama_lpk: lpkMitra?.nama_lpk || '',
+    nama: lpkMitra?.nama || '',
     pic_nama: lpkMitra?.pic_nama || '',
     email: lpkMitra?.email || '',
     phone: lpkMitra?.phone || '',
     alamat: lpkMitra?.alamat || '',
+    website: lpkMitra?.website || '',
+    logo_url: lpkMitra?.logo_url || '',
     status: lpkMitra?.status || 'Aktif' as 'Aktif' | 'Nonaktif',
   });
 
@@ -49,11 +51,11 @@ export function LpkMitraForm({ lpkMitra, onSave, onCancel, isLoading }: LpkMitra
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="nama_lpk">Nama LPK *</Label>
+          <Label htmlFor="nama">Nama LPK *</Label>
           <Input
-            id="nama_lpk"
-            value={formData.nama_lpk}
-            onChange={(e) => handleChange('nama_lpk', e.target.value)}
+            id="nama"
+            value={formData.nama}
+            onChange={(e) => handleChange('nama', e.target.value)}
             placeholder="Masukkan nama LPK"
             required
           />
@@ -101,6 +103,26 @@ export function LpkMitraForm({ lpkMitra, onSave, onCancel, isLoading }: LpkMitra
               <SelectItem value="Nonaktif">Nonaktif</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="website">Website</Label>
+          <Input
+            id="website"
+            value={formData.website}
+            onChange={(e) => handleChange('website', e.target.value)}
+            placeholder="https://example.com"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="logo_url">Logo URL / Base64</Label>
+          <Input
+            id="logo_url"
+            value={formData.logo_url}
+            onChange={(e) => handleChange('logo_url', e.target.value)}
+            placeholder="URL Gambar Logo"
+          />
         </div>
       </div>
 

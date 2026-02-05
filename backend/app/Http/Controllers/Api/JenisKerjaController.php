@@ -19,6 +19,13 @@ class JenisKerjaController extends Controller
             'nama' => 'required|string|max:255',
             'kode' => 'required|string|unique:jenis_kerjas,kode',
             'kategori' => 'nullable|string',
+            'deskripsi' => 'nullable|string',
+            'tingkat_kesulitan' => 'nullable|string',
+            'syarat_pendidikan' => 'nullable|string',
+            'gaji_minimal' => 'nullable|numeric',
+            'gaji_maksimal' => 'nullable|numeric',
+            'total_posisi' => 'nullable|integer',
+            'status' => 'nullable|string',
         ]);
 
         $jenisKerja = JenisKerja::create($validated);
@@ -38,6 +45,13 @@ class JenisKerjaController extends Controller
             'nama' => 'sometimes|required|string|max:255',
             'kode' => 'sometimes|required|string|unique:jenis_kerjas,kode,'.$id,
             'kategori' => 'nullable|string',
+            'deskripsi' => 'nullable|string',
+            'tingkat_kesulitan' => 'nullable|string',
+            'syarat_pendidikan' => 'nullable|string',
+            'gaji_minimal' => 'nullable|numeric',
+            'gaji_maksimal' => 'nullable|numeric',
+            'total_posisi' => 'nullable|integer',
+            'status' => 'nullable|string',
         ]);
 
         $jenisKerja->update($validated);

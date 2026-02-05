@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('document_templates', function (Blueprint $table) {
+            $table->longText('template_content')->nullable()->change();
+        });
+
+        Schema::table('profil_lpks', function (Blueprint $table) {
+            $table->longText('logo_url')->nullable()->change();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('document_templates', function (Blueprint $table) {
+            $table->text('template_content')->nullable()->change();
+        });
+    }
+};

@@ -16,11 +16,11 @@ class SiswaMagangController extends Controller
                 'kumiai', 
                 'perusahaan', 
                 'program', 
-                'jenisKerja', 
-                'posisiKerja', 
-                'lpkMitra', 
-                'demografiProvince', 
-                'demografiRegency'
+                'jenis_kerja', 
+                'posisi_kerja', 
+                'lpk_mitra', 
+                'demografi_province', 
+                'demografi_regency'
             ]);
 
             $user = $request->user();
@@ -89,7 +89,7 @@ class SiswaMagangController extends Controller
             
             return response()->json($siswaMagang->load([
                 'siswa', 'kumiai', 'perusahaan', 'program', 
-                'jenisKerja', 'posisiKerja', 'lpkMitra'
+                'jenis_kerja', 'posisi_kerja', 'lpk_mitra'
             ]), 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);
@@ -108,8 +108,8 @@ class SiswaMagangController extends Controller
         try {
             $data = SiswaMagang::with([
                 'siswa', 'kumiai', 'perusahaan', 'program', 
-                'jenisKerja', 'posisiKerja', 'lpkMitra',
-                'demografiProvince', 'demografiRegency'
+                'jenis_kerja', 'posisi_kerja', 'lpk_mitra',
+                'demografi_province', 'demografi_regency'
             ])->findOrFail($id);
             
             return response()->json($data);
@@ -145,7 +145,7 @@ class SiswaMagangController extends Controller
             
             return response()->json($siswaMagang->load([
                 'siswa', 'kumiai', 'perusahaan', 'program', 
-                'jenisKerja', 'posisiKerja', 'lpkMitra'
+                'jenis_kerja', 'posisi_kerja', 'lpk_mitra'
             ]));
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation Error', 'errors' => $e->errors()], 422);

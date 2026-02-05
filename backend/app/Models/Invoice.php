@@ -13,7 +13,7 @@ class Invoice extends Model
         return $this->belongsTo(Kumiai::class);
     }
 
-    public function invoiceItems()
+    public function invoice_items()
     {
         return $this->hasMany(InvoiceItem::class);
     }

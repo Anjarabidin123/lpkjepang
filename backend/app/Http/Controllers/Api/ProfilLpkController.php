@@ -26,8 +26,11 @@ class ProfilLpkController extends Controller
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
             'pemilik' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
+            'no_telp' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'website' => 'nullable|url|max:255',
+            'logo_url' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
@@ -68,8 +71,11 @@ class ProfilLpkController extends Controller
         $validator = Validator::make($request->all(), [
             'nama' => 'sometimes|required|string|max:255',
             'pemilik' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
+            'no_telp' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'website' => 'nullable|url|max:255',
+            'logo_url' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
