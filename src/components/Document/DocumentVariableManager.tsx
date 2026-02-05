@@ -87,6 +87,33 @@ export function DocumentVariableManager() {
     is_active: true,
   });
 
+  const categoryToTable: Record<VariableCategory, string> = {
+    siswa: 'siswa',
+    perusahaan: 'perusahaan',
+    kumiai: 'kumiai',
+    program: 'program',
+    lpk: 'lpk_profile',
+    job_order: 'job_order',
+    sistem: '_system',
+  };
+
+  React.useEffect(() => {
+    if (!editingVariable) {
+      const table = categoryToTable[formData.kategori];
+      // Try to extract field from nama if it starts with category name
+      const prefix = `${formData.kategori}_`;
+      const field = formData.nama.startsWith(prefix)
+        ? formData.nama.substring(prefix.length)
+        : formData.nama;
+
+      setFormData(prev => ({
+        ...prev,
+        source_table: table || '',
+        source_field: field || ''
+      }));
+    }
+  }, [formData.nama, formData.kategori, editingVariable]);
+
   const filteredVariables = useMemo(() => {
     return variables.filter((v) => {
       const matchesSearch =
@@ -281,7 +308,6 @@ export function DocumentVariableManager() {
                   <TableHead>Variabel</TableHead>
                   <TableHead>Nama Tampilan</TableHead>
                   <TableHead>Kategori</TableHead>
-                  <TableHead>Sumber Data</TableHead>
                   <TableHead>Format</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="w-[80px]"></TableHead>
@@ -306,9 +332,6 @@ export function DocumentVariableManager() {
                       <TableCell className="font-medium">{variable.display_name}</TableCell>
                       <TableCell>
                         <Badge variant="secondary">{getCategoryLabel(variable.kategori)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-600">
-                        <span className="font-mono">{variable.source_table}.{variable.source_field}</span>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{getFormatLabel(variable.format_type)}</Badge>
@@ -442,28 +465,9 @@ export function DocumentVariableManager() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="source_table">Tabel Sumber <span className="text-red-500">*</span></Label>
-                <Input
-                  id="source_table"
-                  value={formData.source_table}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, source_table: e.target.value }))}
-                  placeholder="siswa"
-                  className="font-mono"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="source_field">Kolom Sumber <span className="text-red-500">*</span></Label>
-                <Input
-                  id="source_field"
-                  value={formData.source_field}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, source_field: e.target.value }))}
-                  placeholder="nama"
-                  className="font-mono"
-                />
-              </div>
-            </div>
+            {/* Hidden source mapping - handled automatically */}
+            <Input type="hidden" value={formData.source_table} />
+            <Input type="hidden" value={formData.source_field} />
 
             <div className="space-y-2">
               <Label htmlFor="default_value">Nilai Default (Opsional)</Label>

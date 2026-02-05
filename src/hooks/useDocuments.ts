@@ -159,26 +159,133 @@ export function useDocumentTemplates() {
 // --- Variables (Placeholder / Future API) ---
 export function useDocumentVariables() {
   const [variables, setVariables] = useState<DocumentVariable[]>([]);
-  const loading = false;
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const { toast } = useToast();
 
   const fetchVariables = useCallback(async () => {
-    // TODO: Implement API for variables
-    setVariables([]);
-  }, []);
+    try {
+      setLoading(true);
+      const response = await authFetch(endpoints.documentVariables);
+      if (!response.ok) throw new Error('Failed to fetch variables');
+      const data = await response.json();
+      setVariables(data);
+    } catch (error: any) {
+      console.error('Error fetching variables:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal memuat variabel dokumen',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
-  useEffect(() => { fetchVariables(); }, [fetchVariables]);
+  const createVariable = async (data: CreateDocumentVariableData): Promise<boolean> => {
+    try {
+      setCreating(true);
+      const response = await authFetch(endpoints.documentVariables, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create variable');
+      }
+
+      toast({ title: 'Berhasil', description: 'Variabel dokumen berhasil dibuat' });
+      await fetchVariables();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: `Gagal membuat variabel: ${error.message}`,
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const updateVariable = async (id: string, data: UpdateDocumentVariableData): Promise<boolean> => {
+    try {
+      setUpdating(true);
+      const response = await authFetch(`${endpoints.documentVariables}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error('Failed to update variable');
+
+      toast({ title: 'Berhasil', description: 'Variabel dokumen berhasil diperbarui' });
+      await fetchVariables();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: `Gagal memperbarui variabel: ${error.message}`,
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const deleteVariable = async (id: string): Promise<boolean> => {
+    try {
+      const response = await authFetch(`${endpoints.documentVariables}/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete variable');
+
+      toast({ title: 'Berhasil', description: 'Variabel dokumen berhasil dihapus' });
+      await fetchVariables();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: `Gagal menghapus variabel: ${error.message}`,
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    fetchVariables();
+  }, [fetchVariables]);
 
   const variablesByCategory = useMemo(() => {
-    return {
+    const grouped = {
       siswa: [], perusahaan: [], kumiai: [], program: [], lpk: [], job_order: [], sistem: [],
     } as Record<VariableCategory, DocumentVariable[]>;
+
+    variables.forEach((v) => {
+      if (v.kategori in grouped) {
+        grouped[v.kategori as VariableCategory].push(v);
+      }
+    });
+
+    return grouped;
   }, [variables]);
 
   return {
-    variables, variablesByCategory, loading, creating: false, updating: false,
-    createVariable: async () => true,
-    updateVariable: async () => true,
-    deleteVariable: async () => true,
+    variables,
+    variablesByCategory,
+    loading,
+    creating,
+    updating,
+    createVariable,
+    updateVariable,
+    deleteVariable,
     refetch: fetchVariables,
   };
 }

@@ -47,6 +47,7 @@ use App\Http\Controllers\Api\LearningModuleController;
 use App\Http\Controllers\ClassScheduleController;
 use App\Http\Controllers\Api\ProfilLpkController;
 use App\Http\Controllers\Api\DocumentTemplateController;
+use App\Http\Controllers\Api\DocumentVariableController;
 
 Route::get('/health', function () {
     try {
@@ -148,6 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('posisi-kerja', PosisiKerjaController::class);
         Route::apiResource('profil-lpk', ProfilLpkController::class);
         Route::apiResource('document-templates', DocumentTemplateController::class);
+        Route::apiResource('document-variables', DocumentVariableController::class);
     });
     
     // Monitoring & Reports

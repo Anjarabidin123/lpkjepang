@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
 
             RealDataSeeder::class, // Tambahkan ini agar semua data asli masuk
             DemoEducationSeeder::class,
+            DocumentVariableSeeder::class,
         ]);
 
         // Default Admin fallback
