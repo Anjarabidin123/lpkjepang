@@ -24,28 +24,40 @@ class StudentGradeController extends Controller
 
     public function store(Request $request)
     {
+        // SECURITY
+        if ($request->user()->roles->contains('name', 'student')) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $validated = $request->validate([
             'siswa_id' => 'required|exists:siswas,id',
             'subject' => 'required|string',
             'score' => 'required|integer',
             'exam_date' => 'required|date',
-            'result' => 'required|in:pass,fail,remidi',
+            'result' => 'nullable|in:pass,fail,remidi',
             'teacher_comments' => 'nullable|string'
         ]);
-
+        
+        // Auto-calculate result if not provided? Or just validated.
+        
         $grade = StudentGrade::create($validated);
         return response()->json($grade, 201);
     }
 
     public function update(Request $request, $id)
     {
+        // SECURITY
+        if ($request->user()->roles->contains('name', 'student')) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $grade = StudentGrade::findOrFail($id);
         $validated = $request->validate([
             'siswa_id' => 'sometimes|required|exists:siswas,id',
             'subject' => 'sometimes|required|string',
             'score' => 'sometimes|required|integer',
             'exam_date' => 'sometimes|required|date',
-            'result' => 'sometimes|required|in:pass,fail,remidi',
+            'result' => 'nullable|in:pass,fail,remidi',
             'teacher_comments' => 'nullable|string'
         ]);
 
@@ -53,8 +65,12 @@ class StudentGradeController extends Controller
         return response()->json($grade);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        if ($request->user()->roles->contains('name', 'student')) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $grade = StudentGrade::findOrFail($id);
         $grade->delete();
         return response()->json(['message' => 'Grade deleted']);

@@ -42,7 +42,17 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         try {
+            $user = Auth::user();
             $query = Task::with(['assignedUser', 'creator']);
+
+            // SECURITY SCOPE: Non-admins can only see tasks assigned to them or created by them
+            // Assuming 'super_admin' and 'admin' roles have full view
+            if (!$user->roles->contains(fn($r) => in_array($r->name, ['super_admin', 'admin']))) {
+                $query->where(function($q) use ($user) {
+                    $q->where('assigned_to', $user->id)
+                      ->orWhere('created_by', $user->id);
+                });
+            }
 
             // Filter by status
             if ($request->has('status') && $request->status !== 'all') {
@@ -54,7 +64,7 @@ class TaskController extends Controller
                 $query->where('priority', $request->priority);
             }
 
-            // Filter by assigned user
+            // Filter by assigned user (Only relevant for admins, regular users are already scoped)
             if ($request->has('assigned_to')) {
                 $query->where('assigned_to', $request->assigned_to);
             }
@@ -119,13 +129,19 @@ class TaskController extends Controller
     public function show($id)
     {
         try {
+            $user = Auth::user();
             $task = Task::with(['assignedUser', 'creator'])->findOrFail($id);
+
+            // SECURITY CHECK
+            if (!$user->roles->contains(fn($r) => in_array($r->name, ['super_admin', 'admin']))) {
+                if ($task->assigned_to !== $user->id && $task->created_by !== $user->id) {
+                    return response()->json(['error' => 'Unauthorized access to this task'], 403);
+                }
+            }
+
             return response()->json($task);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Task not found',
-                'message' => $e->getMessage()
-            ], 404);
+            return response()->json(['error' => 'Task not found'], 404);
         }
     }
 
@@ -135,9 +151,33 @@ class TaskController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $user = Auth::user();
             $task = Task::findOrFail($id);
+            
+            $isAdmin = $user->roles->contains(fn($r) => in_array($r->name, ['super_admin', 'admin']));
+            $isCreator = $task->created_by === $user->id;
+            $isAssignee = $task->assigned_to === $user->id;
 
-            $validated = $request->validate([
+            // 1. Authorization Check
+            if (!$isAdmin && !$isCreator && !$isAssignee) {
+                return response()->json(['error' => 'Unauthorized action'], 403);
+            }
+
+            // 2. Field Restriction Logic
+            // If user is ONLY Assignee (not Admin/Creator), restrict fields
+            if ($isAssignee && !$isAdmin && !$isCreator) {
+                // Assignee can only update status, notes, priority (maybe)
+                $allowedFields = ['status', 'notes', 'priority']; 
+                $requestData = $request->only($allowedFields);
+                
+                // If they try to touch other fields, ignore them or error? Ignore is safer.
+                // But we must validate status inputs
+            } else {
+                // Admin/Creator can update all
+                $requestData = $request->all();
+            }
+
+            $rules = [
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'nullable|string',
                 'status' => 'nullable|in:pending,in_progress,completed,cancelled',
@@ -145,9 +185,17 @@ class TaskController extends Controller
                 'assigned_to' => 'nullable|exists:users,id',
                 'due_date' => 'nullable|date',
                 'notes' => 'nullable|string',
-            ]);
+            ];
 
-            // If status changed to completed, set completed_at
+            // Validate ONLY the allowed data
+            $validator = \Illuminate\Support\Facades\Validator::make($requestData, $rules);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422); 
+            }
+            
+            $validated = $validator->validated();
+
+            // Set completed_at if status changes to completed
             if (isset($validated['status']) && $validated['status'] === 'completed' && $task->status !== 'completed') {
                 $validated['completed_at'] = now();
             }
@@ -167,10 +215,24 @@ class TaskController extends Controller
     /**
      * Remove the specified task
      */
+    /**
+     * Remove the specified task
+     */
     public function destroy($id)
     {
         try {
+            $user = Auth::user();
             $task = Task::findOrFail($id);
+
+            // SECURITY CHECK: Only Admins or Creator can delete? usually Creator only or Admin.
+            // Assignee generally shouldn't delete tasks assigned to them, only mark as done.
+            // Let's allow Creator and Admin.
+            $isAdmin = $user->roles->contains(fn($r) => in_array($r->name, ['super_admin', 'admin']));
+            
+            if (!$isAdmin && $task->created_by !== $user->id) {
+                 return response()->json(['error' => 'Unauthorized deletion'], 403);
+            }
+
             $task->delete();
 
             return response()->json(['message' => 'Task deleted successfully']);

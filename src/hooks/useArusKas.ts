@@ -48,7 +48,10 @@ export function useArusKas() {
         method: 'PUT',
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error('Failed to update transaction');
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to update transaction');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -65,7 +68,10 @@ export function useArusKas() {
       const response = await authFetch(`${endpoints.arusKas}/${id}`, {
         method: 'DELETE'
       });
-      if (!response.ok) throw new Error('Failed to delete transaction');
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to delete transaction');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['arus-kas'] });

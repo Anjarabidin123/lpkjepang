@@ -12,6 +12,7 @@ import {
   GraduationCap, XCircle, CheckCircle2, ChevronRight,
   Globe, Briefcase, FileSearch, Sparkles
 } from 'lucide-react';
+import { API_BASE_URL } from '@/config/api';
 
 export function AuthForm() {
   const [email, setEmail] = useState('');
@@ -24,6 +25,25 @@ export function AuthForm() {
 
   const { signIn, user, loading } = useAuth();
   const navigate = useNavigate();
+
+  const [stats, setStats] = useState({
+    siswa: 0,
+    kumiai: 0,
+    jobOrders: 0
+  });
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/public/stats`)
+      .then(res => res.json())
+      .then(data => {
+        setStats({
+          siswa: data.siswa_count || 0,
+          kumiai: data.kumiai_count || 0,
+          jobOrders: data.job_order_count || 0
+        });
+      })
+      .catch(err => console.error("Failed to fetch public stats:", err));
+  }, []);
 
   useEffect(() => {
     if (!loading && user) {
@@ -143,15 +163,15 @@ export function AuthForm() {
           {/* Real Metrics Banner */}
           <div className="grid grid-cols-3 gap-8 py-8 border-y border-slate-100">
             <div className="space-y-1">
-              <div className="text-3xl font-black text-slate-900 tracking-tighter">14</div>
+              <div className="text-3xl font-black text-slate-900 tracking-tighter">{stats.siswa}</div>
               <div className="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-widest">Siswa Database</div>
             </div>
             <div className="space-y-1 border-x border-slate-100 px-8">
-              <div className="text-3xl font-black text-slate-900 tracking-tighter">4</div>
+              <div className="text-3xl font-black text-slate-900 tracking-tighter">{stats.kumiai}</div>
               <div className="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-widest">Kumiai Jepang</div>
             </div>
             <div className="space-y-1">
-              <div className="text-3xl font-black text-slate-900 tracking-tighter">4</div>
+              <div className="text-3xl font-black text-slate-900 tracking-tighter">{stats.jobOrders}</div>
               <div className="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-widest">Job Order SO</div>
             </div>
           </div>

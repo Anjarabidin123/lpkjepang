@@ -16,7 +16,18 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        // RATE LIMITING
+        $throttleKey = 'login|' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            return response()->json([
+                'message' => 'Too many login attempts. Please try again in ' . $seconds . ' seconds.'
+            ], 429);
+        }
+
         if (Auth::attempt($credentials)) {
+            \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
+            
             $user = Auth::user()->load('roles');
             $token = $user->createToken('auth_token')->plainTextToken;
             
@@ -27,7 +38,8 @@ class AuthController extends Controller
             ]);
         }
 
-        return response()->json(['message' => 'Unauthorized'], 401);
+        \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60); // Decay 60 seconds
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
     public function logout(Request $request)
@@ -56,8 +68,11 @@ class AuthController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
 
+        // REVOKE ALL TOKENS (Logout everywhere)
+        $user->tokens()->delete();
+
         return response()->json([
-            'message' => 'Password changed successfully'
+            'message' => 'Password changed successfully. Please login again.'
         ]);
     }
 }

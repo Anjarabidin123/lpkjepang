@@ -28,19 +28,49 @@ class SiswaPengalamanKerjaController extends Controller
             'tahun_keluar' => 'nullable|integer',
         ]);
 
+        // SECURITY: Ownership Check
+        $siswa = \App\Models\Siswa::findOrFail($validated['siswa_id']);
+        $user = $request->user();
+        $canManage = $user->hasPermission('siswa_manage') || $user->roles->contains('name', 'super_admin');
+
+        if (!$canManage && $siswa->user_id !== $user->id) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $data = SiswaPengalamanKerja::create($validated);
         return response()->json($data, 201);
     }
 
     public function show($id)
     {
-        return response()->json(SiswaPengalamanKerja::findOrFail($id));
+        // SECURITY: Ownership Check
+        $data = SiswaPengalamanKerja::findOrFail($id);
+        $siswa = \App\Models\Siswa::findOrFail($data->siswa_id);
+        
+        $user = request()->user();
+        if ($user) {
+            $canManage = $user->hasPermission('siswa_manage') || $user->roles->contains('name', 'super_admin');
+            if (!$canManage && $siswa->user_id !== $user->id) {
+                 return response()->json(['message' => 'Unauthorized Access'], 403);
+            }
+        }
+        
+        return response()->json($data);
     }
 
     public function update(Request $request, $id)
     {
         $data = SiswaPengalamanKerja::findOrFail($id);
         
+        // SECURITY: Ownership Check
+        $siswa = \App\Models\Siswa::findOrFail($data->siswa_id);
+        $user = $request->user();
+        $canManage = $user->hasPermission('siswa_manage') || $user->roles->contains('name', 'super_admin');
+
+        if (!$canManage && $siswa->user_id !== $user->id) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $validated = $request->validate([
             'siswa_id' => 'sometimes|required|exists:siswas,id',
             'nama_perusahaan' => 'sometimes|required|string',
@@ -53,9 +83,20 @@ class SiswaPengalamanKerjaController extends Controller
         return response()->json($data);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        SiswaPengalamanKerja::destroy($id);
+        $data = SiswaPengalamanKerja::findOrFail($id);
+        
+        // SECURITY: Ownership Check
+        $siswa = \App\Models\Siswa::findOrFail($data->siswa_id);
+        $user = $request->user();
+        $canManage = $user->hasPermission('siswa_manage') || $user->roles->contains('name', 'super_admin');
+
+        if (!$canManage && $siswa->user_id !== $user->id) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
+        $data->delete();
         return response()->json(null, 204);
     }
 }

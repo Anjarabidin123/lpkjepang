@@ -23,6 +23,12 @@ class DocumentTemplateController extends Controller
      */
     public function store(Request $request)
     {
+        // SECURITY
+        $user = $request->user();
+        if (!$user->hasPermission('master_access') && !$user->roles->contains('name', 'super_admin')) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'kode' => 'required|string|unique:document_templates,kode',
             'nama' => 'required|string',
@@ -43,9 +49,6 @@ class DocumentTemplateController extends Controller
         return response()->json($template, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $template = DocumentTemplate::find($id);
@@ -57,11 +60,14 @@ class DocumentTemplateController extends Controller
         return response()->json($template);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
+        // SECURITY
+        $user = $request->user();
+        if (!$user->hasPermission('master_access') && !$user->roles->contains('name', 'super_admin')) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $template = DocumentTemplate::find($id);
 
         if (!$template) {
@@ -88,11 +94,14 @@ class DocumentTemplateController extends Controller
         return response()->json($template);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        // SECURITY
+        $user = $request->user();
+        if (!$user->hasPermission('master_access') && !$user->roles->contains('name', 'super_admin')) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $template = DocumentTemplate::find($id);
 
         if (!$template) {

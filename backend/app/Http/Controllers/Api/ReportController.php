@@ -206,6 +206,14 @@ class ReportController extends Controller
 
     private function generateFinancialReport()
     {
+        // SECURITY: Separate Finance Access Check
+        $user = auth()->user();
+        $hasFinanceAccess = $user->hasPermission('finance_access') || $user->roles->contains('name', 'super_admin');
+        
+        if (!$hasFinanceAccess) {
+             return response()->json(['error' => 'Unauthorized: Anda tidak memiliki akses laporan keuangan.'], 403);
+        }
+
         $invoices = Invoice::sum('nominal');
         $pemasukan = ArusKas::where('jenis', 'Pemasukan')->sum('nominal');
         $pengeluaran = ArusKas::where('jenis', 'Pengeluaran')->sum('nominal');

@@ -85,7 +85,10 @@ export const siswaService = {
       body: JSON.stringify(updates)
     });
 
-    if (!response.ok) throw new Error('Failed to update siswa');
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to update siswa');
+    }
     const data = await response.json();
     return mapSiswa(data);
   },
@@ -96,7 +99,10 @@ export const siswaService = {
       method: 'DELETE'
     });
 
-    if (!response.ok) throw new Error('Failed to delete siswa');
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to delete siswa');
+    }
     return id;
   }
 };

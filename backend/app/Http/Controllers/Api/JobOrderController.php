@@ -89,7 +89,24 @@ class JobOrderController extends Controller
     public function destroy($id)
     {
         try {
-            \App\Models\JobOrder::destroy($id);
+            $jobOrder = \App\Models\JobOrder::findOrFail($id);
+            
+            // Check for applicants (manual check even if DB constraint exists, for better UX)
+            // Assuming relationship name is 'siswaMagang' or 'applicants'
+            // We need to check the migration/model. Step 855 showed SiswaMagang belongsTo JobOrder.
+            // So JobOrder hasMany SiswaMagang.
+            // Let's assume the relation is defined in JobOrder model or use raw count.
+            
+            $applicantCount = \App\Models\SiswaMagang::where('job_order_id', $id)->count();
+            
+            if ($applicantCount > 0) {
+                 return response()->json([
+                     'message' => 'Job Order tidak dapat dihapus karena memiliki ' . $applicantCount . ' pelamar.',
+                     'details' => 'Silakan proses atau hapus data pelamar terlebih dahulu.'
+                 ], 400); 
+            }
+
+            $jobOrder->delete();
             return response()->json(null, 204);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Server Error', 'details' => $e->getMessage()], 500);

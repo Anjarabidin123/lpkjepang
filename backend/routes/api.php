@@ -70,6 +70,7 @@ Route::get('/health', function () {
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/demografi/provinces', [DemografiController::class, 'getProvinces']);
 Route::get('/demografi/regencies', [DemografiController::class, 'getRegencies']);
+Route::get('/public/stats', [ProfilLpkController::class, 'publicStats']);
 
 // ============================================
 // AUTHENTICATED ROUTES (Auth Required)
@@ -147,8 +148,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('lpk-mitra', LpkMitraController::class);
         Route::apiResource('perusahaan', PerusahaanController::class);
         Route::apiResource('programs', ProgramController::class);
-        Route::apiResource('jenis-kerja', JenisKerjaController::class);
-        Route::apiResource('posisi-kerja', PosisiKerjaController::class);
         Route::apiResource('jenis-kerja', JenisKerjaController::class);
         Route::apiResource('posisi-kerja', PosisiKerjaController::class);
         Route::apiResource('profil-lpk', ProfilLpkController::class);

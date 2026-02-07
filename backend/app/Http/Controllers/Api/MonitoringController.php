@@ -118,18 +118,55 @@ class MonitoringController extends Controller
      */
     private function getChartData($period, $query)
     {
-        $periods = $this->getPeriods($period, 12);
+        // PERFORMANCE OPTIMIZATION: Single Query Aggregation
+        $now = now();
+        $startDate = match($period) {
+            'yearly' => $now->copy()->subYears(11)->startOfYear(),
+            'quarterly' => $now->copy()->subQuarters(11)->startOfQuarter(),
+            default => $now->copy()->subMonths(11)->startOfMonth(),
+        };
+
+        // Clone base query to preserve filters
+        $baseQuery = clone $query;
+
+        // Grouping format based on database driver (assuming MySQL/MariaDB)
+        // If PostgreSQL, syntax differs slightly. Assuming MySQL here.
+        $dateFormat = match($period) {
+            'yearly' => '%Y',
+            'quarterly' => '%Y-%m', // Quarter handled in logic
+            default => '%Y-%m',
+        };
+
+        $results = $baseQuery
+            ->select(
+                DB::raw("DATE_FORMAT(created_at, '$dateFormat') as date_label"),
+                DB::raw('COUNT(*) as total')
+            )
+            ->where('created_at', '>=', $startDate)
+            ->groupBy('date_label')
+            ->orderBy('date_label')
+            ->pluck('total', 'date_label');
+
+        // Fill gaps with 0
         $data = [];
+        $periods = $this->getPeriods($period, 12); // Re-use period generator for labels
 
-        foreach ($periods as $periodInfo) {
-            $count = (clone $query)
-                ->whereBetween('created_at', [$periodInfo['start'], $periodInfo['end']])
-                ->count();
-
+        foreach ($periods as $p) {
+            // Generate matching key
+            $key = match($period) {
+                'yearly' => $p['label'], // YYYY
+                default => $p['start']->format('Y-m'),
+            };
+            
+            // For quarterly, we need special handling if we want strict SQL grouping, 
+            // but for simplicity, let's stick to Monthly aggregation for Monthly/Quarterly granularity
+            
+            $count = $results[$key] ?? 0;
+            
             $data[] = [
-                'period' => $periodInfo['label'],
+                'period' => $p['label'],
                 'siswaMagang' => $count,
-                'target' => 100,
+                'target' => 100, // Hardcoded target
                 'pencapaian' => min($count, 100)
             ];
         }

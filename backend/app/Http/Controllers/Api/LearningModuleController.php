@@ -26,11 +26,17 @@ class LearningModuleController extends Controller
      */
     public function store(Request $request)
     {
+        // SECURITY
+        $user = $request->user();
+        if (!$user->hasPermission('education_manage') && !$user->roles->contains('name', 'super_admin')) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'category' => 'required|string',
             'type' => 'required|string|in:pdf,video,link',
-            'url' => 'required|string', // In production, consider 'url' validation rule, but sometimes it might be internal path
+            'url' => 'required|string', 
             'description' => 'nullable|string',
         ]);
 
@@ -44,7 +50,7 @@ class LearningModuleController extends Controller
             'category' => $request->category,
             'type' => $request->type,
             'url' => $request->url,
-            'author_id' => $request->user()->id,
+            'author_id' => $user->id,
         ]);
 
         return response()->json([
@@ -54,9 +60,6 @@ class LearningModuleController extends Controller
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $module = LearningModule::find($id);
@@ -64,12 +67,14 @@ class LearningModuleController extends Controller
         return response()->json(['data' => $module]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
-        // Simple update logic
+        // SECURITY
+        $user = $request->user();
+        if (!$user->hasPermission('education_manage') && !$user->roles->contains('name', 'super_admin')) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $module = LearningModule::find($id);
         if (!$module) return response()->json(['message' => 'Module not found'], 404);
 
@@ -77,11 +82,14 @@ class LearningModuleController extends Controller
         return response()->json(['status' => 'success', 'data' => $module]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
+        // SECURITY
+        $user = request()->user();
+        if (!$user->hasPermission('education_manage') && !$user->roles->contains('name', 'super_admin')) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $module = LearningModule::find($id);
         if (!$module) return response()->json(['message' => 'Module not found'], 404);
         

@@ -12,6 +12,15 @@ class ProfilLpkController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function publicStats()
+    {
+        return response()->json([
+            'siswa_count' => \App\Models\Siswa::count(),
+            'kumiai_count' => \App\Models\Kumiai::count(),
+            'job_order_count' => \App\Models\JobOrder::count(),
+        ]);
+    }
+
     public function index()
     {
         $profiles = ProfilLpk::all();

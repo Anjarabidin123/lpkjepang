@@ -47,6 +47,7 @@ import {
 } from '@/types/document';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RichTextEditor, RichTextEditorRef } from './RichTextEditor';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 interface DocumentTemplateFormProps {
   template?: DocumentTemplate | null;
@@ -318,17 +319,18 @@ export function DocumentTemplateForm({ template, onSave, onCancel, loading }: Do
                 </div>
               </div>
 
-                <div className="flex-1 p-4">
-                  {viewMode === 'edit' ? (
-                    <RichTextEditor
-                      ref={editorRef}
-                      content={formData.template_content}
-                      onChange={(html) => setFormData((prev) => ({ ...prev, template_content: html }))}
-                      className="min-h-[400px]"
-                    />
-                  ) : (
-                    <div className="h-[400px] border rounded-lg p-4 overflow-auto bg-white">
-                      <style dangerouslySetInnerHTML={{ __html: `
+              <div className="flex-1 p-4">
+                {viewMode === 'edit' ? (
+                  <RichTextEditor
+                    ref={editorRef}
+                    content={formData.template_content}
+                    onChange={(html) => setFormData((prev) => ({ ...prev, template_content: html }))}
+                    className="min-h-[400px]"
+                  />
+                ) : (
+                  <div className="h-[400px] border rounded-lg p-4 overflow-auto bg-white">
+                    <style dangerouslySetInnerHTML={{
+                      __html: `
                         .preview-content table {
                           border-collapse: collapse;
                           width: 100%;
@@ -344,13 +346,13 @@ export function DocumentTemplateForm({ template, onSave, onCancel, loading }: Do
                           font-weight: bold;
                         }
                       ` }} />
-                      <div
-                        className="prose prose-sm max-w-none preview-content"
-                        dangerouslySetInnerHTML={{ __html: renderPreview() }}
-                      />
-                    </div>
-                  )}
-                </div>
+                    <div
+                      className="prose prose-sm max-w-none preview-content"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(renderPreview()) }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

@@ -35,6 +35,16 @@ class JobOrderPesertaController extends Controller
             return response()->json(['message' => 'Siswa sudah terdaftar di Job Order ini'], 422);
         }
 
+        // BUSINESS LOGIC: Prevent adding already ACTIVE students to a new pool
+        // Check SiswaMagang table for active status
+        $isActive = \App\Models\SiswaMagang::where('siswa_id', $request->siswa_id)
+            ->whereIn('status_magang', ['aktif', 'diterima', 'active'])
+            ->exists();
+
+        if ($isActive) {
+            return response()->json(['message' => 'Siswa sedang Aktif di Job Order lain dan tidak dapat ditambahkan ke kandidat.'], 400);
+        }
+
         return response()->json(JobOrderPeserta::create($validated), 201);
     }
 

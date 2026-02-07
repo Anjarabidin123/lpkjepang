@@ -17,4 +17,5 @@ class SiswaMagang extends Model
     public function lpk_mitra() { return $this->belongsTo(LpkMitra::class); }
     public function demografi_province() { return $this->belongsTo(DemografiProvince::class); }
     public function demografi_regency() { return $this->belongsTo(DemografiRegency::class); }
+    public function job_order() { return $this->belongsTo(JobOrder::class); }
 }

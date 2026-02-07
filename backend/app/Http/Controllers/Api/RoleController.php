@@ -37,6 +37,12 @@ class RoleController extends Controller
     public function update(Request $request, $id)
     {
         $role = Role::findOrFail($id);
+        
+        // PROTECT SUPER ADMIN ROLE
+        if ($role->name === 'super_admin' || $role->id === 1) {
+             return response()->json(['message' => 'Role Super Admin tidak dapat diubah.'], 403);
+        }
+
         $role->update($request->only(['name', 'description']));
         
         if ($request->has('permissions')) {
@@ -48,7 +54,21 @@ class RoleController extends Controller
 
     public function destroy($id)
     {
-        Role::destroy($id);
+        $role = Role::withCount('users')->findOrFail($id);
+
+        if ($role->name === 'super_admin' || $role->id === 1) {
+             return response()->json(['message' => 'Role Super Admin tidak dapat dihapus.'], 403);
+        }
+
+        if ($role->users_count > 0) {
+            return response()->json([
+                'message' => 'Role ini tidak dapat dihapus karena masih digunakan oleh ' . $role->users_count . ' users.',
+                'details' => 'Silakan hapus role dari user terkait terlebih dahulu.'
+            ], 400);
+        }
+
+        $role->delete();
+        
         return response()->json(null, 204);
     }
 }

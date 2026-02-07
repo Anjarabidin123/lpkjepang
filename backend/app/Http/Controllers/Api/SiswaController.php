@@ -145,13 +145,22 @@ class SiswaController extends Controller
         });
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
             $siswa = Siswa::with([
                 'user', 'province', 'regency', 'program', 'posisi_kerja', 'lpk_mitra',
                 'keluarga_indonesia', 'keluarga_jepang', 'kontak_keluarga', 'pengalaman_kerja', 'pendidikan'
             ])->findOrFail($id);
+
+            // IDOR Check
+            $user = $request->user();
+            $canManage = $user->hasPermission('siswa_manage') || $user->roles->contains('name', 'super_admin');
+            
+            if (!$canManage && $siswa->user_id !== $user->id) {
+                 return response()->json(['message' => 'Unauthorized Access'], 403);
+            }
+
             return response()->json($siswa);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Not Found', 'details' => $e->getMessage()], 404);
@@ -163,6 +172,14 @@ class SiswaController extends Controller
         return \DB::transaction(function () use ($request, $id) {
             try {
                 $siswa = Siswa::findOrFail($id);
+                
+                // IDOR Check
+                $user = $request->user();
+                $canManage = $user->hasPermission('siswa_manage') || $user->roles->contains('name', 'super_admin');
+                
+                if (!$canManage && $siswa->user_id !== $user->id) {
+                     return response()->json(['message' => 'Unauthorized Access'], 403);
+                }
                 
                 $validated = $request->validate([
                     'user_id' => 'nullable|exists:users,id',
@@ -278,9 +295,15 @@ class SiswaController extends Controller
         });
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
+            // Extra Protection: Only Super Admin or user with explicit delete permission can delete
+            $user = $request->user();
+            if (!$user->hasPermission('siswa_delete') && !$user->roles->contains('name', 'super_admin')) {
+                 return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menghapus data siswa.'], 403);
+            }
+
             Siswa::destroy($id);
             return response()->json(null, 204);
         } catch (\Exception $e) {

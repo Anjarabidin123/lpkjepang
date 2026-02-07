@@ -4,6 +4,7 @@ import { DocumentTemplateForm } from "@/components/Document/DocumentTemplateForm
 import { useDocumentTemplates } from "@/hooks/useDocuments";
 import { DocumentTemplate } from "@/types/document";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 export default function DocumentTemplates() {
     const { createTemplate, updateTemplate, creating, updating } = useDocumentTemplates();
@@ -36,7 +37,7 @@ export default function DocumentTemplates() {
                     </DialogHeader>
                     <div className="mt-4 border rounded-md p-6 bg-white shadow-inner min-h-[400px] prose max-w-none">
                         {/* Simple HTML Preview */}
-                        <div dangerouslySetInnerHTML={{ __html: selectedTemplate?.template_content || '<p class="text-gray-400 italic">Konten kosong</p>' }} />
+                        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedTemplate?.template_content || '<p class="text-gray-400 italic">Konten kosong</p>') }} />
                     </div>
                 </DialogContent>
             </Dialog>

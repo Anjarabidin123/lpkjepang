@@ -33,6 +33,19 @@ class UserController extends Controller
         ]);
 
         if ($request->has('roles')) {
+            // SECURITY: Only Super Admin can assign Super Admin role
+            $requestedRoles = \App\Models\Role::whereIn('id', $request->roles)->get();
+            $hasSuperAdmin = $requestedRoles->contains('name', 'super_admin');
+            
+            $currentUser = $request->user();
+            // Check if current user is super admin (assuming relation loaded or check manually)
+            // Ideally current user roles are loaded by auth middleware sanotum
+            $isSuperAdmin = $currentUser->roles->contains('name', 'super_admin');
+
+            if ($hasSuperAdmin && !$isSuperAdmin) {
+                return response()->json(['message' => 'Anda tidak memiliki otoritas untuk menetapkan role Super Admin.'], 403);
+            }
+
             $user->roles()->sync($request->roles);
         }
 
@@ -64,6 +77,17 @@ class UserController extends Controller
         $user->save();
 
         if ($request->has('roles')) {
+            // SECURITY: Only Super Admin can assign Super Admin role
+            $requestedRoles = \App\Models\Role::whereIn('id', $request->roles)->get();
+            $hasSuperAdmin = $requestedRoles->contains('name', 'super_admin');
+            
+            $currentUser = $request->user();
+            $isSuperAdmin = $currentUser->roles->contains('name', 'super_admin');
+
+            if ($hasSuperAdmin && !$isSuperAdmin) {
+                 return response()->json(['message' => 'Anda tidak memiliki otoritas untuk menetapkan role Super Admin.'], 403);
+            }
+            
             $user->roles()->sync($request->roles);
         }
 
@@ -72,7 +96,25 @@ class UserController extends Controller
 
     public function destroy($id)
     {
-        User::destroy($id);
+        $user = User::findOrFail($id);
+        
+        // 1. Prevent Self-Deletion (Suicide)
+        if ($id == auth()->id()) {
+            return response()->json(['message' => 'Anda tidak dapat menghapus akun Anda sendiri.'], 403);
+        }
+
+        // 2. Prevent Deleting Last Super Admin
+        if ($user->roles->contains('name', 'super_admin')) {
+            $superAdminCount = User::whereHas('roles', function($q) {
+                $q->where('name', 'super_admin');
+            })->count();
+            
+            if ($superAdminCount <= 1) {
+                return response()->json(['message' => 'Tidak dapat menghapus Super Admin terakhir.'], 403);
+            }
+        }
+
+        $user->delete();
         return response()->json(null, 204);
     }
 }

@@ -40,22 +40,29 @@ class SiswaDocumentController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'siswa_magang_id' => 'required|exists:siswa_magangs,id',
-            'document' => 'required|file|max:10240', // Max 10MB
+            'document' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:5120', 
             'nama' => 'nullable|string',
             'document_template_id' => 'nullable|exists:document_templates,id',
             'keterangan' => 'nullable|string'
         ]);
 
+        // SECURITY: Ownership Check
+        $siswaMagang = \App\Models\SiswaMagang::with('siswa')->findOrFail($validated['siswa_magang_id']);
+        $user = $request->user();
+        $canManage = $user->hasPermission('document_manage') || $user->roles->contains('name', 'super_admin');
+
+        if (!$canManage && $siswaMagang->siswa->user_id !== $user->id) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
         $file = $request->file('document');
         $path = $file->store('public/documents');
-        
-        // Generate public URL (ensure storage:link is run)
         $url = Storage::url($path);
 
         $doc = SiswaDocument::create([
-            'siswa_magang_id' => $request->siswa_magang_id,
+            'siswa_magang_id' => $validated['siswa_magang_id'],
             'document_template_id' => $request->document_template_id,
             'nama' => $request->nama ?? $file->getClientOriginalName(),
             'file_path' => $url,
@@ -68,17 +75,47 @@ class SiswaDocumentController extends Controller
 
     public function update(Request $request, $id)
     {
-        $doc = SiswaDocument::findOrFail($id);
+        $doc = SiswaDocument::with('siswaMagang.siswa')->findOrFail($id);
+        
+        // SECURITY: Ownership Check
+        $user = $request->user();
+        $canManage = $user->hasPermission('document_manage') || $user->roles->contains('name', 'super_admin');
+
+        if (!$canManage) {
+            // Must be owner
+            if ($doc->siswaMagang->siswa->user_id !== $user->id) {
+                return response()->json(['message' => 'Unauthorized Access'], 403);
+            }
+            // Owner Restrictions
+            if ($request->has('status')) {
+                 return response()->json(['message' => 'Student cannot update status'], 403);
+            }
+        }
+
         $doc->update($request->only(['status', 'keterangan', 'nama']));
         return response()->json($doc);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $doc = SiswaDocument::findOrFail($id);
+        $doc = SiswaDocument::with('siswaMagang.siswa')->findOrFail($id);
         
-        // Optional: Delete physical file
-        // Storage::delete(str_replace('/storage/', 'public/', $doc->file_path));
+        // SECURITY: Ownership Check
+        $user = $request->user();
+        $canManage = $user->hasPermission('document_manage') || $user->roles->contains('name', 'super_admin');
+
+        if (!$canManage) {
+            // Must be owner
+            if ($doc->siswaMagang->siswa->user_id !== $user->id) {
+                return response()->json(['message' => 'Unauthorized Access'], 403);
+            }
+            // Owner Restrictions
+            if (!in_array(strtolower($doc->status), ['pending', 'ditolak', 'rejected'])) {
+                 return response()->json(['message' => 'Cannot delete verified document'], 403);
+            }
+        }
+        
+        // Optional: Delete physical file logic here
 
         $doc->delete();
         return response()->json(null, 204);
@@ -91,6 +128,15 @@ class SiswaDocumentController extends Controller
         ]);
 
         $siswaMagangId = $request->siswa_magang_id;
+        
+        // SECURITY: Ownership Check
+        $siswaMagang = \App\Models\SiswaMagang::with('siswa')->findOrFail($siswaMagangId);
+        $user = $request->user();
+        $canManage = $user->hasPermission('document_manage') || $user->roles->contains('name', 'super_admin');
+
+        if (!$canManage && $siswaMagang->siswa->user_id !== $user->id) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
 
         // Get all required active templates
         $requiredTemplates = \App\Models\DocumentTemplate::where('is_required', true)

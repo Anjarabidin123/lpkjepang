@@ -46,13 +46,20 @@ export class RoleService {
     try {
       const response = await authFetch(endpoints.roles, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           name: roleData.name,
+          display_name: roleData.display_name,
           description: roleData.description,
           permissions: roleData.permission_ids
         })
       });
-      if (!response.ok) throw new Error('Failed to create role');
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to create role');
+      }
       return true;
     } catch (error) {
       console.error('Error in createRole:', error);
@@ -65,13 +72,20 @@ export class RoleService {
     try {
       const response = await authFetch(`${endpoints.roles}/${roleId}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           name: updates.name,
+          display_name: updates.display_name,
           description: updates.description,
           permissions: updates.permission_ids
         })
       });
-      if (!response.ok) throw new Error('Failed to update role');
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to update role');
+      }
       return true;
     } catch (error) {
       console.error('Error in updateRole:', error);
@@ -84,7 +98,11 @@ export class RoleService {
     const response = await authFetch(`${endpoints.roles}/${roleId}`, {
       method: 'DELETE',
     });
-    return response.ok;
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to delete role');
+    }
+    return true;
   }
 
   static subscribeToRoles(callback: (roles: Role[]) => void) {
