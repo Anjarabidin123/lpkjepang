@@ -403,8 +403,34 @@ export function useSiswaDocuments(siswa_magang_id?: string) {
   };
 
   const initializeDocumentsForSiswa = async (siswaMagangId: string): Promise<boolean> => {
-    // TODO: Implement initialization logic
-    return true;
+    try {
+      setLoading(true);
+      const response = await authFetch(`${endpoints.siswaDocuments}/initialize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siswa_magang_id: siswaMagangId })
+      });
+
+      if (!response.ok) throw new Error('Initialization failed');
+
+      const result = await response.json();
+      toast({
+        title: 'Berhasil',
+        description: `Berhasil menginisialisasi ${result.created} dokumen wajib.`
+      });
+
+      await fetchDocuments();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: `Gagal inisialisasi: ${error.message}`,
+        variant: 'destructive'
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
@@ -415,12 +441,100 @@ export function useSiswaDocuments(siswa_magang_id?: string) {
 }
 
 // --- Mail Merge ---
+// --- Mail Merge ---
 export function useDocumentMailMerge() {
+  const { toast } = useToast();
+
   const formatValue = (value: any, formatType: VariableFormatType): string => {
-    return String(value); // Simplified for now
+    if (value === null || value === undefined) return '-';
+
+    switch (formatType) {
+      case 'date':
+        return new Date(value).toLocaleDateString('id-ID', {
+          day: 'numeric', month: 'long', year: 'numeric'
+        });
+      case 'currency':
+        return new Intl.NumberFormat('ja-JP', {
+          style: 'currency', currency: 'JPY', minimumFractionDigits: 0
+        }).format(Number(value));
+      case 'currency_idr':
+        return new Intl.NumberFormat('id-ID', {
+          style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+        }).format(Number(value));
+      default:
+        return String(value);
+    }
   };
+
   const mergeDocument = async (templateContent: string, variables: DocumentVariable[], siswaMagangId: string): Promise<string> => {
-    return templateContent; // Simplified
+    if (!templateContent) return '';
+    if (!siswaMagangId) return templateContent;
+
+    try {
+      // 1. Fetch complete data for the student
+      const response = await authFetch(`${endpoints.siswaMagang}/${siswaMagangId}`);
+      if (!response.ok) throw new Error('Gagal mengambil data siswa');
+      const data = await response.json();
+
+      let mergedContent = templateContent;
+
+      // 2. Iterate directly over variables to replace them
+      // We do this to ensure we cover all configured variables
+      variables.forEach(variable => {
+        let rawValue: any = null;
+
+        // Resolve value based on source_table and source_field
+        // Mapping tables to API response structure
+        const tableMap: Record<string, any> = {
+          'siswa': data.siswa,
+          'perusahaan': data.perusahaan,
+          'kumiai': data.kumiai,
+          'lpk_mitra': data.lpk_mitra, // or lpkMitra depending on API casing (snake_case from Laravel usually)
+          'program': data.program,
+          'jenis_kerja': data.jenis_kerja,
+          'posisi_kerja': data.posisi_kerja,
+          'job_order': data.job_order, // Might need separate fetch if not included
+          'siswa_magang': data, // root object
+          '_system': null // System variables like Date
+        };
+
+        if (variable.kategori === 'sistem') {
+          if (variable.nama === 'tanggal_hari_ini') rawValue = new Date();
+          // Add more system variables here
+        } else {
+          // Find the source object
+          // Handle loose mapping for table names if needed
+          const sourceObj = tableMap[variable.source_table || 'siswa_magang'] || data[variable.source_table];
+
+          if (sourceObj) {
+            rawValue = sourceObj[variable.source_field];
+          }
+        }
+
+        // Apply formatting and default value
+        const formattedValue = rawValue ? formatValue(rawValue, variable.format_type as VariableFormatType) : (variable.default_value || '[-]');
+
+        // Regex to replace all occurrences globally
+        // Escaping curly braces for safety
+        const placeholder = `{{${variable.nama}}}`;
+        // Create regex with escaping special chars
+        const regex = new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+
+        mergedContent = mergedContent.replace(regex, formattedValue);
+      });
+
+      return mergedContent;
+
+    } catch (error: any) {
+      console.error("Merge error:", error);
+      toast({
+        title: "Gagal Preview",
+        description: "Terjadi kesalahan saat menggabungkan data: " + error.message,
+        variant: "destructive"
+      });
+      return templateContent; // Return original on error
+    }
   };
+
   return { formatValue, mergeDocument };
 }

@@ -83,4 +83,44 @@ class SiswaDocumentController extends Controller
         $doc->delete();
         return response()->json(null, 204);
     }
+
+    public function initialize(Request $request)
+    {
+        $request->validate([
+            'siswa_magang_id' => 'required|exists:siswa_magangs,id',
+        ]);
+
+        $siswaMagangId = $request->siswa_magang_id;
+
+        // Get all required active templates
+        $requiredTemplates = \App\Models\DocumentTemplate::where('is_required', true)
+            ->where('is_active', true)
+            ->get();
+
+        $count = 0;
+
+        foreach ($requiredTemplates as $template) {
+            // Check if document already exists for this template and student
+            $exists = SiswaDocument::where('siswa_magang_id', $siswaMagangId)
+                ->where('document_template_id', $template->id)
+                ->exists();
+
+            if (!$exists) {
+                SiswaDocument::create([
+                    'siswa_magang_id' => $siswaMagangId,
+                    'document_template_id' => $template->id,
+                    'nama' => $template->nama,
+                    'status' => 'pending', // Initial status
+                    'file_path' => null, // No file yet
+                    'keterangan' => 'Dokumen wajib diinisialisasi otomatis'
+                ]);
+                $count++;
+            }
+        }
+
+        return response()->json([
+            'message' => 'Initialization complete',
+            'created' => $count
+        ]);
+    }
 }

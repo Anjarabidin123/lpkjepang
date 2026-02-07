@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('document_templates', function (Blueprint $table) {
-            $table->text('deskripsi')->nullable()->after('nama');
-        });
+        if (Schema::hasTable('document_templates') && !Schema::hasColumn('document_templates', 'deskripsi')) {
+            Schema::table('document_templates', function (Blueprint $table) {
+                $table->text('deskripsi')->nullable()->after('nama');
+            });
+        }
     }
 
     /**

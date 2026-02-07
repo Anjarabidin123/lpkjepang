@@ -101,6 +101,20 @@ export const menuConfig: MenuItem[] = [
         allowedRoles: ['super_admin', 'admin'],
       },
       {
+        id: "doc-templates",
+        title: "Template Dokumen",
+        url: "/document-templates",
+        icon: FileText,
+        allowedRoles: ['super_admin', 'admin'],
+      },
+      {
+        id: "doc-variables",
+        title: "Variabel Dokumen",
+        url: "/document-variables",
+        icon: Settings,
+        allowedRoles: ['super_admin', 'admin'],
+      },
+      {
         id: "siswa-magang",
         title: "Siswa Magang",
         url: "/siswa-reguler",

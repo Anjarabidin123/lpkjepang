@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('kumiais', function (Blueprint $table) {
-            $table->id();
-            $table->string('kode')->unique()->nullable();
-            $table->string('nama');
-            $table->string('pic_nama')->nullable();
-            $table->string('pic_telepon')->nullable();
-            $table->string('email')->nullable();
-            $table->text('alamat')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('kumiais')) {
+            Schema::create('kumiais', function (Blueprint $table) {
+                $table->id();
+                $table->string('kode')->unique()->nullable();
+                $table->string('nama');
+                $table->string('pic_nama')->nullable();
+                $table->string('pic_telepon')->nullable();
+                $table->string('email')->nullable();
+                $table->text('alamat')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

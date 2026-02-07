@@ -1,15 +1,18 @@
 import React, { useImperativeHandle, forwardRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Table from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableHeader from '@tiptap/extension-table-header';
-import TableCell from '@tiptap/extension-table-cell';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import Placeholder from '@tiptap/extension-placeholder';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableHeader } from '@tiptap/extension-table-header';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { Underline } from '@tiptap/extension-underline';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { Placeholder } from '@tiptap/extension-placeholder';
+import { Link } from '@tiptap/extension-link';
 import { cn } from '@/lib/utils';
 import {
+  Link as LinkIcon,
+  Unlink,
   Bold,
   Italic,
   Underline as UnderlineIcon,
@@ -63,6 +66,9 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         Placeholder.configure({
           placeholder: placeholder || 'Mulai menulis...',
         }),
+        Link.configure({
+          openOnClick: false,
+        }),
       ],
       content: content,
       onUpdate: ({ editor }) => {
@@ -87,7 +93,14 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
     }, [content, editor]);
 
     if (!editor) {
-      return null;
+      return (
+        <div className={cn("flex items-center justify-center border rounded-lg overflow-hidden bg-gray-50 min-h-[400px]", className)}>
+          <div className="flex flex-col items-center gap-2 text-gray-400">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+            <span className="text-sm">Memuat Editor...</span>
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -120,6 +133,36 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
             className={cn(editor.isActive('underline') && 'bg-blue-100 text-blue-700')}
           >
             <UnderlineIcon className="h-4 w-4" />
+          </Button>
+
+          <div className="w-px h-6 bg-gray-200 mx-1" />
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              const previousUrl = editor.getAttributes('link').href;
+              const url = window.prompt('URL', previousUrl);
+              if (url === null) return;
+              if (url === '') {
+                editor.chain().focus().extendMarkRange('link').unsetLink().run();
+                return;
+              }
+              editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+            }}
+            className={cn(editor.isActive('link') && 'bg-blue-100 text-blue-700')}
+          >
+            <LinkIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().unsetLink().run()}
+            disabled={!editor.isActive('link')}
+          >
+            <Unlink className="h-4 w-4" />
           </Button>
 
           <div className="w-px h-6 bg-gray-200 mx-1" />

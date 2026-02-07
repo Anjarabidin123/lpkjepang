@@ -33,6 +33,11 @@ class RealDataSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        
+        $superAdminRole = \App\Models\Role::where('name', 'super_admin')->first();
+        if ($superAdminRole) {
+            $admin->roles()->syncWithoutDetaching([$superAdminRole->id]);
+        }
 
         // Seed Programs
         $programs = [
