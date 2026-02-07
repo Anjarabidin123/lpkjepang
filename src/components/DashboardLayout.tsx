@@ -45,6 +45,10 @@ import Education from '@/pages/Education';
 import LearningModules from '@/pages/LearningModules';
 import { RoleBasedRoute } from '@/components/auth/RoleBasedRoute';
 
+// Import new pages
+import DocumentTemplates from "@/pages/DocumentTemplates";
+import DocumentVariables from "@/pages/DocumentVariables";
+
 export function DashboardLayout() {
   const { userRole, loading } = useAuth();
   const isMobile = useIsMobile();
@@ -62,6 +66,8 @@ export function DashboardLayout() {
             <Route path="/monitoring" element={<Monitoring />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/document-tracking" element={<DocumentTracking />} />
+            <Route path="/document-templates" element={<DocumentTemplates />} />
+            <Route path="/document-variables" element={<DocumentVariables />} />
             <Route path="/education/*" element={<Education />} />
             <Route path="/learning-modules" element={<LearningModules />} />
 
