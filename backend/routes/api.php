@@ -149,9 +149,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('programs', ProgramController::class);
         Route::apiResource('jenis-kerja', JenisKerjaController::class);
         Route::apiResource('posisi-kerja', PosisiKerjaController::class);
+        Route::apiResource('jenis-kerja', JenisKerjaController::class);
+        Route::apiResource('posisi-kerja', PosisiKerjaController::class);
         Route::apiResource('profil-lpk', ProfilLpkController::class);
-        Route::apiResource('document-templates', DocumentTemplateController::class);
-        Route::apiResource('document-variables', DocumentVariableController::class);
     });
     
     // Monitoring & Reports
@@ -179,6 +179,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:document_access')->group(function () {
         Route::get('/document-tracking/stats', [DocumentTrackingController::class, 'getStats']);
         Route::apiResource('document-tracking', DocumentTrackingController::class);
+        Route::apiResource('document-templates', DocumentTemplateController::class);
+        Route::apiResource('document-variables', DocumentVariableController::class);
     });
 
     // Education (Attendance & Grades)
