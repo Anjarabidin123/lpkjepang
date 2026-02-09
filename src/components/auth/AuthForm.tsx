@@ -83,14 +83,6 @@ export function AuthForm() {
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
       can: ['Input Absensi Harian Siswa', 'Input Nilai Ujian & Kualifikasi', 'Kelola Materi Belajar & Modul', 'Melihat Profil Detail Siswa'],
-    },
-    'student@lpkujc.com': {
-      label: 'Siswa (Student)',
-      description: 'Portal mandiri (self-service) khusus siswa untuk memantau progress pribadi.',
-      icon: Users,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-100',
-      can: ['Pantau Progress Dokumen (COE/Visa)', 'Lihat Histori Absensi & Nilai', 'Download Materi Belajar', 'Update Profil Pribadi'],
     }
   };
 
