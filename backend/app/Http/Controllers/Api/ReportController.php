@@ -192,7 +192,7 @@ class ReportController extends Controller
 
     private function generateSiswaProgressReport()
     {
-        $data = Siswa::with(['program', 'lpkMitra'])
+        $data = Siswa::with(['program', 'lpk_mitra'])
             ->select('status', DB::raw('count(*) as total'))
             ->groupBy('status')
             ->get();
@@ -232,7 +232,7 @@ class ReportController extends Controller
 
     private function generateJobOrderReport()
     {
-        $data = JobOrder::with(['kumiai', 'jenisKerja'])
+        $data = JobOrder::with(['kumiai', 'jenis_kerja'])
             ->select('status', DB::raw('count(*) as total'))
             ->groupBy('status')
             ->get();

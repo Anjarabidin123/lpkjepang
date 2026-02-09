@@ -112,6 +112,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Siswa Related Data
         // Siswa Related Data
         Route::post('siswa-documents/initialize', [SiswaDocumentController::class, 'initialize']);
+        Route::get('siswa-documents/{id}/download', [SiswaDocumentController::class, 'download']);
         Route::apiResource('siswa-documents', SiswaDocumentController::class);
         Route::apiResource('siswa-keluarga-indonesia', SiswaKeluargaIndonesiaController::class);
         Route::apiResource('siswa-keluarga-jepang', SiswaKeluargaJepangController::class);

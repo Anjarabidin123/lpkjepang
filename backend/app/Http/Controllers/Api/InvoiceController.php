@@ -11,9 +11,24 @@ use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Invoice::with(['kumiai', 'invoice_items.siswa_magang.siswa'])->orderBy('tanggal_invoice', 'desc')->get());
+        $user = $request->user();
+        $canManage = $user->hasPermission('finance_access') || $user->roles->contains('name', 'super_admin');
+        
+        $query = Invoice::with(['kumiai', 'invoice_items.siswa_magang.siswa']);
+
+        // PRIVACY LOCK: Students can only see invoices linked to their magang records
+        if (!$canManage && $user->roles->contains('name', 'student')) {
+            $siswa = $user->siswa;
+            if (!$siswa) return response()->json([]);
+            
+            $query->whereHas('invoice_items.siswa_magang', function($q) use ($siswa) {
+                $q->where('siswa_id', $siswa->id);
+            });
+        }
+
+        return response()->json($query->orderBy('tanggal_invoice', 'desc')->get());
     }
 
     public function store(Request $request)

@@ -11,15 +11,25 @@ class SiswaController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Siswa::with(['user', 'province', 'regency', 'program', 'posisiKerja', 'lpkMitra']);
+            $user = $request->user();
+            $canManage = $user->hasPermission('siswa_manage') || $user->roles->contains('name', 'super_admin');
+            
+            $query = Siswa::with(['user', 'province', 'regency', 'program', 'posisi_kerja', 'lpk_mitra']);
 
-            if ($request->has('search')) {
-                $search = $request->query('search');
-                $query->where('nama', 'like', "%{$search}%")
-                      ->orWhere('nik', 'like', "%{$search}%");
+            // PRIVACY LOCK: Students can only see their own profile
+            if (!$canManage && $user->roles->contains('name', 'student')) {
+                $query->where('user_id', $user->id);
             }
 
-            if ($request->has('status') && $request->status !== 'all') {
+            if ($request->has('search') && $canManage) { // Search only for admins
+                $search = $request->query('search');
+                $query->where(function($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%")
+                      ->orWhere('nik', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->has('status') && $request->status !== 'all' && $canManage) {
                 $query->where('status', $request->status);
             }
 

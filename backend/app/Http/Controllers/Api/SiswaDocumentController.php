@@ -58,14 +58,13 @@ class SiswaDocumentController extends Controller
         }
 
         $file = $request->file('document');
-        $path = $file->store('public/documents');
-        $url = Storage::url($path);
+        $path = $file->store('documents', 'local'); // Store in private 'local' disk
 
         $doc = SiswaDocument::create([
             'siswa_magang_id' => $validated['siswa_magang_id'],
             'document_template_id' => $request->document_template_id,
             'nama' => $request->nama ?? $file->getClientOriginalName(),
-            'file_path' => $url,
+            'file_path' => $path, // Store relative path
             'status' => 'pending',
             'keterangan' => $request->keterangan
         ]);
@@ -115,7 +114,10 @@ class SiswaDocumentController extends Controller
             }
         }
         
-        // Optional: Delete physical file logic here
+        // PHYSICAL FILE CLEANUP
+        if ($doc->file_path && \Storage::disk('local')->exists($doc->file_path)) {
+            \Storage::disk('local')->delete($doc->file_path);
+        }
 
         $doc->delete();
         return response()->json(null, 204);
@@ -168,5 +170,24 @@ class SiswaDocumentController extends Controller
             'message' => 'Initialization complete',
             'created' => $count
         ]);
+    }
+
+    public function download($id)
+    {
+        $doc = SiswaDocument::with('siswaMagang.siswa')->findOrFail($id);
+        
+        // SECURITY: Ownership Check
+        $user = auth()->user();
+        $canManage = $user->hasPermission('document_manage') || $user->roles->contains('name', 'super_admin');
+
+        if (!$canManage && $doc->siswaMagang->siswa->user_id !== $user->id) {
+             return response()->json(['message' => 'Unauthorized Access'], 403);
+        }
+
+        if (!\Storage::disk('local')->exists($doc->file_path)) {
+            return response()->json(['message' => 'File not found on server'], 404);
+        }
+
+        return \Storage::disk('local')->download($doc->file_path, $doc->nama);
     }
 }

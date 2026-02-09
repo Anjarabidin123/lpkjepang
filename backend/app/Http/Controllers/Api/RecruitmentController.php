@@ -124,8 +124,17 @@ class RecruitmentController extends Controller
     public function show($id)
     {
         try {
+            $user = auth()->user();
             $application = RecruitmentApplication::with(['siswa', 'program', 'reviewer'])
                 ->findOrFail($id);
+
+            // SECURITY: IDOR Check
+            if ($user->roles->contains('name', 'student')) {
+                if ($application->siswa_id !== $user->siswa?->id) {
+                     return response()->json(['error' => 'Unauthorized Access'], 403);
+                }
+            }
+
             return response()->json($application);
         } catch (\Exception $e) {
             return response()->json([
@@ -177,7 +186,23 @@ class RecruitmentController extends Controller
     public function destroy($id)
     {
         try {
+            $user = auth()->user();
             $application = RecruitmentApplication::findOrFail($id);
+
+            // SECURITY CHECK
+            $isAdmin = $user->roles->contains(fn($r) => in_array($r->name, ['super_admin', 'admin']));
+            
+            if (!$isAdmin) {
+                // Student can only delete their own
+                if ($application->siswa_id !== $user->siswa?->id) {
+                     return response()->json(['message' => 'Unauthorized Access'], 403);
+                }
+                // Cannot delete if already under review/accepted
+                if (!in_array($application->status, ['new', 'withdrawn'])) {
+                     return response()->json(['message' => 'Lamaran yang sudah diproses tidak dapat dihapus.'], 403);
+                }
+            }
+
             $application->delete();
 
             return response()->json(['message' => 'Application deleted successfully']);

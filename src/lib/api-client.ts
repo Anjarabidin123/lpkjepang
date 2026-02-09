@@ -28,8 +28,10 @@ export async function authFetch(url: string, options: RequestInit = {}) {
     });
 
     if (response.status === 401) {
-        // Handle unauthorized - maybe redirect to login or clear token
         console.warn('Unauthorized request detected. Clearing local session.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/auth';
     }
 
     return response;

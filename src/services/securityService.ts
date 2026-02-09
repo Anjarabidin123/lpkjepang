@@ -9,12 +9,11 @@ interface SecurityEvent {
 export class SecurityService {
   static async logSecurityEvent(event: SecurityEvent): Promise<void> {
     try {
-      // Mock user for localStorage environment
-      const user = { id: 'demo-admin-id' };
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
 
-      // In localStorage environment, we log to console or a dedicated table
-      console.log('Security Event (localStorage):', {
-        user_id: user?.id || null,
+      console.log('Security Event:', {
+        user_id: user?.id || 'anonymous',
         event_type: event.event_type,
         event_details: event.event_details || {},
         ip_address: event.ip_address,

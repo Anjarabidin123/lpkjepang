@@ -11,10 +11,20 @@ class KewajibanPembayaranController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+        $canManage = $user->hasPermission('finance_access') || $user->roles->contains('name', 'super_admin');
+        
         $query = KewajibanPembayaran::with(['siswa', 'itemPembayaran']);
-        if ($request->has('siswa_id')) {
+
+        // PRIVACY LOCK
+        if (!$canManage && $user->roles->contains('name', 'student')) {
+            $siswa = $user->siswa;
+            if (!$siswa) return response()->json([]);
+            $query->where('siswa_id', $siswa->id);
+        } elseif ($request->has('siswa_id')) {
             $query->where('siswa_id', $request->siswa_id);
         }
+
         return response()->json($query->orderBy('created_at', 'desc')->get());
     }
 

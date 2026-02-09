@@ -71,15 +71,17 @@ export function DashboardLayout() {
             <Route path="/education/*" element={<Education />} />
             <Route path="/learning-modules" element={<LearningModules />} />
 
-            {/* Master Data Routes */}
-            <Route path="/siswa-reguler" element={<SiswaReguler />} />
-            <Route path="/siswa" element={<Siswa />} />
-            <Route path="/kumiai" element={<Kumiai />} />
-            <Route path="/perusahaan" element={<Perusahaan />} />
-            <Route path="/lpk-mitra" element={<LpkMitra />} />
-            <Route path="/program" element={<Program />} />
-            <Route path="/jenis-kerja" element={<JenisKerja />} />
-            <Route path="/posisi-kerja" element={<PosisiKerja />} />
+            {/* Master Data Routes - Restricted to Admin & Super Admin */}
+            <Route element={<RoleBasedRoute allowedRoles={['super_admin', 'admin']} />}>
+              <Route path="/siswa-reguler" element={<SiswaReguler />} />
+              <Route path="/siswa" element={<Siswa />} />
+              <Route path="/kumiai" element={<Kumiai />} />
+              <Route path="/perusahaan" element={<Perusahaan />} />
+              <Route path="/lpk-mitra" element={<LpkMitra />} />
+              <Route path="/program" element={<Program />} />
+              <Route path="/jenis-kerja" element={<JenisKerja />} />
+              <Route path="/posisi_kerja" element={<PosisiKerja />} />
+            </Route>
             {/* Transaction Routes - Restricted to Finance & Super Admin */}
             <Route element={<RoleBasedRoute allowedRoles={['super_admin', 'finance']} />}>
               <Route path="/internal-payment" element={<InternalPayment />} />

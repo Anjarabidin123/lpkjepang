@@ -9,9 +9,21 @@ use App\Models\InternalPayment;
 
 class InternalPaymentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(InternalPayment::with(['siswa', 'itemPembayaran'])->orderBy('created_at', 'desc')->get());
+        $user = $request->user();
+        $canManage = $user->hasPermission('finance_access') || $user->roles->contains('name', 'super_admin');
+        
+        $query = InternalPayment::with(['siswa', 'itemPembayaran']);
+
+        // PRIVACY LOCK: Students only see their own payments
+        if (!$canManage && $user->roles->contains('name', 'student')) {
+            $siswa = $user->siswa;
+            if (!$siswa) return response()->json([]);
+            $query->where('siswa_id', $siswa->id);
+        }
+
+        return response()->json($query->orderBy('created_at', 'desc')->get());
     }
 
     public function store(Request $request)
@@ -30,32 +42,34 @@ class InternalPaymentController extends Controller
         // TRANSACTION START (Prevent Race Condition Overpayment)
         $data = \Illuminate\Support\Facades\DB::transaction(function () use ($validated) {
             
-            // 1. Lock The Bill Item to serialize payments for this item
-            $item = \App\Models\ItemPembayaran::lockForUpdate()->find($validated['item_pembayaran_id']);
-            
-            // 2. Re-Calculate Existing Payments (Inside Lock)
-            $existingTotal = InternalPayment::where('siswa_id', $validated['siswa_id'])
+            // 1. Lock the student's specific obligation
+            $kewajiban = \App\Models\KewajibanPembayaran::where('siswa_id', $validated['siswa_id'])
                 ->where('item_pembayaran_id', $validated['item_pembayaran_id'])
-                ->sum('nominal');
+                ->lockForUpdate()
+                ->first();
 
-            $remainingDebt = $item->nominal_wajib - $existingTotal;
-
-            // 3. Prevent Overpayment
-            if ($validated['nominal'] > $remainingDebt) {
-                throw new \Illuminate\Validation\ValidationException(\Illuminate\Validation\Validator::make([], []), 
-                    response()->json([
-                        'message' => 'Pembayaran melebihi sisa tagihan! Sisa tagihan: Rp ' . number_format($remainingDebt, 0, ',', '.'),
-                        'remaining' => $remainingDebt
-                    ], 422));
+            if (!$kewajiban) {
+                throw new \Exception("Tagihan untuk siswa ini belum diinisialisasi.");
+            }
+            
+            // 2. Prevent Overpayment
+            if ($validated['nominal'] > $kewajiban->sisa_kewajiban) {
+                return response()->json([
+                    'message' => 'Pembayaran melebihi sisa tagihan! Sisa tagihan: Rp ' . number_format($kewajiban->sisa_kewajiban, 0, ',', '.'),
+                    'remaining' => $kewajiban->sisa_kewajiban
+                ], 422)->throwResponse();
             }
 
-            // 4. Determine Status
-            $newTotal = $existingTotal + $validated['nominal'];
-            $isPaidOff = abs($item->nominal_wajib - $newTotal) < 1; 
+            // 3. Create Payment Record
+            $payment = InternalPayment::create($validated);
 
-            $validated['status'] = $isPaidOff ? 'Lunas' : 'Cicilan';
+            // 4. Update Obligation State
+            $kewajiban->nominal_terbayar += $validated['nominal'];
+            $kewajiban->sisa_kewajiban = $kewajiban->nominal_wajib - $kewajiban->nominal_terbayar;
+            $kewajiban->status = $kewajiban->sisa_kewajiban <= 0 ? 'Lunas' : 'Cicilan';
+            $kewajiban->save();
 
-            return InternalPayment::create($validated);
+            return $payment;
         });
         
         return response()->json($data->load(['siswa', 'itemPembayaran']), 201);

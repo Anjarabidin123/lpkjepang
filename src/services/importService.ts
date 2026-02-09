@@ -11,47 +11,42 @@ interface ImportResult {
 
 class ImportService {
   async importSiswa(data: Partial<CreateSiswaData>[]): Promise<ImportResult> {
-    console.log('Starting siswa import process to localStorage with', data.length, 'records');
-    
+    console.log('Starting siswa import process to Laravel API with', data.length, 'records');
+
     const result: ImportResult = {
       success: 0,
       failed: 0,
       errors: []
     };
 
+    const { siswaService } = await import('@/services/siswaService');
+
     for (const item of data) {
       try {
         const cleanData = this.cleanSiswaData(item);
-        
+
         if (!cleanData.nama || !cleanData.nik) {
           result.failed++;
-          result.errors.push(`Nama dan NIK wajib diisi`);
+          result.errors.push(`Gagal: Nama dan NIK wajib diisi`);
           continue;
         }
 
-        const existingSiswa = siswaTable.getOneByField('nik', cleanData.nik);
-
-        if (existingSiswa) {
-          result.failed++;
-          result.errors.push(`NIK ${cleanData.nik} sudah ada dalam database`);
-          continue;
-        }
-
-        siswaTable.create(cleanData);
+        // The API will handle uniqueness constraint and return 422 if NIK exists
+        await siswaService.create(cleanData as any);
         result.success++;
       } catch (error) {
         result.failed++;
-        result.errors.push(`Error processing: ${(error as Error).message}`);
+        result.errors.push(`NIK ${item.nik || 'Unknown'}: ${(error as Error).message}`);
       }
     }
 
-    console.log('Siswa import completed:', result);
+    console.log('Siswa import to API completed:', result);
     return result;
   }
 
   async importSiswaMagang(data: Partial<CreateSiswaMagangData>[]): Promise<ImportResult> {
     console.log('Starting siswa magang import process to localStorage with', data.length, 'records');
-    
+
     const result: ImportResult = {
       success: 0,
       failed: 0,
@@ -61,7 +56,7 @@ class ImportService {
     for (const item of data) {
       try {
         const cleanData = this.cleanSiswaMagangData(item);
-        
+
         if (!cleanData.siswa_id) {
           result.failed++;
           result.errors.push(`Siswa ID wajib diisi`);

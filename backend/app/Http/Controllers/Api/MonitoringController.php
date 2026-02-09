@@ -129,44 +129,50 @@ class MonitoringController extends Controller
         // Clone base query to preserve filters
         $baseQuery = clone $query;
 
-        // Grouping format based on database driver (assuming MySQL/MariaDB)
-        // If PostgreSQL, syntax differs slightly. Assuming MySQL here.
-        $dateFormat = match($period) {
-            'yearly' => '%Y',
-            'quarterly' => '%Y-%m', // Quarter handled in logic
-            default => '%Y-%m',
-        };
+        // Detect DB driver for compatible date functions
+        $driver = DB::getDriverName();
+        if ($driver === 'sqlite') {
+            $yearExpr = "strftime('%Y', created_at)";
+            $monthExpr = "strftime('%m', created_at)";
+        } else if ($driver === 'pgsql') {
+            $yearExpr = "extract(year from created_at)";
+            $monthExpr = "extract(month from created_at)";
+        } else {
+            $yearExpr = "year(created_at)";
+            $monthExpr = "month(created_at)";
+        }
 
         $results = $baseQuery
+            ->where('created_at', '>=', $startDate)
             ->select(
-                DB::raw("DATE_FORMAT(created_at, '$dateFormat') as date_label"),
+                DB::raw("$yearExpr as year"),
+                DB::raw("$monthExpr as month"),
                 DB::raw('COUNT(*) as total')
             )
-            ->where('created_at', '>=', $startDate)
-            ->groupBy('date_label')
-            ->orderBy('date_label')
-            ->pluck('total', 'date_label');
+            ->groupBy('year', 'month')
+            ->orderBy('year')
+            ->orderBy('month')
+            ->get();
+        
+        // Map results to [ 'YYYY-MM' => total ]
+        $keyedResults = [];
+        foreach ($results as $r) {
+            $key = sprintf("%04d-%02d", $r->year, $r->month);
+            $keyedResults[$key] = $r->total;
+        }
 
         // Fill gaps with 0
         $data = [];
-        $periods = $this->getPeriods($period, 12); // Re-use period generator for labels
+        $periods = $this->getPeriods($period, 12); 
 
         foreach ($periods as $p) {
-            // Generate matching key
-            $key = match($period) {
-                'yearly' => $p['label'], // YYYY
-                default => $p['start']->format('Y-m'),
-            };
-            
-            // For quarterly, we need special handling if we want strict SQL grouping, 
-            // but for simplicity, let's stick to Monthly aggregation for Monthly/Quarterly granularity
-            
-            $count = $results[$key] ?? 0;
+            $key = $p['start']->format('Y-m');
+            $count = $keyedResults[$key] ?? 0;
             
             $data[] = [
                 'period' => $p['label'],
                 'siswaMagang' => $count,
-                'target' => 100, // Hardcoded target
+                'target' => 100, 
                 'pencapaian' => min($count, 100)
             ];
         }

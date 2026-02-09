@@ -11,10 +11,20 @@ class SiswaKontakKeluargaController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+        $canManage = $user->hasPermission('siswa_access') || $user->roles->contains('name', 'super_admin');
+        
         $query = SiswaKontakKeluarga::query();
-        if ($request->has('siswa_id')) {
+
+        // PRIVACY LOCK
+        if (!$canManage) {
+            $siswa = $user->siswa;
+            if (!$siswa) return response()->json([]);
+            $query->where('siswa_id', $siswa->id);
+        } elseif ($request->has('siswa_id')) {
             $query->where('siswa_id', $request->siswa_id);
         }
+
         return response()->json($query->get());
     }
 

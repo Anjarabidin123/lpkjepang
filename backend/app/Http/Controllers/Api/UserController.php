@@ -69,7 +69,13 @@ class UserController extends Controller
             'roles' => ['array'],
         ]);
 
-        if ($request->has('name')) $user->name = $request->name;
+        if ($request->has('name')) {
+            $user->name = $request->name;
+            // SYNC: Update Siswa name if exists
+            if ($user->siswa) {
+                $user->siswa->update(['nama' => $request->name]);
+            }
+        }
         if ($request->has('email')) $user->email = $request->email;
         if ($request->has('phone')) $user->phone = $request->phone;
         if ($request->filled('password')) $user->password = Hash::make($request->password);
