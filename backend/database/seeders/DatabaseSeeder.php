@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             MasterDataSeeder::class,
             UserSeeder::class,
             RolePermissionSeeder::class,
+            ComprehensivePermissionSeeder::class, // Added for complete RBAC permissions
             SiswaSeeder::class,
 
             RealDataSeeder::class, // Tambahkan ini agar semua data asli masuk
