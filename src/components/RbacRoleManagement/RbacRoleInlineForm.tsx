@@ -203,18 +203,21 @@ export function RbacRoleInlineForm({
     return allPerms;
   }, [permissionsByModule]);
 
-  const handlePermissionToggle = (permissionId: string) => {
-    setSelectedPermissions(prev =>
-      prev.includes(permissionId)
-        ? prev.filter(id => id !== permissionId)
-        : [...prev, permissionId]
-    );
+  const handlePermissionToggle = (permissionId: string | number) => {
+    setSelectedPermissions(prev => {
+      const isSelected = prev.some(id => String(id) === String(permissionId));
+      if (isSelected) {
+        return prev.filter(id => String(id) !== String(permissionId));
+      } else {
+        return [...prev, permissionId];
+      }
+    });
   };
 
   const handleSelectAllModule = (module: string) => {
     const modulePermissions = getModulePermissionsWithDefaults(module);
     const modulePermissionIds = modulePermissions.map(p => p.id);
-    const allSelected = modulePermissionIds.every(id => selectedPermissions.includes(id));
+    const allSelected = modulePermissionIds.every(id => selectedPermissions.some(sId => String(sId) === String(id)));
 
     if (allSelected) {
       setSelectedPermissions(prev => prev.filter(id => !modulePermissionIds.includes(id)));
@@ -232,7 +235,7 @@ export function RbacRoleInlineForm({
       groupPermissionIds.push(...modulePermissions.map(p => p.id));
     });
 
-    const allSelected = groupPermissionIds.every(id => selectedPermissions.includes(id));
+    const allSelected = groupPermissionIds.every(id => selectedPermissions.some(sId => String(sId) === String(id)));
 
     if (allSelected) {
       setSelectedPermissions(prev => prev.filter(id => !groupPermissionIds.includes(id)));
@@ -288,7 +291,9 @@ export function RbacRoleInlineForm({
     group.modules.forEach(module => {
       const modulePerms = getModulePermissionsWithDefaults(module);
       total += modulePerms.length;
-      selected += modulePerms.filter(p => selectedPermissions.includes(p.id)).length;
+      selected += modulePerms.filter(p =>
+        selectedPermissions.some(id => String(id) === String(p.id))
+      ).length;
     });
 
     return { total, selected };
@@ -310,7 +315,7 @@ export function RbacRoleInlineForm({
 
   const renderPermissionCard = (module: string, modulePermissions: Permission[], groupConfig: typeof permissionGroups[keyof typeof permissionGroups]) => {
     const modulePermissionIds = modulePermissions.map(p => p.id);
-    const selectedCount = modulePermissionIds.filter(id => selectedPermissions.includes(id)).length;
+    const selectedCount = modulePermissionIds.filter(id => selectedPermissions.some(sId => String(sId) === String(id))).length;
     const allModuleSelected = selectedCount === modulePermissionIds.length && modulePermissionIds.length > 0;
 
     return (
@@ -349,7 +354,7 @@ export function RbacRoleInlineForm({
               icon: <Shield className="h-3 w-3" />,
               color: 'bg-gray-100 text-gray-700 border-gray-200'
             };
-            const isSelected = selectedPermissions.includes(permission.id);
+            const isSelected = selectedPermissions.some(id => String(id) === String(permission.id));
 
             return (
               <button
