@@ -149,7 +149,17 @@ export function RbacRoleInlineForm({
         description: role.description || '',
         is_active: role.is_active
       });
-      setSelectedPermissions([]);
+
+      // Load existing permissions from role
+      const roleWithPerms = role as RoleWithPermissions;
+      if (roleWithPerms.permissions && roleWithPerms.permissions.length > 0) {
+        const existingPermissionIds = roleWithPerms.permissions.map(p => p.id);
+        console.log('Loading existing permissions for role:', role.name, existingPermissionIds);
+        setSelectedPermissions(existingPermissionIds);
+      } else {
+        console.log('No existing permissions found for role:', role.name);
+        setSelectedPermissions([]);
+      }
     } else {
       setFormData({
         name: '',
