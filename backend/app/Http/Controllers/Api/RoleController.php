@@ -15,18 +15,43 @@ class RoleController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|unique:roles,name',
-            'permissions' => 'array'
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255|unique:roles,name',
+                'display_name' => 'nullable|string|max:255',
+                'description' => 'nullable|string|max:500',
+                'permissions' => 'nullable|array',
+                'permissions.*' => 'exists:permissions,id'
+            ]);
 
-        $role = Role::create($request->only(['name', 'description']));
+            // Create role with name and description only (display_name not in DB schema)
+            $role = Role::create([
+                'name' => $request->name,
+                'description' => $request->description
+            ]);
 
-        if ($request->has('permissions')) {
-            $role->permissions()->sync($request->permissions);
+            // Attach permissions if provided
+            if ($request->has('permissions') && is_array($request->permissions)) {
+                $role->permissions()->sync($request->permissions);
+            }
+
+            return response()->json($role->load('permissions'), 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error creating role: ' . $e->getMessage(), [
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Server Error: ' . $e->getMessage(),
+                'details' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
         }
-
-        return response()->json($role->load('permissions'), 201);
     }
 
     public function show($id)
@@ -36,20 +61,61 @@ class RoleController extends Controller
 
     public function update(Request $request, $id)
     {
-        $role = Role::findOrFail($id);
-        
-        // PROTECT SUPER ADMIN ROLE
-        if ($role->name === 'super_admin' || $role->id === 1) {
-             return response()->json(['message' => 'Role Super Admin tidak dapat diubah.'], 403);
-        }
+        try {
+            $role = Role::findOrFail($id);
+            
+            // PROTECT SUPER ADMIN ROLE
+            if ($role->name === 'super_admin' || $role->id === 1) {
+                return response()->json(['message' => 'Role Super Admin tidak dapat diubah.'], 403);
+            }
 
-        $role->update($request->only(['name', 'description']));
-        
-        if ($request->has('permissions')) {
-            $role->permissions()->sync($request->permissions);
-        }
+            $validated = $request->validate([
+                'name' => 'sometimes|required|string|max:255|unique:roles,name,' . $id,
+                'display_name' => 'nullable|string|max:255',
+                'description' => 'nullable|string|max:500',
+                'permissions' => 'nullable|array',
+                'permissions.*' => 'exists:permissions,id',
+                'is_active' => 'nullable|boolean'
+            ]);
 
-        return response()->json($role->load('permissions'));
+            // Update only fields that exist in the database schema
+            $updateData = [];
+            if ($request->has('name')) {
+                $updateData['name'] = $request->name;
+            }
+            if ($request->has('description')) {
+                $updateData['description'] = $request->description;
+            }
+            
+            if (!empty($updateData)) {
+                $role->update($updateData);
+            }
+            
+            // Update permissions if provided
+            if ($request->has('permissions')) {
+                $role->permissions()->sync($request->permissions);
+            }
+
+            return response()->json($role->load('permissions'));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['message' => 'Role not found'], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error updating role: ' . $e->getMessage(), [
+                'role_id' => $id,
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Server Error: ' . $e->getMessage(),
+                'details' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
+        }
     }
 
     public function destroy($id)
