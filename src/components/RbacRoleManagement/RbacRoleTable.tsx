@@ -2,19 +2,19 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Table, 
-  TableBody, 
+import {
+  Table,
+  TableBody,
   TableCell,
-  TableHead, 
-  TableHeader, 
-  TableRow 
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
-import { 
-  Edit, 
-  Trash2, 
-  Shield, 
-  Copy, 
+import {
+  Edit,
+  Trash2,
+  Shield,
+  Copy,
   MoreHorizontal,
   Power,
   PowerOff,
@@ -70,10 +70,10 @@ function formatDate(dateString: string | undefined) {
   if (!dateString) return '-';
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return '-';
-  return date.toLocaleDateString('en-US', { 
-    day: 'numeric', 
-    month: 'short', 
-    year: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
   });
 }
 
@@ -84,7 +84,7 @@ function formatTimeAgo(dateString: string | undefined) {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays === 0) return 'Hari ini';
   if (diffDays === 1) return 'Kemarin';
   if (diffDays < 7) return `${diffDays} hari lalu`;
@@ -93,14 +93,14 @@ function formatTimeAgo(dateString: string | undefined) {
   return `${Math.floor(diffDays / 365)} tahun lalu`;
 }
 
-export function RbacRoleTable({ 
-  roles, 
-  loading, 
-  onEdit, 
-  onDelete, 
+export function RbacRoleTable({
+  roles,
+  loading,
+  onEdit,
+  onDelete,
   onDuplicate,
   onToggleStatus,
-  deleting 
+  deleting
 }: RbacRoleTableProps) {
   if (loading) {
     return (
@@ -140,10 +140,10 @@ export function RbacRoleTable({
           {roles.map((role, index) => {
             const color = getRoleColor(role.name);
             const isDeleting = deleting.includes(role.id);
-            
+
             return (
-              <TableRow 
-                key={role.id} 
+              <TableRow
+                key={role.id}
                 className={`
                   group hover:bg-violet-50/30 transition-colors
                   ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}
@@ -176,12 +176,12 @@ export function RbacRoleTable({
                   </Tooltip>
                 </TableCell>
                 <TableCell>
-                  <Badge 
+                  <Badge
                     variant="outline"
                     className={`
                       font-medium
-                      ${role.is_system_role 
-                        ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                      ${role.is_system_role
+                        ? 'bg-blue-50 text-blue-700 border-blue-200'
                         : 'bg-purple-50 text-purple-700 border-purple-200'
                       }
                     `}
@@ -190,12 +190,12 @@ export function RbacRoleTable({
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge 
+                  <Badge
                     variant="outline"
                     className={`
                       font-medium
-                      ${role.is_active 
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                      ${role.is_active
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         : 'bg-gray-100 text-gray-500 border-gray-200'
                       }
                     `}
@@ -222,19 +222,22 @@ export function RbacRoleTable({
                 </TableCell>
                 <TableCell className="pr-6">
                   <div className="flex items-center justify-end gap-1">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEdit(role)}
-                          className="h-8 w-8 p-0 hover:bg-violet-100 hover:text-violet-700"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Edit Peran</TooltipContent>
-                    </Tooltip>
+                    {/* Edit Button */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('Edit button clicked for role:', role.name);
+                        onEdit(role);
+                      }}
+                      disabled={isDeleting}
+                      className="h-8 w-8 p-0 hover:bg-violet-100 hover:text-violet-700 transition-colors"
+                      title="Edit Peran"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -267,7 +270,7 @@ export function RbacRoleTable({
                         {!role.is_system_role && (
                           <>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => onDelete(role)}
                               className="text-red-600 focus:text-red-600 focus:bg-red-50"
                               disabled={isDeleting}
