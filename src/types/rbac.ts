@@ -59,7 +59,7 @@ export interface CreateRoleData {
   name: string;
   display_name: string;
   description?: string;
-  permission_ids?: string[];
+  permission_ids?: number[]; // Changed from string[] to number[] to match DB bigint
 }
 
 export interface UpdateRoleData {
@@ -67,7 +67,7 @@ export interface UpdateRoleData {
   display_name?: string;
   description?: string;
   is_active?: boolean;
-  permission_ids?: string[];
+  permission_ids?: number[]; // Changed from string[] to number[] to match DB bigint
 }
 
 export interface AssignRoleData {

@@ -9,13 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Role, Permission, CreateRoleData, UpdateRoleData } from '@/types/rbac';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { 
-  Shield, 
-  Check, 
-  X, 
-  Eye, 
-  Plus, 
-  Pencil, 
+import {
+  Shield,
+  Check,
+  X,
+  Eye,
+  Plus,
+  Pencil,
   Trash2,
   Database,
   Settings,
@@ -164,7 +164,7 @@ export function RbacRoleInlineForm({
 
   const getModulePermissionsWithDefaults = (module: string) => {
     const existingPermissions = permissionsByModule[module] || [];
-    
+
     if (existingPermissions.length === 0) {
       const defaultActions = ['view', 'create', 'update', 'delete'];
       return defaultActions.map((action, index) => ({
@@ -179,7 +179,7 @@ export function RbacRoleInlineForm({
         updated_at: new Date().toISOString()
       }));
     }
-    
+
     return existingPermissions;
   };
 
@@ -194,7 +194,7 @@ export function RbacRoleInlineForm({
   }, [permissionsByModule]);
 
   const handlePermissionToggle = (permissionId: string) => {
-    setSelectedPermissions(prev => 
+    setSelectedPermissions(prev =>
       prev.includes(permissionId)
         ? prev.filter(id => id !== permissionId)
         : [...prev, permissionId]
@@ -205,7 +205,7 @@ export function RbacRoleInlineForm({
     const modulePermissions = getModulePermissionsWithDefaults(module);
     const modulePermissionIds = modulePermissions.map(p => p.id);
     const allSelected = modulePermissionIds.every(id => selectedPermissions.includes(id));
-    
+
     if (allSelected) {
       setSelectedPermissions(prev => prev.filter(id => !modulePermissionIds.includes(id)));
     } else {
@@ -216,14 +216,14 @@ export function RbacRoleInlineForm({
   const handleSelectAllGroup = (groupKey: string) => {
     const group = permissionGroups[groupKey as keyof typeof permissionGroups];
     const groupPermissionIds: string[] = [];
-    
+
     group.modules.forEach(module => {
       const modulePermissions = getModulePermissionsWithDefaults(module);
       groupPermissionIds.push(...modulePermissions.map(p => p.id));
     });
-    
+
     const allSelected = groupPermissionIds.every(id => selectedPermissions.includes(id));
-    
+
     if (allSelected) {
       setSelectedPermissions(prev => prev.filter(id => !groupPermissionIds.includes(id)));
     } else {
@@ -233,11 +233,23 @@ export function RbacRoleInlineForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Filter only valid numeric permission IDs (exclude fake/default IDs)
+    const validPermissionIds = selectedPermissions
+      .filter(id => {
+        // Check if ID is numeric or can be converted to number
+        const numId = typeof id === 'number' ? id : parseInt(id, 10);
+        return !isNaN(numId) && numId > 0;
+      })
+      .map(id => typeof id === 'number' ? id : parseInt(id, 10));
+
+    console.log('Selected permissions (raw):', selectedPermissions);
+    console.log('Valid permission IDs to send:', validPermissionIds);
+
     if (mode === 'create') {
       const createData: CreateRoleData = {
         ...formData,
-        permission_ids: selectedPermissions
+        permission_ids: validPermissionIds
       };
       const success = await onSave(createData);
       if (success) {
@@ -248,7 +260,7 @@ export function RbacRoleInlineForm({
         roleId: role.id,
         updates: {
           ...formData,
-          permission_ids: selectedPermissions
+          permission_ids: validPermissionIds
         }
       };
       const success = await onSave(updateData);
@@ -262,13 +274,13 @@ export function RbacRoleInlineForm({
     const group = permissionGroups[groupKey as keyof typeof permissionGroups];
     let total = 0;
     let selected = 0;
-    
+
     group.modules.forEach(module => {
       const modulePerms = getModulePermissionsWithDefaults(module);
       total += modulePerms.length;
       selected += modulePerms.filter(p => selectedPermissions.includes(p.id)).length;
     });
-    
+
     return { total, selected };
   };
 
@@ -279,8 +291,8 @@ export function RbacRoleInlineForm({
   }, [allPermissionsWithDefaults, selectedPermissions]);
 
   const toggleGroup = (groupKey: string) => {
-    setExpandedGroups(prev => 
-      prev.includes(groupKey) 
+    setExpandedGroups(prev =>
+      prev.includes(groupKey)
         ? prev.filter(g => g !== groupKey)
         : [...prev, groupKey]
     );
@@ -290,7 +302,7 @@ export function RbacRoleInlineForm({
     const modulePermissionIds = modulePermissions.map(p => p.id);
     const selectedCount = modulePermissionIds.filter(id => selectedPermissions.includes(id)).length;
     const allModuleSelected = selectedCount === modulePermissionIds.length && modulePermissionIds.length > 0;
-    
+
     return (
       <div key={module} className={cn(
         "border rounded-lg p-3 transition-all duration-200",
@@ -322,13 +334,13 @@ export function RbacRoleInlineForm({
         </div>
         <div className="flex flex-wrap gap-1.5">
           {modulePermissions.map(permission => {
-            const actionConfig = actionTranslations[permission.action] || { 
-              label: permission.action, 
-              icon: <Shield className="h-3 w-3" />, 
-              color: 'bg-gray-100 text-gray-700 border-gray-200' 
+            const actionConfig = actionTranslations[permission.action] || {
+              label: permission.action,
+              icon: <Shield className="h-3 w-3" />,
+              color: 'bg-gray-100 text-gray-700 border-gray-200'
             };
             const isSelected = selectedPermissions.includes(permission.id);
-            
+
             return (
               <button
                 key={permission.id}
@@ -336,8 +348,8 @@ export function RbacRoleInlineForm({
                 onClick={() => handlePermissionToggle(permission.id)}
                 className={cn(
                   "inline-flex items-center gap-1 px-2 py-1 rounded border text-xs font-medium transition-all duration-150",
-                  isSelected 
-                    ? `${actionConfig.color} shadow-sm` 
+                  isSelected
+                    ? `${actionConfig.color} shadow-sm`
                     : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
                 )}
               >
@@ -358,8 +370,8 @@ export function RbacRoleInlineForm({
           <div className="flex items-center gap-3">
             <div className={cn(
               "p-2 rounded-xl",
-              mode === 'create' 
-                ? "bg-gradient-to-br from-violet-500 to-purple-600" 
+              mode === 'create'
+                ? "bg-gradient-to-br from-violet-500 to-purple-600"
                 : "bg-gradient-to-br from-blue-500 to-cyan-600"
             )}>
               <Shield className="h-5 w-5 text-white" />
@@ -369,8 +381,8 @@ export function RbacRoleInlineForm({
                 {mode === 'create' ? 'Buat Peran Baru' : 'Edit Peran'}
               </CardTitle>
               <p className="text-sm text-gray-500 mt-0.5">
-                {mode === 'create' 
-                  ? 'Tentukan nama dan izin untuk peran baru' 
+                {mode === 'create'
+                  ? 'Tentukan nama dan izin untuk peran baru'
                   : `Perbarui konfigurasi untuk "${role?.display_name}"`
                 }
               </p>
@@ -386,7 +398,7 @@ export function RbacRoleInlineForm({
           <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-gray-200">
             <div className="p-6 space-y-4">
               <h3 className="font-semibold text-gray-800 mb-4">Detail Peran</h3>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium text-gray-700">
                   Nama Peran <span className="text-red-500">*</span>
@@ -401,7 +413,7 @@ export function RbacRoleInlineForm({
                   className="font-mono text-sm"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="display_name" className="text-sm font-medium text-gray-700">
                   Nama Tampilan <span className="text-red-500">*</span>
@@ -448,7 +460,7 @@ export function RbacRoleInlineForm({
                   </Badge>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-300"
                     style={{ width: `${totalStats.total > 0 ? (totalStats.selected / totalStats.total) * 100 : 0}%` }}
                   />
@@ -477,18 +489,18 @@ export function RbacRoleInlineForm({
                     const Icon = group.icon;
                     const isExpanded = expandedGroups.includes(groupKey);
                     const allGroupSelected = stats.selected === stats.total && stats.total > 0;
-                    
-                    const modulesToShow = searchTerm 
-                      ? group.modules.filter(m => 
-                          (moduleTranslations[m] || m).toLowerCase().includes(searchTerm.toLowerCase())
-                        )
+
+                    const modulesToShow = searchTerm
+                      ? group.modules.filter(m =>
+                        (moduleTranslations[m] || m).toLowerCase().includes(searchTerm.toLowerCase())
+                      )
                       : group.modules;
-                    
+
                     if (searchTerm && modulesToShow.length === 0) return null;
 
                     return (
-                      <Collapsible 
-                        key={groupKey} 
+                      <Collapsible
+                        key={groupKey}
                         open={isExpanded || !!searchTerm}
                         onOpenChange={() => !searchTerm && toggleGroup(groupKey)}
                       >
@@ -569,8 +581,8 @@ export function RbacRoleInlineForm({
               >
                 Batal
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={loading || !formData.name || !formData.display_name}
                 className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 min-w-[120px]"
               >
