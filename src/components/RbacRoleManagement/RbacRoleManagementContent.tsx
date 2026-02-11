@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Shield, 
-  Plus, 
-  Search, 
-  Users, 
-  Key, 
-  Lock, 
+import {
+  Shield,
+  Plus,
+  Search,
+  Users,
+  Key,
+  Lock,
   Unlock,
   Filter,
   SlidersHorizontal,
@@ -66,21 +66,21 @@ export function RbacRoleManagementContent() {
 
   const filteredRoles = useMemo(() => {
     return roles.filter(role => {
-      const matchesSearch = 
+      const matchesSearch =
         (role.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (role.display_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (role.description?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = 
+
+      const matchesStatus =
         filterStatus === 'all' ||
         (filterStatus === 'active' && role.is_active) ||
         (filterStatus === 'inactive' && !role.is_active);
-      
-      const matchesType = 
+
+      const matchesType =
         filterType === 'all' ||
         (filterType === 'system' && role.is_system_role) ||
         (filterType === 'custom' && !role.is_system_role);
-      
+
       return matchesSearch && matchesStatus && matchesType;
     });
   }, [roles, searchTerm, filterStatus, filterType]);
@@ -92,9 +92,17 @@ export function RbacRoleManagementContent() {
   };
 
   const handleEditRole = (role: Role) => {
+    console.log('=== handleEditRole called ===');
+    console.log('Role to edit:', role);
+    console.log('Setting selectedRole:', role);
+    console.log('Setting formMode: edit');
+    console.log('Setting showForm: true');
+
     setSelectedRole(role);
     setFormMode('edit');
     setShowForm(true);
+
+    console.log('State updated, form should appear');
   };
 
   const handleCancelForm = () => {
@@ -109,7 +117,7 @@ export function RbacRoleManagementContent() {
       description: role.description,
       permission_ids: []
     };
-    
+
     const success = await createRole(duplicateData);
     if (success) {
       toast({
@@ -136,7 +144,7 @@ export function RbacRoleManagementContent() {
 
   const handleDeleteRole = async () => {
     if (!roleToDelete) return;
-    
+
     setDeleting(prev => [...prev, roleToDelete.id]);
     try {
       await deleteRole(roleToDelete.id);
@@ -179,8 +187,8 @@ export function RbacRoleManagementContent() {
           </div>
         </div>
         {!showForm && (
-          <Button 
-            onClick={handleCreateRole} 
+          <Button
+            onClick={handleCreateRole}
             className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-500/25 transition-all duration-300"
             size="lg"
           >
@@ -289,7 +297,7 @@ export function RbacRoleManagementContent() {
                 className="pl-12 h-12 text-base border-gray-200 focus:border-violet-500 focus:ring-violet-500"
               />
             </div>
-            
+
             <div className="flex items-center gap-3">
               <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as FilterStatus)}>
                 <SelectTrigger className="w-[160px] h-12 border-gray-200">
@@ -316,8 +324,8 @@ export function RbacRoleManagementContent() {
               </Select>
 
               {hasActiveFilters && (
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={clearFilters}
                   className="h-12 text-gray-500 hover:text-gray-700"
                 >
@@ -326,7 +334,7 @@ export function RbacRoleManagementContent() {
               )}
             </div>
           </div>
-          
+
           {hasActiveFilters && (
             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
               <span className="text-sm text-gray-500">Filter aktif:</span>
@@ -384,13 +392,13 @@ export function RbacRoleManagementContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Peran</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus peran <strong>"{roleToDelete?.display_name}"</strong>? 
+              Apakah Anda yakin ingin menghapus peran <strong>"{roleToDelete?.display_name}"</strong>?
               Tindakan ini tidak dapat dibatalkan dan akan menghapus semua izin yang terkait dengan peran ini.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDeleteRole}
               className="bg-red-600 hover:bg-red-700"
             >
