@@ -220,100 +220,101 @@ export function RbacRoleTable({
                       </div>
                     </TooltipContent>
                   </Tooltip>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1 max-w-[300px]">
-                      {((role as RoleWithPermissions).permissions || []).length > 0 ? (
-                        <>
-                          <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-100 font-bold px-1.5 h-5">
-                            {((role as RoleWithPermissions).permissions || []).length}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1 max-w-[300px]">
+                    {((role as RoleWithPermissions).permissions || []).length > 0 ? (
+                      <>
+                        <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-100 font-bold px-1.5 h-5">
+                          {((role as RoleWithPermissions).permissions || []).length}
+                        </Badge>
+                        {((role as RoleWithPermissions).permissions || []).slice(0, 3).map(p => (
+                          <Badge key={p.id} variant="secondary" className="text-[10px] font-normal bg-gray-50 text-gray-600 border-gray-100 px-1.5 h-5">
+                            {p.display_name?.split(' - ')[0] || p.name}
                           </Badge>
-                          {((role as RoleWithPermissions).permissions || []).slice(0, 3).map(p => (
-                            <Badge key={p.id} variant="secondary" className="text-[10px] font-normal bg-gray-50 text-gray-600 border-gray-100 px-1.5 h-5">
-                              {p.display_name?.split(' - ')[0] || p.name}
-                            </Badge>
-                          ))}
-                          {((role as RoleWithPermissions).permissions || []).length > 3 && (
-                            <span className="text-[10px] text-gray-400 self-center">...</span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-xs text-gray-300 italic">Tidak ada izin</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="pr-6">
-                    <div className="flex items-center justify-end gap-1">
-                      {/* Edit Button */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log('Edit button clicked for role:', role.name);
-                          onEdit(role);
-                        }}
-                        disabled={isDeleting}
-                        className="h-8 w-8 p-0 hover:bg-violet-100 hover:text-violet-700 transition-colors"
-                        title="Edit Peran"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                        ))}
+                        {((role as RoleWithPermissions).permissions || []).length > 3 && (
+                          <span className="text-[10px] text-gray-400 self-center">...</span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-xs text-gray-300 italic">Tidak ada izin</span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="pr-6">
+                  <div className="flex items-center justify-end gap-1">
+                    {/* Edit Button */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('Edit button clicked for role:', role.name);
+                        onEdit(role);
+                      }}
+                      disabled={isDeleting}
+                      className="h-8 w-8 p-0 hover:bg-violet-100 hover:text-violet-700 transition-colors"
+                      title="Edit Peran"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
 
 
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 hover:bg-gray-100"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => onDuplicate(role)}>
-                            <Copy className="h-4 w-4 mr-2" />
-                            Duplikasi
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onToggleStatus(role)}>
-                            {role.is_active ? (
-                              <>
-                                <PowerOff className="h-4 w-4 mr-2" />
-                                Nonaktifkan
-                              </>
-                            ) : (
-                              <>
-                                <Power className="h-4 w-4 mr-2" />
-                                Aktifkan
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          {!role.is_system_role && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-gray-100"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => onDuplicate(role)}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Duplikasi
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onToggleStatus(role)}>
+                          {role.is_active ? (
                             <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => onDelete(role)}
-                                className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                                disabled={isDeleting}
-                              >
-                                {isDeleting ? (
-                                  <>
-                                    <LoadingSpinner size={16} />
-                                    <span className="ml-2">Menghapus...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Hapus
-                                  </>
-                                )}
-                              </DropdownMenuItem>
+                              <PowerOff className="h-4 w-4 mr-2" />
+                              Nonaktifkan
+                            </>
+                          ) : (
+                            <>
+                              <Power className="h-4 w-4 mr-2" />
+                              Aktifkan
                             </>
                           )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
+                        </DropdownMenuItem>
+                        {!role.is_system_role && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => onDelete(role)}
+                              className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                              disabled={isDeleting}
+                            >
+                              {isDeleting ? (
+                                <>
+                                  <LoadingSpinner size={16} />
+                                  <span className="ml-2">Menghapus...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Hapus
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </TableCell>
               </TableRow>
             );
           })}
