@@ -14,16 +14,6 @@ class ComprehensivePermissionSeeder extends Seeder
     {
         // Define comprehensive permissions based on frontend modules
         $permissionsData = [
-            // Basic Access Permissions (already exist)
-            ['name' => 'siswa_access', 'description' => 'Akses menu data siswa'],
-            ['name' => 'finance_access', 'description' => 'Akses menu keuangan'],
-            ['name' => 'master_access', 'description' => 'Akses menu data master'],
-            ['name' => 'report_access', 'description' => 'Akses menu laporan'],
-            ['name' => 'task_access', 'description' => 'Akses menu tugas'],
-            ['name' => 'recruitment_access', 'description' => 'Akses menu rekrutmen'],
-            ['name' => 'document_access', 'description' => 'Akses menu dokumen'],
-            ['name' => 'education_access', 'description' => 'Akses menu pendidikan'],
-            
             // Detailed Permissions by Module
             // Siswa Management
             ['name' => 'siswa_view', 'description' => 'Lihat data siswa'],
@@ -94,7 +84,7 @@ class ComprehensivePermissionSeeder extends Seeder
             ['name' => 'document_manage', 'description' => 'Kelola semua dokumen'],
             
             // Finance Management
-            ['name' => 'finance_view', 'description' => 'Lihat data keuangan'],
+            ['name' => 'finance_view', 'description' => 'Lihat data keuangan, invoice, dan arus kas'],
             ['name' => 'finance_create', 'description' => 'Buat transaksi keuangan'],
             ['name' => 'finance_update', 'description' => 'Edit transaksi keuangan'],
             ['name' => 'finance_delete', 'description' => 'Hapus transaksi keuangan'],
@@ -107,7 +97,7 @@ class ComprehensivePermissionSeeder extends Seeder
             ['name' => 'education_manage', 'description' => 'Kelola semua data pendidikan'],
             
             // Report Management
-            ['name' => 'report_view', 'description' => 'Lihat laporan'],
+            ['name' => 'report_view', 'description' => 'Lihat laporan dan monitoring KPI'],
             ['name' => 'report_generate', 'description' => 'Generate laporan'],
             ['name' => 'report_export', 'description' => 'Export laporan'],
             
