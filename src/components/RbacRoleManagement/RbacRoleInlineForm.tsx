@@ -158,6 +158,11 @@ export function RbacRoleInlineForm({
       if (roleWithPerms.permissions && roleWithPerms.permissions.length > 0) {
         const existingPermissionIds = roleWithPerms.permissions.map(p => p.id);
         console.log('Loading existing permissions for role:', role.name, existingPermissionIds);
+        console.log('📋 Full permission objects:', JSON.stringify(roleWithPerms.permissions, null, 2));
+        console.log('📋 Permission details:');
+        roleWithPerms.permissions.forEach(p => {
+          console.log(`  - ID: ${p.id}, Name: ${p.name}, Module: ${p.module}, Action: ${p.action}`);
+        });
         setSelectedPermissions(existingPermissionIds);
       } else {
         console.log('No existing permissions found for role:', role.name);
@@ -398,9 +403,16 @@ export function RbacRoleInlineForm({
               const pId = String(permission.id);
               const pName = String(permission.name || '');
 
-              return normalize(sId) === normalize(pId) ||
+              const match = normalize(sId) === normalize(pId) ||
                 normalize(sId) === normalize(pName) ||
                 (pName.includes(normalize(sId)) && sId.length > 3);
+
+              // Debug log for first 5 permissions only to avoid spam
+              if (selectedPermissions.length > 0 && permission.id.toString().length < 15) {
+                console.log(`🔍 Matching attempt: Selected ID "${sId}" vs Permission ID "${pId}" (${permission.name}): ${match}`);
+              }
+
+              return match;
             });
 
             return (
