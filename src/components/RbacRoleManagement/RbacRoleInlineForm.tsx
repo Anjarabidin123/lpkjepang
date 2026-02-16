@@ -82,6 +82,15 @@ const permissionGroups = {
     borderColor: 'border-purple-200',
     textColor: 'text-purple-700',
     modules: ['user_management', 'role_management', 'system_management']
+  },
+  'other': {
+    label: 'Izin Lainnya',
+    icon: Shield,
+    color: 'from-gray-500 to-slate-500',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
+    textColor: 'text-gray-700',
+    modules: ['other']
   }
 };
 
@@ -180,15 +189,43 @@ export function RbacRoleInlineForm({
     setSearchTerm('');
   }, [mode, role]);
 
+  // Helper function to extract module and action from permission name
+  const parsePermissionName = (permission: Permission): { module: string; action: string } => {
+    // If permission already has module and action, use them
+    if (permission.module && permission.action) {
+      return { module: permission.module, action: permission.action };
+    }
+
+    // Try to parse from name (e.g., "siswa_view" => { module: "siswa", action: "view" })
+    const name = permission.name || '';
+    const parts = name.split('_');
+
+    // Common action keywords
+    const actionKeywords = ['view', 'create', 'update', 'delete', 'manage', 'access', 'generate', 'export', 'assign'];
+
+    // Find the action keyword
+    const actionIndex = parts.findIndex(part => actionKeywords.includes(part));
+
+    if (actionIndex > 0) {
+      const module = parts.slice(0, actionIndex).join('_');
+      const action = parts.slice(actionIndex).join('_');
+      return { module, action };
+    }
+
+    // Fallback: if no recognizable pattern, treat whole name as action with generic module
+    return { module: 'other', action: name };
+  };
+
   const getModulePermissionsWithDefaults = (module: string) => {
     // 1. Try to get from pre-grouped permissions
     let existingPermissions = permissionsByModule[module] || [];
 
-    // 2. If empty, try to find in the main permissions array (sometimes grouping names don't match exactly)
+    // 2. If empty, try to find in the main permissions array
     if (existingPermissions.length === 0 && permissions.length > 0) {
       const normalizedModule = module.toLowerCase().replace(/[_-]/g, '');
       existingPermissions = permissions.filter(p => {
-        const pModule = (p.module || '').toLowerCase().replace(/[_-]/g, '');
+        const parsed = parsePermissionName(p);
+        const pModule = parsed.module.toLowerCase().replace(/[_-]/g, '');
         const pName = (p.name || '').toLowerCase().replace(/[_-]/g, '');
         return pModule === normalizedModule || pName.startsWith(normalizedModule);
       });
@@ -215,13 +252,28 @@ export function RbacRoleInlineForm({
 
   const allPermissionsWithDefaults = useMemo(() => {
     const allPerms: Permission[] = [];
+    const coveredIds = new Set<string | number>();
+
+    // First, collect permissions from all defined module groups
     Object.values(permissionGroups).forEach(group => {
-      group.modules.forEach(module => {
-        allPerms.push(...getModulePermissionsWithDefaults(module));
-      });
+      if (group.modules[0] !== 'other') { // Skip 'other' for now
+        group.modules.forEach(module => {
+          const modulePerms = getModulePermissionsWithDefaults(module);
+          modulePerms.forEach(p => coveredIds.add(p.id));
+          allPerms.push(...modulePerms);
+        });
+      }
     });
+
+    // Then, find any permissions that weren't categorized (legacy/orphaned permissions)
+    const orphanedPermissions = permissions.filter(p => !coveredIds.has(p.id));
+    if (orphanedPermissions.length > 0) {
+      console.log('📦 Found orphaned permissions:', orphanedPermissions.map(p => `${p.id}: ${p.name}`));
+      allPerms.push(...orphanedPermissions);
+    }
+
     return allPerms;
-  }, [permissionsByModule]);
+  }, [permissions, permissionsByModule]);
 
   const handlePermissionToggle = (permissionId: string | number) => {
     setSelectedPermissions(prev => {
@@ -389,8 +441,9 @@ export function RbacRoleInlineForm({
         </div>
         <div className="flex flex-wrap gap-1.5">
           {modulePermissions.map(permission => {
-            const actionConfig = actionTranslations[permission.action] || {
-              label: permission.action,
+            const parsed = parsePermissionName(permission);
+            const actionConfig = actionTranslations[parsed.action] || {
+              label: permission.description || parsed.action || permission.name,
               icon: <Shield className="h-3 w-3" />,
               color: 'bg-gray-100 text-gray-700 border-gray-200'
             };
@@ -622,10 +675,30 @@ export function RbacRoleInlineForm({
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <div className="p-3 pt-0 grid grid-cols-1 md:grid-cols-2 gap-2">
-                              {modulesToShow.map(module => {
-                                const modulePermissions = getModulePermissionsWithDefaults(module);
-                                return renderPermissionCard(module, modulePermissions, group);
-                              })}
+                              {groupKey === 'other' ? (
+                                // For 'other' group, show orphaned permissions
+                                (() => {
+                                  const coveredIds = new Set<string | number>();
+                                  Object.entries(permissionGroups).forEach(([gKey, g]) => {
+                                    if (gKey !== 'other') {
+                                      g.modules.forEach(m => {
+                                        getModulePermissionsWithDefaults(m).forEach(p => coveredIds.add(p.id));
+                                      });
+                                    }
+                                  });
+                                  const orphaned = permissions.filter(p => !coveredIds.has(p.id));
+                                  return orphaned.length > 0 ? renderPermissionCard('other', orphaned, group) : (
+                                    <div className="col-span-2 text-center text-gray-500 text-sm py-4">
+                                      Tidak ada izin lainnya
+                                    </div>
+                                  );
+                                })()
+                              ) : (
+                                modulesToShow.map(module => {
+                                  const modulePermissions = getModulePermissionsWithDefaults(module);
+                                  return renderPermissionCard(module, modulePermissions, group);
+                                })
+                              )}
                             </div>
                           </CollapsibleContent>
                         </div>
