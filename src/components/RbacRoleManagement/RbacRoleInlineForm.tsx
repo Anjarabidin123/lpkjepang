@@ -111,11 +111,14 @@ const moduleTranslations: Record<string, string> = {
 
 const actionTranslations: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   view: { label: 'Lihat', icon: <Eye className="h-3.5 w-3.5" />, color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  read: { label: 'Baca', icon: <Eye className="h-3.5 w-3.5" />, color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  read: { label: 'Lihat', icon: <Eye className="h-3.5 w-3.5" />, color: 'bg-blue-100 text-blue-700 border-blue-200' },
   create: { label: 'Buat', icon: <Plus className="h-3.5 w-3.5" />, color: 'bg-green-100 text-green-700 border-green-200' },
-  write: { label: 'Tulis', icon: <Plus className="h-3.5 w-3.5" />, color: 'bg-green-100 text-green-700 border-green-200' },
+  add: { label: 'Buat', icon: <Plus className="h-3.5 w-3.5" />, color: 'bg-green-100 text-green-700 border-green-200' },
+  write: { label: 'Buat', icon: <Plus className="h-3.5 w-3.5" />, color: 'bg-green-100 text-green-700 border-green-200' },
   update: { label: 'Edit', icon: <Pencil className="h-3.5 w-3.5" />, color: 'bg-amber-100 text-amber-700 border-amber-200' },
+  edit: { label: 'Edit', icon: <Pencil className="h-3.5 w-3.5" />, color: 'bg-amber-100 text-amber-700 border-amber-200' },
   delete: { label: 'Hapus', icon: <Trash2 className="h-3.5 w-3.5" />, color: 'bg-red-100 text-red-700 border-red-200' },
+  destroy: { label: 'Hapus', icon: <Trash2 className="h-3.5 w-3.5" />, color: 'bg-red-100 text-red-700 border-red-200' },
   assign_roles: { label: 'Tugaskan', icon: <Users className="h-3.5 w-3.5" />, color: 'bg-purple-100 text-purple-700 border-purple-200' },
   assign_permissions: { label: 'Izin', icon: <Shield className="h-3.5 w-3.5" />, color: 'bg-purple-100 text-purple-700 border-purple-200' },
   manage: { label: 'Kelola', icon: <Settings className="h-3.5 w-3.5" />, color: 'bg-gray-100 text-gray-700 border-gray-200' },
@@ -178,11 +181,12 @@ export function RbacRoleInlineForm({
 
     // 2. If empty, try to find in the main permissions array (sometimes grouping names don't match exactly)
     if (existingPermissions.length === 0 && permissions.length > 0) {
-      existingPermissions = permissions.filter(p =>
-        (p.module === module) ||
-        (p.name && p.name.startsWith(`${module}_`)) ||
-        (p.name && p.name.startsWith(`${module}.`))
-      );
+      const normalizedModule = module.toLowerCase().replace(/[_-]/g, '');
+      existingPermissions = permissions.filter(p => {
+        const pModule = (p.module || '').toLowerCase().replace(/[_-]/g, '');
+        const pName = (p.name || '').toLowerCase().replace(/[_-]/g, '');
+        return pModule === normalizedModule || pName.startsWith(normalizedModule);
+      });
     }
 
     // 3. Fallback to defaults only if absolutely no real permissions found
@@ -385,11 +389,19 @@ export function RbacRoleInlineForm({
               icon: <Shield className="h-3 w-3" />,
               color: 'bg-gray-100 text-gray-700 border-gray-200'
             };
-            // Enhanced matching logic: Match by ID or by Name (e.g., 'internal_payment_view')
-            const isSelected = selectedPermissions.some(id =>
-              String(id) === String(permission.id) ||
-              (permission.name && String(id) === String(permission.name))
-            );
+            // Ultra-robust matching: Normalize strings by removing common separators
+            const normalize = (val: string | number | undefined) =>
+              String(val || '').toLowerCase().replace(/[._-]/g, '');
+
+            const isSelected = selectedPermissions.some(id => {
+              const sId = String(id);
+              const pId = String(permission.id);
+              const pName = String(permission.name || '');
+
+              return normalize(sId) === normalize(pId) ||
+                normalize(sId) === normalize(pName) ||
+                (pName.includes(normalize(sId)) && sId.length > 3);
+            });
 
             return (
               <button
@@ -399,11 +411,11 @@ export function RbacRoleInlineForm({
                 className={cn(
                   "inline-flex items-center gap-1 px-2 py-1 rounded border text-xs font-medium transition-all duration-150",
                   isSelected
-                    ? `${actionConfig.color} shadow-sm border-2 font-bold ring-1 ring-offset-1`
+                    ? `${actionConfig.color} shadow-sm border-2 font-bold ring-2 ring-offset-1 ring-violet-400`
                     : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
                 )}
               >
-                {isSelected ? <CheckCircle2 className="h-3 w-3" /> : actionConfig.icon}
+                {isSelected ? <CheckCircle2 className="h-3 w-3 animate-pulse" /> : actionConfig.icon}
                 {actionConfig.label}
               </button>
             );
