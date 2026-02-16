@@ -42,7 +42,7 @@ type FilterStatus = 'all' | 'active' | 'inactive';
 type FilterType = 'all' | 'system' | 'custom';
 
 export function RbacRoleManagementContent() {
-  const { roles, loading, createRole, updateRole, deleteRole, creating, updating } = useRbacRoles();
+  const { roles, loading, createRole, updateRole, deleteRole, creating, updating, fetchRoleWithPermissions } = useRbacRoles();
   const { permissions, permissionsByModule } = useRbacPermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
