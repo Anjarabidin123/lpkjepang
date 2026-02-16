@@ -137,7 +137,7 @@ export function RbacRoleInlineForm({
     description: '',
     is_active: true
   });
-  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [selectedPermissions, setSelectedPermissions] = useState<(string | number)[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['master_data']);
 
@@ -173,8 +173,19 @@ export function RbacRoleInlineForm({
   }, [mode, role]);
 
   const getModulePermissionsWithDefaults = (module: string) => {
-    const existingPermissions = permissionsByModule[module] || [];
+    // 1. Try to get from pre-grouped permissions
+    let existingPermissions = permissionsByModule[module] || [];
 
+    // 2. If empty, try to find in the main permissions array (sometimes grouping names don't match exactly)
+    if (existingPermissions.length === 0 && permissions.length > 0) {
+      existingPermissions = permissions.filter(p =>
+        (p.module === module) ||
+        (p.name && p.name.startsWith(`${module}_`)) ||
+        (p.name && p.name.startsWith(`${module}.`))
+      );
+    }
+
+    // 3. Fallback to defaults only if absolutely no real permissions found
     if (existingPermissions.length === 0) {
       const defaultActions = ['view', 'create', 'update', 'delete'];
       return defaultActions.map((action, index) => ({
@@ -220,15 +231,25 @@ export function RbacRoleInlineForm({
     const allSelected = modulePermissionIds.every(id => selectedPermissions.some(sId => String(sId) === String(id)));
 
     if (allSelected) {
-      setSelectedPermissions(prev => prev.filter(id => !modulePermissionIds.includes(id)));
+      // Remove all permissions of this module using string-safe comparison
+      setSelectedPermissions(prev => prev.filter(id => !modulePermissionIds.some(mId => String(mId) === String(id))));
     } else {
-      setSelectedPermissions(prev => [...prev.filter(id => !modulePermissionIds.includes(id)), ...modulePermissionIds]);
+      // Add all permissions of this module that aren't already selected
+      setSelectedPermissions(prev => {
+        const newIds = [...prev];
+        modulePermissionIds.forEach(mId => {
+          if (!newIds.some(existingId => String(existingId) === String(mId))) {
+            newIds.push(mId);
+          }
+        });
+        return newIds;
+      });
     }
   };
 
   const handleSelectAllGroup = (groupKey: string) => {
     const group = permissionGroups[groupKey as keyof typeof permissionGroups];
-    const groupPermissionIds: string[] = [];
+    const groupPermissionIds: (string | number)[] = [];
 
     group.modules.forEach(module => {
       const modulePermissions = getModulePermissionsWithDefaults(module);
@@ -238,9 +259,19 @@ export function RbacRoleInlineForm({
     const allSelected = groupPermissionIds.every(id => selectedPermissions.some(sId => String(sId) === String(id)));
 
     if (allSelected) {
-      setSelectedPermissions(prev => prev.filter(id => !groupPermissionIds.includes(id)));
+      // Remove all permissions of this group using string-safe comparison
+      setSelectedPermissions(prev => prev.filter(id => !groupPermissionIds.some(gId => String(gId) === String(id))));
     } else {
-      setSelectedPermissions(prev => [...prev.filter(id => !groupPermissionIds.includes(id)), ...groupPermissionIds]);
+      // Add all permissions of this group that aren't already selected
+      setSelectedPermissions(prev => {
+        const newIds = [...prev];
+        groupPermissionIds.forEach(gId => {
+          if (!newIds.some(existingId => String(existingId) === String(gId))) {
+            newIds.push(gId);
+          }
+        });
+        return newIds;
+      });
     }
   };
 
@@ -354,7 +385,11 @@ export function RbacRoleInlineForm({
               icon: <Shield className="h-3 w-3" />,
               color: 'bg-gray-100 text-gray-700 border-gray-200'
             };
-            const isSelected = selectedPermissions.some(id => String(id) === String(permission.id));
+            // Enhanced matching logic: Match by ID or by Name (e.g., 'internal_payment_view')
+            const isSelected = selectedPermissions.some(id =>
+              String(id) === String(permission.id) ||
+              (permission.name && String(id) === String(permission.name))
+            );
 
             return (
               <button
@@ -364,11 +399,11 @@ export function RbacRoleInlineForm({
                 className={cn(
                   "inline-flex items-center gap-1 px-2 py-1 rounded border text-xs font-medium transition-all duration-150",
                   isSelected
-                    ? `${actionConfig.color} shadow-sm`
+                    ? `${actionConfig.color} shadow-sm border-2 font-bold ring-1 ring-offset-1`
                     : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
                 )}
               >
-                {isSelected ? <Check className="h-3 w-3" /> : actionConfig.icon}
+                {isSelected ? <CheckCircle2 className="h-3 w-3" /> : actionConfig.icon}
                 {actionConfig.label}
               </button>
             );
