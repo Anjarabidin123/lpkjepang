@@ -91,18 +91,42 @@ export function RbacRoleManagementContent() {
     setShowForm(true);
   };
 
-  const handleEditRole = (role: Role) => {
+  const handleEditRole = async (role: Role) => {
     console.log('=== handleEditRole called ===');
-    console.log('Role to edit:', role);
-    console.log('Setting selectedRole:', role);
-    console.log('Setting formMode: edit');
-    console.log('Setting showForm: true');
+    console.log('Role to edit (from table):', role);
 
-    setSelectedRole(role);
-    setFormMode('edit');
-    setShowForm(true);
+    try {
+      // Fetch full role data with permissions from API
+      console.log('Fetching full role data with permissions...');
+      const roleWithPermissions = await fetchRoleWithPermissions(role.id);
 
-    console.log('State updated, form should appear');
+      if (!roleWithPermissions) {
+        console.error('Failed to fetch role with permissions');
+        toast({
+          title: "Error",
+          description: "Failed to load role details",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Role fetched with permissions:', roleWithPermissions);
+      console.log('Permissions count:', roleWithPermissions.permissions?.length || 0);
+      console.log('Permission IDs:', roleWithPermissions.permissions?.map(p => p.id) || []);
+
+      setSelectedRole(roleWithPermissions);
+      setFormMode('edit');
+      setShowForm(true);
+
+      console.log('Form opened with full role data');
+    } catch (error) {
+      console.error('Error in handleEditRole:', error);
+      toast({
+        title: "Error",
+        description: "Failed to open edit form",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelForm = () => {
