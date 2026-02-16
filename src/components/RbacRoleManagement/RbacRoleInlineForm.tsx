@@ -474,14 +474,14 @@ export function RbacRoleInlineForm({
                 type="button"
                 onClick={() => handlePermissionToggle(permission.id)}
                 className={cn(
-                  "inline-flex items-center gap-1 px-2 py-1 rounded border text-xs font-medium transition-all duration-150",
+                  "inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all duration-150",
                   isSelected
-                    ? `${actionConfig.color} shadow-sm border-2 font-bold ring-2 ring-offset-1 ring-violet-400`
-                    : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                    ? "bg-blue-100 border-2 border-blue-500 text-blue-800 shadow-md font-bold ring-2 ring-blue-300 ring-offset-1"
+                    : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
                 )}
               >
-                {isSelected ? <CheckCircle2 className="h-3 w-3 animate-pulse" /> : actionConfig.icon}
-                {actionConfig.label}
+                {isSelected ? <CheckCircle2 className="h-3 w-3 text-blue-600 animate-pulse" /> : actionConfig.icon}
+                <span className={isSelected ? "font-bold" : ""}>{actionConfig.label}</span>
               </button>
             );
           })}
