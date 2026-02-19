@@ -12,117 +12,63 @@ class ComprehensivePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define comprehensive permissions based on frontend modules
-        $permissionsData = [
-            // Detailed Permissions by Module
-            // Siswa Management
-            ['name' => 'siswa_view', 'description' => 'Lihat data siswa'],
-            ['name' => 'siswa_create', 'description' => 'Buat data siswa baru'],
-            ['name' => 'siswa_update', 'description' => 'Edit data siswa'],
-            ['name' => 'siswa_delete', 'description' => 'Hapus data siswa'],
-            ['name' => 'siswa_manage', 'description' => 'Kelola semua data siswa'],
-            
-            // Kumiai Management
-            ['name' => 'kumiai_view', 'description' => 'Lihat data kumiai'],
-            ['name' => 'kumiai_create', 'description' => 'Buat kumiai baru'],
-            ['name' => 'kumiai_update', 'description' => 'Edit data kumiai'],
-            ['name' => 'kumiai_delete', 'description' => 'Hapus kumiai'],
-            
-            // Perusahaan Management
-            ['name' => 'perusahaan_view', 'description' => 'Lihat data perusahaan'],
-            ['name' => 'perusahaan_create', 'description' => 'Buat perusahaan baru'],
-            ['name' => 'perusahaan_update', 'description' => 'Edit data perusahaan'],
-            ['name' => 'perusahaan_delete', 'description' => 'Hapus perusahaan'],
-            
-            // LPK Mitra Management
-            ['name' => 'lpk_mitra_view', 'description' => 'Lihat data LPK mitra'],
-            ['name' => 'lpk_mitra_create', 'description' => 'Buat LPK mitra baru'],
-            ['name' => 'lpk_mitra_update', 'description' => 'Edit data LPK mitra'],
-            ['name' => 'lpk_mitra_delete', 'description' => 'Hapus LPK mitra'],
-            
-            // Program Management
-            ['name' => 'program_view', 'description' => 'Lihat data program'],
-            ['name' => 'program_create', 'description' => 'Buat program baru'],
-            ['name' => 'program_update', 'description' => 'Edit data program'],
-            ['name' => 'program_delete', 'description' => 'Hapus program'],
-            
-            // Jenis Kerja Management
-            ['name' => 'jenis_kerja_view', 'description' => 'Lihat jenis kerja'],
-            ['name' => 'jenis_kerja_create', 'description' => 'Buat jenis kerja baru'],
-            ['name' => 'jenis_kerja_update', 'description' => 'Edit jenis kerja'],
-            ['name' => 'jenis_kerja_delete', 'description' => 'Hapus jenis kerja'],
-            
-            // Posisi Kerja Management
-            ['name' => 'posisi_kerja_view', 'description' => 'Lihat posisi kerja'],
-            ['name' => 'posisi_kerja_create', 'description' => 'Buat posisi kerja baru'],
-            ['name' => 'posisi_kerja_update', 'description' => 'Edit posisi kerja'],
-            ['name' => 'posisi_kerja_delete', 'description' => 'Hapus posisi kerja'],
-            
-            // Job Order Management
-            ['name' => 'job_order_view', 'description' => 'Lihat job order'],
-            ['name' => 'job_order_create', 'description' => 'Buat job order baru'],
-            ['name' => 'job_order_update', 'description' => 'Edit job order'],
-            ['name' => 'job_order_delete', 'description' => 'Hapus job order'],
-            
-            // Task Management
-            ['name' => 'task_view', 'description' => 'Lihat tugas'],
-            ['name' => 'task_create', 'description' => 'Buat tugas baru'],
-            ['name' => 'task_update', 'description' => 'Edit tugas'],
-            ['name' => 'task_delete', 'description' => 'Hapus tugas'],
-            
-            // Recruitment Management
-            ['name' => 'recruitment_view', 'description' => 'Lihat data rekrutmen'],
-            ['name' => 'recruitment_create', 'description' => 'Buat rekrutmen baru'],
-            ['name' => 'recruitment_update', 'description' => 'Edit rekrutmen'],
-            ['name' => 'recruitment_delete', 'description' => 'Hapus rekrutmen'],
-            
-            // Document Management
-            ['name' => 'document_view', 'description' => 'Lihat dokumen'],
-            ['name' => 'document_create', 'description' => 'Upload dokumen'],
-            ['name' => 'document_update', 'description' => 'Edit dokumen'],
-            ['name' => 'document_delete', 'description' => 'Hapus dokumen'],
-            ['name' => 'document_manage', 'description' => 'Kelola semua dokumen'],
-            
-            // Finance Management
-            ['name' => 'finance_view', 'description' => 'Lihat data keuangan, invoice, dan arus kas'],
-            ['name' => 'finance_create', 'description' => 'Buat transaksi keuangan'],
-            ['name' => 'finance_update', 'description' => 'Edit transaksi keuangan'],
-            ['name' => 'finance_delete', 'description' => 'Hapus transaksi keuangan'],
-            
-            // Education Management  
-            ['name' => 'education_view', 'description' => 'Lihat data pendidikan'],
-            ['name' => 'education_create', 'description' => 'Buat data pendidikan'],
-            ['name' => 'education_update', 'description' => 'Edit data pendidikan'],
-            ['name' => 'education_delete', 'description' => 'Hapus data pendidikan'],
-            ['name' => 'education_manage', 'description' => 'Kelola semua data pendidikan'],
-            
-            // Report Management
-            ['name' => 'report_view', 'description' => 'Lihat laporan dan monitoring KPI'],
-            ['name' => 'report_generate', 'description' => 'Generate laporan'],
-            ['name' => 'report_export', 'description' => 'Export laporan'],
-            
-            // User Management
-            ['name' => 'user_view', 'description' => 'Lihat data user'],
-            ['name' => 'user_create', 'description' => 'Buat user baru'],
-            ['name' => 'user_update', 'description' => 'Edit user'],
-            ['name' => 'user_delete', 'description' => 'Hapus user'],
-            ['name' => 'user_assign_roles', 'description' => 'Assign role ke user'],
-            
-            // Role Management
-            ['name' => 'role_view', 'description' => 'Lihat data role'],
-           ['name' => 'role_create', 'description' => 'Buat role baru'],
-            ['name' => 'role_update', 'description' => 'Edit role'],
-            ['name' => 'role_delete', 'description' => 'Hapus role'],
-            ['name' => 'role_assign_permissions', 'description' => 'Assign permission ke role'],
+        // 1. Define Legacy Access Permissions (Required by Middleware & Controllers)
+        $legacyAccess = [
+            'siswa_access' => 'Akses utama Modul Siswa & Rekrutmen',
+            'finance_access' => 'Akses utama Modul Keuangan (Transaksi, Arus Kas, Invoice)',
+            'master_access' => 'Akses utama Modul Master Data Utama',
+            'report_access' => 'Akses utama Modul Laporan & Monitoring KPI',
+            'task_access' => 'Akses utama Modul Tugas/Task',
+            'recruitment_access' => 'Akses utama Modul Rekrutmen',
+            'document_access' => 'Akses utama Modul Manajemen Dokumen',
+            'education_access' => 'Akses utama Modul Pendidikan & Magang',
         ];
 
-        foreach ($permissionsData as $permData) {
-            Permission::firstOrCreate(
+        foreach ($legacyAccess as $name => $desc) {
+            Permission::updateOrCreate(
+                ['name' => $name],
+                ['description' => $desc]
+            );
+        }
+
+        // 2. Define Granular Permissions for each module
+        $actions = ['view', 'create', 'update', 'delete', 'manage'];
+        
+        $modules = [
+            // Master Data
+            'siswa', 'kumiai', 'perusahaan', 'lpk_mitra', 'program', 'jenis_kerja', 'posisi_kerja', 'siswa_magang',
+            // Operasional
+            'job_order', 'tugas', 'rekrutmen', 'monitoring', 'dashboard',
+            // Transaksi
+            'internal_payment', 'invoice', 'arus_kas', 'pengaturan', 'laporan_keuangan',
+            // System
+            'user_management', 'role_management', 'system_management'
+        ];
+
+        foreach ($modules as $module) {
+            foreach ($actions as $action) {
+                Permission::updateOrCreate(
+                    ['name' => "{$module}_{$action}"],
+                    ['description' => strtoupper($action) . " permission for " . str_replace('_', ' ', $module)]
+                );
+            }
+        }
+
+        // 3. Add specialized permissions
+        $specialized = [
+            ['name' => 'report_generate', 'description' => 'Generate reports'],
+            ['name' => 'report_export', 'description' => 'Export reports'],
+            ['name' => 'user_assign_roles', 'description' => 'Assign roles to users'],
+            ['name' => 'role_assign_permissions', 'description' => 'Assign permissions to roles'],
+        ];
+
+        foreach ($specialized as $permData) {
+            Permission::updateOrCreate(
                 ['name' => $permData['name']],
                 ['description' => $permData['description']]
             );
         }
 
-        $this->command->info('✅ ' . count($permissionsData) . ' permissions created/verified successfully!');
+        $this->command->info('✅ RBAC synchronization complete!');
     }
 }

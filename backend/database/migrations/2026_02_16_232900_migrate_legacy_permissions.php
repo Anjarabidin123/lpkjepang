@@ -75,7 +75,7 @@ return new class extends Migration
             DB::table('permissions')->where('id', $oldPermission->id)->delete();
         }
 
-        $this->command->info('✅ Legacy permissions migrated successfully!');
+        echo "✅ Legacy permissions migrated successfully!\n";
     }
 
     /**
@@ -84,6 +84,6 @@ return new class extends Migration
     public function down(): void
     {
         // Cannot reverse this migration safely
-        $this->command->warn('⚠️  This migration cannot be reversed. Old permissions are deleted.');
+        echo "⚠️  This migration cannot be reversed. Old permissions are deleted.\n";
     }
 };

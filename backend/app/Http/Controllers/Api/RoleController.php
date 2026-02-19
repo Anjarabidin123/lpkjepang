@@ -20,14 +20,18 @@ class RoleController extends Controller
                 'name' => 'required|string|max:255|unique:roles,name',
                 'display_name' => 'nullable|string|max:255',
                 'description' => 'nullable|string|max:500',
+                'is_active' => 'nullable|boolean',
+                'is_system_role' => 'nullable|boolean',
                 'permissions' => 'nullable|array',
                 'permissions.*' => 'exists:permissions,id'
             ]);
 
-            // Create role with name and description only (display_name not in DB schema)
             $role = Role::create([
                 'name' => $request->name,
-                'description' => $request->description
+                'display_name' => $request->display_name ?? ucwords(str_replace('_', ' ', $request->name)),
+                'description' => $request->description,
+                'is_active' => $request->is_active ?? true,
+                'is_system_role' => $request->is_system_role ?? false
             ]);
 
             // Attach permissions if provided
@@ -66,7 +70,16 @@ class RoleController extends Controller
             
             // PROTECT SUPER ADMIN ROLE
             if ($role->name === 'super_admin' || $role->id === 1) {
-                return response()->json(['message' => 'Role Super Admin tidak dapat diubah.'], 403);
+                // Only allow permissions sync for super admin if needed, but usually we don't change super admin
+                if ($request->has('permissions') && $role->name === 'super_admin') {
+                     // Still allow syncing if explicitly requested, but usually Super Admin bypasses perms anyway
+                     $role->permissions()->sync($request->permissions);
+                }
+                
+                // For other fields, super admin is immutable
+                if ($request->has('name') || $request->has('description')) {
+                    return response()->json(['message' => 'Role Super Admin tidak dapat diubah.'], 403);
+                }
             }
 
             $validated = $request->validate([
@@ -75,16 +88,17 @@ class RoleController extends Controller
                 'description' => 'nullable|string|max:500',
                 'permissions' => 'nullable|array',
                 'permissions.*' => 'exists:permissions,id',
-                'is_active' => 'nullable|boolean'
+                'is_active' => 'nullable|boolean',
+                'is_system_role' => 'nullable|boolean'
             ]);
 
-            // Update only fields that exist in the database schema
+            // Update fields
             $updateData = [];
-            if ($request->has('name')) {
-                $updateData['name'] = $request->name;
-            }
-            if ($request->has('description')) {
-                $updateData['description'] = $request->description;
+            $fields = ['name', 'display_name', 'description', 'is_active', 'is_system_role'];
+            foreach ($fields as $field) {
+                if ($request->has($field)) {
+                    $updateData[$field] = $request->get($field);
+                }
             }
             
             if (!empty($updateData)) {

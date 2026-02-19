@@ -115,6 +115,18 @@ class SiswaController extends Controller
                     'tanggal_masuk_lpk' => 'nullable|date',
                     'lama_belajar' => 'nullable|string',
                     'is_available' => 'nullable|boolean',
+
+                    // Emergency Contact (Added during audit)
+                    'kontak_darurat_nama' => 'nullable|string|max:255',
+                    'kontak_darurat_no_hp' => 'nullable|string|max:20',
+                    'kontak_darurat_alamat' => 'nullable|string',
+                    'kontak_darurat_rt_rw' => 'nullable|string|max:20',
+                    'kontak_darurat_kelurahan' => 'nullable|string|max:255',
+                    'kontak_darurat_kecamatan' => 'nullable|string|max:255',
+                    'kontak_darurat_kab_kota' => 'nullable|string|max:255',
+                    'kontak_darurat_provinsi' => 'nullable|string|max:255',
+                    'kontak_darurat_kode_pos' => 'nullable|string|max:10',
+                    'kontak_darurat_penghasilan_per_bulan' => 'nullable|numeric',
                 ]);
 
                 $siswa = Siswa::create($validated);
@@ -263,6 +275,18 @@ class SiswaController extends Controller
                     'tanggal_masuk_lpk' => 'nullable|date',
                     'lama_belajar' => 'nullable|string',
                     'is_available' => 'nullable|boolean',
+
+                    // Emergency Contact (Added during audit)
+                    'kontak_darurat_nama' => 'nullable|string|max:255',
+                    'kontak_darurat_no_hp' => 'nullable|string|max:20',
+                    'kontak_darurat_alamat' => 'nullable|string',
+                    'kontak_darurat_rt_rw' => 'nullable|string|max:20',
+                    'kontak_darurat_kelurahan' => 'nullable|string|max:255',
+                    'kontak_darurat_kecamatan' => 'nullable|string|max:255',
+                    'kontak_darurat_kab_kota' => 'nullable|string|max:255',
+                    'kontak_darurat_provinsi' => 'nullable|string|max:255',
+                    'kontak_darurat_kode_pos' => 'nullable|string|max:10',
+                    'kontak_darurat_penghasilan_per_bulan' => 'nullable|numeric',
                 ]);
                 
                 $siswa->update($validated);
