@@ -66,6 +66,24 @@ export class UserRoleService {
     }
   }
 
+  static async updateUser(userId: string, data: any): Promise<boolean> {
+    console.log('Updating user via API:', userId, data);
+    try {
+      const response = await authFetch(`${endpoints.users}/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update user');
+      }
+      return true;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
   static subscribeToUserRoles(callback: (users: UserWithRoles[]) => void) {
     return () => { };
   }

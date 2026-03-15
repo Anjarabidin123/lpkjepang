@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface FormData {
   nama_job_order: string;
   kumiai_id: string | undefined;
+  perusahaan_id: string | undefined;
   jenis_kerja_id: string | undefined;
+  tanggal_job_order: string;
   catatan: string;
   status: 'Aktif' | 'Nonaktif';
   kuota?: number;
@@ -19,16 +21,18 @@ interface JobOrderFormFieldsProps {
   isLoading: boolean;
   kumiai: any[];
   jenisKerja: any[];
+  perusahaan: any[];
   onFieldChange: (field: string, value: any) => void;
 }
 
-export function JobOrderFormFields({ 
-  formData, 
-  formErrors, 
-  isLoading, 
-  kumiai, 
-  jenisKerja, 
-  onFieldChange 
+export function JobOrderFormFields({
+  formData,
+  formErrors,
+  isLoading,
+  kumiai,
+  jenisKerja,
+  perusahaan,
+  onFieldChange
 }: JobOrderFormFieldsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -66,6 +70,18 @@ export function JobOrderFormFields({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
+            Tanggal Job Order
+          </label>
+          <Input
+            type="date"
+            value={formData.tanggal_job_order}
+            onChange={(e) => onFieldChange('tanggal_job_order', e.target.value)}
+            disabled={isLoading}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Kumiai
           </label>
           <Select
@@ -89,6 +105,29 @@ export function JobOrderFormFields({
       </div>
 
       <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Perusahaan (Employer)
+          </label>
+          <Select
+            value={formData.perusahaan_id || ''}
+            onValueChange={(value) => onFieldChange('perusahaan_id', value || undefined)}
+            disabled={isLoading || !formData.kumiai_id}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={formData.kumiai_id ? "Pilih perusahaan" : "Pilih kumiai terlebih dahulu"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Tidak ada</SelectItem>
+              {perusahaan?.filter(p => !formData.kumiai_id || String(p.kumiai_id) === String(formData.kumiai_id)).map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  {item.kode} - {item.nama}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Jenis Kerja

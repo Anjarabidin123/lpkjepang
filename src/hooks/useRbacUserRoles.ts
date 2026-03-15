@@ -87,6 +87,31 @@ export function useRbacUserRoles() {
     }
   };
 
+  const updateUser = async (userId: string, data: any): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const success = await UserRoleService.updateUser(userId, data);
+      if (success) {
+        toast({
+          title: "Success",
+          description: "User updated successfully",
+        });
+        await fetchUsers();
+      }
+      return success;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update user",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
 
@@ -104,6 +129,7 @@ export function useRbacUserRoles() {
     fetchUsers,
     assignRoles,
     getUserRoles,
-    deleteUser
+    deleteUser,
+    updateUser
   };
 }

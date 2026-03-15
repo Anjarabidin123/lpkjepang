@@ -27,7 +27,8 @@ import {
   CheckCircle2,
   Circle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -56,6 +57,15 @@ const permissionGroups = {
     textColor: 'text-blue-700',
     modules: ['siswa_magang', 'siswa', 'kumiai', 'perusahaan', 'lpk_mitra', 'program', 'jenis_kerja', 'posisi_kerja']
   },
+  'pendidikan': {
+    label: 'Pendidikan',
+    icon: GraduationCap,
+    color: 'from-blue-500 to-indigo-500',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-200',
+    textColor: 'text-indigo-700',
+    modules: ['education', 'absensi', 'nilai', 'materi']
+  },
   'operasional': {
     label: 'Operasional',
     icon: Briefcase,
@@ -63,7 +73,7 @@ const permissionGroups = {
     bgColor: 'bg-emerald-50',
     borderColor: 'border-emerald-200',
     textColor: 'text-emerald-700',
-    modules: ['job_order', 'tugas', 'rekrutmen', 'monitoring', 'dashboard']
+    modules: ['job_order', 'tugas', 'task', 'rekrutmen', 'recruitment', 'monitoring', 'report', 'dashboard']
   },
   'transaksi': {
     label: 'Transaksi',
@@ -72,7 +82,7 @@ const permissionGroups = {
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200',
     textColor: 'text-amber-700',
-    modules: ['internal_payment', 'invoice', 'arus_kas', 'pengaturan', 'laporan_keuangan']
+    modules: ['internal_payment', 'invoice', 'arus_kas', 'finance', 'pengaturan', 'laporan_keuangan']
   },
   'system_management': {
     label: 'Manajemen Sistem',
@@ -81,7 +91,7 @@ const permissionGroups = {
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
     textColor: 'text-purple-700',
-    modules: ['user_management', 'role_management', 'system_management']
+    modules: ['user_management', 'role_management', 'system_management', 'user', 'role', 'document', 'demografi']
   },
   'other': {
     label: 'Izin Lainnya',
@@ -98,6 +108,8 @@ const moduleTranslations: Record<string, string> = {
   user_management: 'Manajemen Pengguna',
   role_management: 'Manajemen Peran',
   system_management: 'Manajemen Sistem',
+  user: 'Pengguna',
+  role: 'Peran',
   siswa_magang: 'Siswa Magang',
   siswa: 'Siswa',
   kumiai: 'Kumiai',
@@ -108,19 +120,30 @@ const moduleTranslations: Record<string, string> = {
   posisi_kerja: 'Posisi Kerja',
   job_order: 'Job Order',
   tugas: 'Tugas',
+  task: 'Tugas (Legacy)',
   rekrutmen: 'Rekrutmen',
+  recruitment: 'Rekrutmen (Legacy)',
   monitoring: 'Monitoring',
+  report: 'Laporan',
   dashboard: 'Dashboard',
   internal_payment: 'Internal Payment',
   invoice: 'Invoice',
   arus_kas: 'Arus Kas',
+  finance: 'Keuangan (Akses Utama)',
   pengaturan: 'Pengaturan',
-  laporan_keuangan: 'Laporan Keuangan'
+  laporan_keuangan: 'Laporan Keuangan',
+  education: 'Pendidikan',
+  absensi: 'Absensi',
+  nilai: 'Penilaian',
+  materi: 'Materi Belajar',
+  document: 'Dokumen',
+  demografi: 'Demografi'
 };
 
 const actionTranslations: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   view: { label: 'Lihat', icon: <Eye className="h-3.5 w-3.5" />, color: 'bg-blue-100 text-blue-700 border-blue-200' },
   read: { label: 'Lihat', icon: <Eye className="h-3.5 w-3.5" />, color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  access: { label: 'Akses Utama', icon: <Shield className="h-3.5 w-3.5" />, color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
   create: { label: 'Buat', icon: <Plus className="h-3.5 w-3.5" />, color: 'bg-green-100 text-green-700 border-green-200' },
   add: { label: 'Buat', icon: <Plus className="h-3.5 w-3.5" />, color: 'bg-green-100 text-green-700 border-green-200' },
   write: { label: 'Buat', icon: <Plus className="h-3.5 w-3.5" />, color: 'bg-green-100 text-green-700 border-green-200' },
@@ -147,7 +170,8 @@ export function RbacRoleInlineForm({
     name: '',
     display_name: '',
     description: '',
-    is_active: true
+    is_active: true,
+    is_system_role: false
   });
   const [selectedPermissions, setSelectedPermissions] = useState<(string | number)[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -159,22 +183,16 @@ export function RbacRoleInlineForm({
         name: role.name,
         display_name: role.display_name,
         description: role.description || '',
-        is_active: role.is_active
+        is_active: role.is_active,
+        is_system_role: role.is_system_role || false
       });
 
       // Load existing permissions from role
       const roleWithPerms = role as RoleWithPermissions;
       if (roleWithPerms.permissions && roleWithPerms.permissions.length > 0) {
         const existingPermissionIds = roleWithPerms.permissions.map(p => p.id);
-        console.log('Loading existing permissions for role:', role.name, existingPermissionIds);
-        console.log('📋 Full permission objects:', JSON.stringify(roleWithPerms.permissions, null, 2));
-        console.log('📋 Permission details:');
-        roleWithPerms.permissions.forEach(p => {
-          console.log(`  - ID: ${p.id}, Name: ${p.name}, Module: ${p.module}, Action: ${p.action}`);
-        });
         setSelectedPermissions(existingPermissionIds);
       } else {
-        console.log('No existing permissions found for role:', role.name);
         setSelectedPermissions([]);
       }
     } else {
@@ -182,7 +200,8 @@ export function RbacRoleInlineForm({
         name: '',
         display_name: '',
         description: '',
-        is_active: true
+        is_active: true,
+        is_system_role: false
       });
       setSelectedPermissions([]);
     }
@@ -191,17 +210,17 @@ export function RbacRoleInlineForm({
 
   // Helper function to extract module and action from permission name
   const parsePermissionName = (permission: Permission): { module: string; action: string } => {
-    // If permission already has module and action, use them
-    if (permission.module && permission.action) {
+    // If permission already has module and action, use them (now provided by service)
+    if (permission.module && permission.action && permission.module !== 'other') {
       return { module: permission.module, action: permission.action };
     }
 
-    // Try to parse from name (e.g., "siswa_view" => { module: "siswa", action: "view" })
+    // Fallback parsing from name (e.g., "siswa_view" => { module: "siswa", action: "view" })
     const name = permission.name || '';
     const parts = name.split('_');
 
     // Common action keywords
-    const actionKeywords = ['view', 'create', 'update', 'delete', 'manage', 'access', 'generate', 'export', 'assign'];
+    const actionKeywords = ['view', 'create', 'update', 'delete', 'manage', 'access', 'generate', 'export', 'assign', 'read', 'write', 'add', 'edit', 'destroy'];
 
     // Find the action keyword
     const actionIndex = parts.findIndex(part => actionKeywords.includes(part));
@@ -213,7 +232,7 @@ export function RbacRoleInlineForm({
     }
 
     // Fallback: if no recognizable pattern, treat whole name as action with generic module
-    return { module: 'other', action: name };
+    return { module: permission.module || 'other', action: actionIndex === 0 ? parts[0] : name };
   };
 
   const getModulePermissionsWithDefaults = (module: string) => {
@@ -447,7 +466,7 @@ export function RbacRoleInlineForm({
               icon: <Shield className="h-3 w-3" />,
               color: 'bg-gray-100 text-gray-700 border-gray-200'
             };
-            // Ultra-robust matching: Normalize strings by removing common separators
+            // Standardize comparison by converting to string and normalizing
             const normalize = (val: string | number | undefined) =>
               String(val || '').toLowerCase().replace(/[._-]/g, '');
 
@@ -456,16 +475,10 @@ export function RbacRoleInlineForm({
               const pId = String(permission.id);
               const pName = String(permission.name || '');
 
-              const match = normalize(sId) === normalize(pId) ||
-                normalize(sId) === normalize(pName) ||
-                (pName.includes(normalize(sId)) && sId.length > 3);
-
-              // Debug log for first 5 permissions only to avoid spam
-              if (selectedPermissions.length > 0 && permission.id.toString().length < 15) {
-                console.log(`🔍 Matching attempt: Selected ID "${sId}" vs Permission ID "${pId}" (${permission.name}): ${match}`);
-              }
-
-              return match;
+              return sId === pId ||
+                sId === pName ||
+                normalize(sId) === normalize(pId) ||
+                normalize(sId) === normalize(pName);
             });
 
             return (
@@ -474,14 +487,14 @@ export function RbacRoleInlineForm({
                 type="button"
                 onClick={() => handlePermissionToggle(permission.id)}
                 className={cn(
-                  "inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all duration-150",
+                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all duration-200",
                   isSelected
-                    ? "bg-blue-100 border-2 border-blue-500 text-blue-800 shadow-md font-bold ring-2 ring-blue-300 ring-offset-1"
-                    : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+                    ? `${actionConfig.color} border-2 shadow-sm ring-1 ring-offset-0 ring-opacity-50 ring-current scale-105 z-10`
+                    : "bg-white border border-gray-200 text-gray-400 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-600 shadow-sm"
                 )}
               >
-                {isSelected ? <CheckCircle2 className="h-3 w-3 text-blue-600 animate-pulse" /> : actionConfig.icon}
-                <span className={isSelected ? "font-bold" : ""}>{actionConfig.label}</span>
+                {isSelected ? <Check className="h-3.5 w-3.5 animate-in zoom-in duration-300" /> : actionConfig.icon}
+                <span>{actionConfig.label}</span>
               </button>
             );
           })}

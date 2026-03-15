@@ -223,7 +223,12 @@ export function RbacRoleTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1 max-w-[300px]">
-                    {((role as RoleWithPermissions).permissions || []).length > 0 ? (
+                    {role.name === 'super_admin' ? (
+                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 font-bold px-2 py-1 flex items-center gap-1.5">
+                        <Shield className="h-3 w-3" />
+                        Akses Penuh (Sistem)
+                      </Badge>
+                    ) : ((role as RoleWithPermissions).permissions || []).length > 0 ? (
                       <>
                         <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-100 font-bold px-1.5 h-5">
                           {((role as RoleWithPermissions).permissions || []).length}

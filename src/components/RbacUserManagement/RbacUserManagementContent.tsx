@@ -9,6 +9,8 @@ import { useRbacRoles } from '@/hooks/useRbacRoles';
 import { RbacUserTable } from './RbacUserTable';
 import { RbacUserRoleDialog } from './RbacUserRoleDialog';
 import { RbacUserCreateDialog } from './RbacUserCreateDialog';
+import { RbacUserEditDialog } from './RbacUserEditDialog';
+import { RbacUserDetailDialog } from './RbacUserDetailDialog';
 import { UserWithRoles } from '@/types/rbac';
 import {
   AlertDialog,
@@ -22,12 +24,14 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export function RbacUserManagementContent() {
-  const { users, loading, assignRoles, assigning, deleteUser } = useRbacUserRoles();
+  const { users, loading, assignRoles, assigning, deleteUser, updateUser } = useRbacUserRoles();
   const { roles } = useRbacRoles();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserWithRoles | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -62,6 +66,20 @@ export function RbacUserManagementContent() {
         setUserToDelete(null);
       }
     }
+  };
+
+  const handleEditUser = (user: UserWithRoles) => {
+    setSelectedUser(user);
+    setShowEditDialog(true);
+  };
+
+  const handleViewUser = (user: UserWithRoles) => {
+    setSelectedUser(user);
+    setShowDetailDialog(true);
+  };
+
+  const handleUpdateUser = async (userId: string, data: any) => {
+    return await updateUser(userId, data);
   };
 
   return (
@@ -114,6 +132,8 @@ export function RbacUserManagementContent() {
             users={filteredUsers}
             loading={loading}
             onEditRoles={handleEditUserRoles}
+            onEdit={handleEditUser}
+            onView={handleViewUser}
             onDelete={(userId) => {
               const user = users.find(u => u.id === userId);
               if (user) confirmDeleteUser(user);
@@ -133,6 +153,22 @@ export function RbacUserManagementContent() {
           loading={assigning}
         />
       )}
+
+      {/* Edit User Dialog */}
+      <RbacUserEditDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        user={selectedUser}
+        onSave={handleUpdateUser}
+        loading={loading}
+      />
+
+      {/* User Detail Dialog */}
+      <RbacUserDetailDialog
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+        user={selectedUser}
+      />
 
       {/* Create User Dialog */}
       <RbacUserCreateDialog

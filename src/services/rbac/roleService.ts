@@ -3,6 +3,7 @@
 import { Role, CreateRoleData, UpdateRoleData, RoleWithPermissions } from '@/types/rbac';
 import { endpoints } from '@/config/api';
 import { authFetch } from '@/lib/api-client';
+import { PermissionService } from './permissionService';
 
 export class RoleService {
   static async fetchRoles(): Promise<Role[]> {
@@ -14,9 +15,9 @@ export class RoleService {
       const data = await response.json();
       return data.map((r: any) => ({
         ...r,
-        display_name: r.name, // Fallback
-        is_system_role: false,
-        is_active: true
+        display_name: r.display_name || r.name, // Fallback
+        is_system_role: r.is_system_role || false,
+        is_active: r.is_active !== undefined ? r.is_active : true
       })) as Role[];
     } catch (e) {
       return [];
@@ -29,14 +30,19 @@ export class RoleService {
       const response = await authFetch(`${endpoints.roles}/${roleId}`);
       if (!response.ok) return null;
       const role = await response.json();
+
+      // Parse permissions to ensure module/action are set
+      const parsedPermissions = (role.permissions || []).map((p: any) => PermissionService.parsePermission(p));
+
       return {
         ...role,
-        display_name: role.name,
-        is_system_role: false,
-        is_active: true,
-        permissions: role.permissions || []
+        display_name: role.display_name || role.name,
+        is_system_role: role.is_system_role || false,
+        is_active: role.is_active !== undefined ? role.is_active : true,
+        permissions: parsedPermissions
       } as RoleWithPermissions;
     } catch (e) {
+      console.error('Error in fetchRoleWithPermissions:', e);
       return null;
     }
   }
@@ -53,6 +59,8 @@ export class RoleService {
           name: roleData.name,
           display_name: roleData.display_name,
           description: roleData.description,
+          is_active: roleData.is_active,
+          is_system_role: roleData.is_system_role,
           permissions: roleData.permission_ids
         })
       });
@@ -79,6 +87,8 @@ export class RoleService {
           name: updates.name,
           display_name: updates.display_name,
           description: updates.description,
+          is_active: updates.is_active,
+          is_system_role: updates.is_system_role,
           permissions: updates.permission_ids
         })
       });

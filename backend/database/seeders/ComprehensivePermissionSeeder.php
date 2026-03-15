@@ -37,12 +37,14 @@ class ComprehensivePermissionSeeder extends Seeder
         $modules = [
             // Master Data
             'siswa', 'kumiai', 'perusahaan', 'lpk_mitra', 'program', 'jenis_kerja', 'posisi_kerja', 'siswa_magang',
+            // Pendidikan
+            'education', 'absensi', 'nilai', 'materi',
             // Operasional
             'job_order', 'tugas', 'rekrutmen', 'monitoring', 'dashboard',
             // Transaksi
             'internal_payment', 'invoice', 'arus_kas', 'pengaturan', 'laporan_keuangan',
             // System
-            'user_management', 'role_management', 'system_management'
+            'user_management', 'role_management', 'system_management', 'demografi'
         ];
 
         foreach ($modules as $module) {

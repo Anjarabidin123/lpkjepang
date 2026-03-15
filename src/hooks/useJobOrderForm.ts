@@ -5,7 +5,9 @@ import { JobOrder, JobOrderInsert, JobOrderUpdateData } from '@/types/jobOrder';
 interface FormData {
   nama_job_order: string;
   kumiai_id: string | undefined;
+  perusahaan_id: string | undefined;
   jenis_kerja_id: string | undefined;
+  tanggal_job_order: string;
   catatan: string;
   status: 'Aktif' | 'Nonaktif';
   kuota?: number;
@@ -15,7 +17,9 @@ export function useJobOrderForm(jobOrder?: JobOrder | null) {
   const [formData, setFormData] = useState<FormData>({
     nama_job_order: '',
     kumiai_id: undefined,
+    perusahaan_id: undefined,
     jenis_kerja_id: undefined,
+    tanggal_job_order: new Date().toISOString().split('T')[0],
     catatan: '',
     status: 'Aktif',
     kuota: undefined,
@@ -29,7 +33,9 @@ export function useJobOrderForm(jobOrder?: JobOrder | null) {
       setFormData({
         nama_job_order: jobOrder.nama_job_order || '',
         kumiai_id: jobOrder.kumiai_id || undefined,
+        perusahaan_id: jobOrder.perusahaan_id || undefined,
         jenis_kerja_id: jobOrder.jenis_kerja_id || undefined,
+        tanggal_job_order: jobOrder.tanggal_job_order || new Date().toISOString().split('T')[0],
         catatan: jobOrder.catatan || '',
         status: jobOrder.status || 'Aktif',
         kuota: jobOrder.kuota || undefined,
@@ -38,7 +44,9 @@ export function useJobOrderForm(jobOrder?: JobOrder | null) {
       setFormData({
         nama_job_order: '',
         kumiai_id: undefined,
+        perusahaan_id: undefined,
         jenis_kerja_id: undefined,
+        tanggal_job_order: new Date().toISOString().split('T')[0],
         catatan: '',
         status: 'Aktif',
         kuota: undefined,
@@ -58,7 +66,7 @@ export function useJobOrderForm(jobOrder?: JobOrder | null) {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.nama_job_order.trim()) {
       errors.nama_job_order = 'Nama job order harus diisi';
     }
@@ -71,7 +79,9 @@ export function useJobOrderForm(jobOrder?: JobOrder | null) {
     return {
       nama_job_order: formData.nama_job_order.trim(),
       kumiai_id: formData.kumiai_id || null,
+      perusahaan_id: formData.perusahaan_id || null,
       jenis_kerja_id: formData.jenis_kerja_id || null,
+      tanggal_job_order: formData.tanggal_job_order || null,
       catatan: formData.catatan.trim() || null,
       status: formData.status,
       kuota: formData.kuota || null,
@@ -82,7 +92,9 @@ export function useJobOrderForm(jobOrder?: JobOrder | null) {
     return {
       nama_job_order: formData.nama_job_order.trim(),
       kumiai_id: formData.kumiai_id || null,
+      perusahaan_id: formData.perusahaan_id || null,
       jenis_kerja_id: formData.jenis_kerja_id || null,
+      tanggal_job_order: formData.tanggal_job_order || null,
       catatan: formData.catatan.trim() || null,
       status: formData.status,
       kuota: formData.kuota || null,

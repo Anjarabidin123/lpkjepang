@@ -8,6 +8,8 @@ export interface JobOrder {
   updated_at?: string;
   jenis_kerja_id?: string | null;
   kumiai_id?: string | null;
+  perusahaan_id?: string | null; // Added during audit
+  tanggal_job_order?: string | null; // Added during audit
   peserta_count?: number; // Add this missing property
   jenis_kerja?: {
     id: string;
@@ -29,6 +31,13 @@ export interface JobOrder {
     email?: string | null;
     jumlah_perusahaan?: number | null;
     tanggal_kerjasama?: string | null;
+    alamat?: string | null;
+  };
+  perusahaan?: {
+    id: string;
+    nama: string;
+    kode: string;
+    bidang_usaha?: string | null;
     alamat?: string | null;
   };
 }

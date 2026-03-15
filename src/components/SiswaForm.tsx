@@ -78,6 +78,18 @@ type SiswaFormData = {
   is_available?: boolean;
   demografi_province_id?: string;
   demografi_regency_id?: string;
+
+  // Emergency Contact (Added during audit)
+  kontak_darurat_nama?: string;
+  kontak_darurat_no_hp?: string;
+  kontak_darurat_alamat?: string;
+  kontak_darurat_rt_rw?: string;
+  kontak_darurat_kelurahan?: string;
+  kontak_darurat_kecamatan?: string;
+  kontak_darurat_kab_kota?: string;
+  kontak_darurat_provinsi?: string;
+  kontak_darurat_kode_pos?: string;
+  kontak_darurat_penghasilan_per_bulan?: number;
 };
 
 export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
@@ -141,6 +153,18 @@ export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
       is_available: siswa?.is_available !== undefined ? siswa.is_available : true,
       demografi_province_id: siswa?.demografi_province_id || '',
       demografi_regency_id: siswa?.demografi_regency_id || '',
+
+      // Emergency Contact (Added during audit)
+      kontak_darurat_nama: siswa?.kontak_darurat_nama || '',
+      kontak_darurat_no_hp: siswa?.kontak_darurat_no_hp || '',
+      kontak_darurat_alamat: siswa?.kontak_darurat_alamat || '',
+      kontak_darurat_rt_rw: siswa?.kontak_darurat_rt_rw || '',
+      kontak_darurat_kelurahan: siswa?.kontak_darurat_kelurahan || '',
+      kontak_darurat_kecamatan: siswa?.kontak_darurat_kecamatan || '',
+      kontak_darurat_kab_kota: siswa?.kontak_darurat_kab_kota || '',
+      kontak_darurat_provinsi: siswa?.kontak_darurat_provinsi || '',
+      kontak_darurat_kode_pos: siswa?.kontak_darurat_kode_pos || '',
+      kontak_darurat_penghasilan_per_bulan: siswa?.kontak_darurat_penghasilan_per_bulan || undefined,
     }
   });
 
@@ -697,6 +721,97 @@ export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
                 </div>
               </div>
 
+              {/* Emergency Contact Information (Added during audit) */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Kontak Darurat</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="kontak_darurat_nama">Nama Kontak Darurat</Label>
+                    <Input
+                      id="kontak_darurat_nama"
+                      {...form.register("kontak_darurat_nama")}
+                      placeholder="Nama Lengkap"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="kontak_darurat_no_hp">No. HP / WhatsApp</Label>
+                    <Input
+                      id="kontak_darurat_no_hp"
+                      {...form.register("kontak_darurat_no_hp")}
+                      placeholder="Contoh: 0812XXXXXXXX"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="kontak_darurat_penghasilan_per_bulan">Penghasilan / Bulan</Label>
+                    <Input
+                      id="kontak_darurat_penghasilan_per_bulan"
+                      type="number"
+                      {...form.register("kontak_darurat_penghasilan_per_bulan", { valueAsNumber: true })}
+                      placeholder="Contoh: 3000000"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <Label htmlFor="kontak_darurat_alamat">Alamat Lengkap</Label>
+                  <Textarea
+                    id="kontak_darurat_alamat"
+                    {...form.register("kontak_darurat_alamat")}
+                    placeholder="Alamat lengkap kontak darurat"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                  <div>
+                    <Label htmlFor="kontak_darurat_rt_rw">RT / RW</Label>
+                    <Input
+                      id="kontak_darurat_rt_rw"
+                      {...form.register("kontak_darurat_rt_rw")}
+                      placeholder="00/00"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="kontak_darurat_kelurahan">Kelurahan / Desa</Label>
+                    <Input
+                      id="kontak_darurat_kelurahan"
+                      {...form.register("kontak_darurat_kelurahan")}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="kontak_darurat_kecamatan">Kecamatan</Label>
+                    <Input
+                      id="kontak_darurat_kecamatan"
+                      {...form.register("kontak_darurat_kecamatan")}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="kontak_darurat_kode_pos">Kode Pos</Label>
+                    <Input
+                      id="kontak_darurat_kode_pos"
+                      {...form.register("kontak_darurat_kode_pos")}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label htmlFor="kontak_darurat_kab_kota">Kabupaten / Kota</Label>
+                    <Input
+                      id="kontak_darurat_kab_kota"
+                      {...form.register("kontak_darurat_kab_kota")}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="kontak_darurat_provinsi">Provinsi</Label>
+                    <Input
+                      id="kontak_darurat_provinsi"
+                      {...form.register("kontak_darurat_provinsi")}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Advanced Profile Info */}
               <div className="border-t pt-6">
                 <h3 className="text-lg font-medium mb-4">Profil Lanjutan</h3>
@@ -824,6 +939,6 @@ export default function SiswaForm({ siswa, onCancel, onSave }: SiswaFormProps) {
           </Form>
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }

@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserCog, Mail, Phone, Trash2 } from 'lucide-react';
+import { UserCog, Mail, Phone, Trash2, Edit, Eye } from 'lucide-react';
 import { UserWithRoles } from '@/types/rbac';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
@@ -12,10 +12,12 @@ interface RbacUserTableProps {
   users: UserWithRoles[];
   loading: boolean;
   onEditRoles: (user: UserWithRoles) => void;
+  onEdit?: (user: UserWithRoles) => void;
+  onView?: (user: UserWithRoles) => void;
   onDelete?: (userId: string) => void;
 }
 
-export function RbacUserTable({ users, loading, onEditRoles, onDelete }: RbacUserTableProps) {
+export function RbacUserTable({ users, loading, onEditRoles, onEdit, onView, onDelete }: RbacUserTableProps) {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -97,14 +99,37 @@ export function RbacUserTable({ users, loading, onEditRoles, onDelete }: RbacUse
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
+                  {onView && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onView(user)}
+                      className="flex items-center gap-2"
+                      title="View Details"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {onEdit && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onEdit(user)}
+                      className="flex items-center gap-2"
+                      title="Edit User"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onEditRoles(user)}
                     className="flex items-center gap-2"
+                    title="Manage Roles"
                   >
                     <UserCog className="h-4 w-4" />
-                    Manage Roles
+                    <span className="sr-only lg:not-sr-only">Roles</span>
                   </Button>
                   {onDelete && (
                     <Button
@@ -112,6 +137,7 @@ export function RbacUserTable({ users, loading, onEditRoles, onDelete }: RbacUse
                       size="sm"
                       onClick={() => onDelete(user.id)}
                       className="flex items-center gap-2"
+                      title="Delete User"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

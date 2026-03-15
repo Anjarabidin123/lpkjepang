@@ -3,6 +3,7 @@ import React from 'react';
 import { useJobOrder, type JobOrder } from '@/hooks/useJobOrder';
 import { useKumiai } from '@/hooks/useKumiai';
 import { useJenisKerja } from '@/hooks/useJenisKerja';
+import { usePerusahaan } from '@/hooks/usePerusahaan'; // Added during audit
 import { useJobOrderForm } from '@/hooks/useJobOrderForm';
 import { JobOrderFormHeader } from '@/components/JobOrder/JobOrderFormHeader';
 import { JobOrderFormFields } from '@/components/JobOrder/JobOrderFormFields';
@@ -18,6 +19,7 @@ export function JobOrderInlineForm({ jobOrder, onCancel, onSuccess }: JobOrderIn
   const { createJobOrder, updateJobOrder, isCreating, isUpdating } = useJobOrder();
   const { kumiai } = useKumiai();
   const { jenisKerja } = useJenisKerja();
+  const { perusahaans } = usePerusahaan(); // Added during audit
 
   const {
     formData,
@@ -81,6 +83,7 @@ export function JobOrderInlineForm({ jobOrder, onCancel, onSuccess }: JobOrderIn
         isLoading={isLoading}
         kumiai={kumiai}
         jenisKerja={jenisKerja}
+        perusahaan={perusahaans}
         onFieldChange={handleFieldChange}
       />
 

@@ -53,6 +53,19 @@ export interface Siswa {
   lama_belajar?: string | null;
   catatan?: string | null;
   is_available?: boolean | null;
+
+  // Emergency Contact (Added during audit)
+  kontak_darurat_nama?: string | null;
+  kontak_darurat_no_hp?: string | null;
+  kontak_darurat_alamat?: string | null;
+  kontak_darurat_rt_rw?: string | null;
+  kontak_darurat_kelurahan?: string | null;
+  kontak_darurat_kecamatan?: string | null;
+  kontak_darurat_kab_kota?: string | null;
+  kontak_darurat_provinsi?: string | null;
+  kontak_darurat_kode_pos?: string | null;
+  kontak_darurat_penghasilan_per_bulan?: number | null;
+
   created_at?: string | null;
   updated_at?: string | null;
   // Demografi fields
