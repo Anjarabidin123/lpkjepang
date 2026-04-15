@@ -1,0 +1,642 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// RBAC
+model User {
+  id             Int       @id @default(autoincrement())
+  name           String
+  email          String    @unique
+  password       String
+  phone          String?
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  roles          Role[]    @relation("RoleToUser")
+  siswa          Siswa?
+  learningModules LearningModule[]
+  assignedTasks   Task[]           @relation("AssignedToUser")
+  createdTasks    Task[]           @relation("CreatedByUser")
+  reviewedApps    RecruitmentApplication[]
+
+  @@map("users")
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?
+  isSystemRole Boolean      @default(false) @map("is_system_role")
+  isActive    Boolean      @default(true) @map("is_active")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  users       User[]       @relation("RoleToUser")
+  permissions Permission[] @relation("PermissionToRole")
+
+  @@map("roles")
+}
+
+model Permission {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  description String?
+  module    String?
+  action    String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  roles     Role[]   @relation("PermissionToRole")
+
+  @@map("permissions")
+}
+
+// Master Data
+model Siswa {
+  id                  Int               @id @default(autoincrement())
+  nik                 String?           @unique
+  nama                String
+  email               String?           @unique
+  status              String            @default("Proses") // Proses, Diterima, Ditolak, Aktif
+  jenisKelamin        String?           @map("jenis_kelamin")
+  tanggalLahir        DateTime?         @map("tanggal_lahir")
+  tempatLahir         String?           @map("tempat_lahir")
+  alamat              String?
+  noHp                String?           @map("no_hp")
+  demografiProvinceId Int?              @map("demografi_province_id")
+  demografiProvince   DemografiProvince? @relation(fields: [demografiProvinceId], references: [id])
+  demografiRegencyId  Int?              @map("demografi_regency_id")
+  demografiRegency    DemografiRegency?  @relation(fields: [demografiRegencyId], references: [id])
+  userId              Int?              @unique @map("user_id")
+  user                User?             @relation(fields: [userId], references: [id])
+  jobOrders           JobOrder[]        @relation("SiswaToJobOrder")
+  magangInfo          SiswaMagang?
+  internalPayments    InternalPayment[]
+  kewajibanPembayaran KewajibanPembayaran[]
+  attendances         StudentAttendance[]
+  grades              StudentGrade[]
+  recruitmentApplications RecruitmentApplication[]
+  documentTrackings   DocumentTracking[]
+  keluargaIndonesia   SiswaKeluargaIndonesia[]
+  keluargaJepang      SiswaKeluargaJepang[]
+  kontakKeluarga      SiswaKontakKeluarga[]
+  pengalamanKerja     SiswaPengalamanKerja[]
+  pendidikan          SiswaPendidikan[]
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+
+  @@map("siswas")
+}
+
+model Kumiai {
+  id               Int          @id @default(autoincrement())
+  kode             String       @unique
+  nama             String
+  alamat           String?
+  email            String?
+  noTelp           String?      @map("no_telp")
+  perusahaans      Perusahaan[]
+  jobOrders        JobOrder[]
+  jumlahPerusahaan Int?         @default(0) @map("jumlah_perusahaan")
+  invoices         Invoice[]
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  @@map("kumiais")
+}
+
+model Perusahaan {
+  id          Int        @id @default(autoincrement())
+  nama        String
+  alamat      String?
+  kumiaiId    Int?       @map("kumiai_id")
+  kumiai      Kumiai?    @relation(fields: [kumiaiId], references: [id])
+  jobOrders   JobOrder[]
+  posisiKerja PosisiKerja[]
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("perusahaans")
+}
+
+model Program {
+  id          Int        @id @default(autoincrement())
+  nama        String
+  kode        String?    @unique
+  durasiBulanan Int?     @map("durasi_bulanan")
+  jobOrders   JobOrder[]
+  recruitmentApplications RecruitmentApplication[]
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("programs")
+}
+
+model JobOrder {
+  id          Int           @id @default(autoincrement())
+  nomor       String?       @unique
+  namaJobOrder String        @map("nama_job_order")
+  kumiaiId    Int?          @map("kumiai_id")
+  kumiai      Kumiai?       @relation(fields: [kumiaiId], references: [id])
+  perusahaanId Int?         @map("perusahaan_id")
+  perusahaan  Perusahaan?   @relation(fields: [perusahaanId], references: [id])
+  programId   Int?          @map("program_id")
+  program     Program?      @relation(fields: [programId], references: [id])
+  kuota       Int           @default(0)
+  status      String        @default("Aktif")
+  peserta     Siswa[]       @relation("SiswaToJobOrder")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@map("job_orders")
+}
+
+model SiswaMagang {
+  id                  Int       @id @default(autoincrement())
+  siswaId             Int       @unique @map("siswa_id")
+  siswa               Siswa     @relation(fields: [siswaId], references: [id])
+  tanggalMulaiKerja   DateTime? @map("tanggal_mulai_kerja")
+  tanggalPulangKerja  DateTime? @map("tanggal_pulang_kerja")
+  statusMagang        String?   @map("status_magang")
+  invoiceItems        InvoiceItem[]
+  documents           SiswaDocument[]
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@map("siswa_magangs")
+}
+
+model DemografiProvince {
+  id        Int                @id @default(autoincrement())
+  nama      String
+  siswas    Siswa[]
+  regencies DemografiRegency[]
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  @@map("demografi_provinces")
+}
+
+model DemografiRegency {
+  id         Int               @id @default(autoincrement())
+  provinceId Int               @map("demografi_province_id")
+  province   DemografiProvince @relation(fields: [provinceId], references: [id])
+  nama       String
+  siswas     Siswa[]
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
+
+  @@map("demografi_regencies")
+}
+
+model LpkMitra {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  alamat    String?
+  kontak    String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("lpk_mitras")
+}
+
+model ArusKas {
+  id         Int      @id @default(autoincrement())
+  jenis      String   // Pemasukan, Pengeluaran
+  kategori   String
+  nominal    Decimal  @db.Decimal(15, 2)
+  tanggal    DateTime
+  keterangan String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("arus_kas")
+}
+
+model KategoriPemasukan {
+  id            Int         @id @default(autoincrement())
+  namaKategori  String      @map("nama_kategori")
+  deskripsi     String?
+  isActive      Boolean     @default(true) @map("is_active")
+  pemasukanList Pemasukan[]
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  @@map("kategori_pemasukan")
+}
+
+model Pemasukan {
+  id               Int                @id @default(autoincrement())
+  kategoriId       Int?               @map("kategori_id")
+  kategori         KategoriPemasukan? @relation(fields: [kategoriId], references: [id])
+  namaPemasukan    String             @map("nama_pemasukan")
+  nominal          Decimal            @db.Decimal(15, 2)
+  tanggalPemasukan DateTime           @map("tanggal_pemasukan")
+  keterangan       String?
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  @@map("pemasukan")
+}
+
+model KategoriPengeluaran {
+  id              Int           @id @default(autoincrement())
+  namaKategori    String        @map("nama_kategori")
+  deskripsi       String?
+  isActive        Boolean       @default(true) @map("is_active")
+  pengeluaranList Pengeluaran[]
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@map("kategori_pengeluaran")
+}
+
+model Pengeluaran {
+  id                  Int                  @id @default(autoincrement())
+  kategoriId          Int?                 @map("kategori_id")
+  kategori            KategoriPengeluaran? @relation(fields: [kategoriId], references: [id])
+  namaPengeluaran     String               @map("nama_pengeluaran")
+  nominal             Decimal              @db.Decimal(15, 2)
+  tanggalPengeluaran DateTime             @map("tanggal_pengeluaran")
+  keterangan          String?
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+
+  @@map("pengeluaran")
+}
+
+model Invoice {
+  id                 Int           @id @default(autoincrement())
+  kumiaiId           Int           @map("kumiai_id")
+  kumiai             Kumiai        @relation(fields: [kumiaiId], references: [id])
+  nomorInvoice       String        @unique @map("nomor_invoice")
+  nominal            Decimal       @db.Decimal(15, 2)
+  tanggalInvoice     DateTime      @map("tanggal_invoice")
+  tanggalJatuhTempo  DateTime?     @map("tanggal_jatuh_tempo")
+  keterangan         String?
+  status             String        @default("Pending") // Pending, Paid, Cancelled
+  items              InvoiceItem[]
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id             Int         @id @default(autoincrement())
+  invoiceId      Int         @map("invoice_id")
+  invoice        Invoice     @relation(fields: [invoiceId], references: [id])
+  siswaMagangId  Int         @map("siswa_magang_id")
+  siswaMagang    SiswaMagang @relation(fields: [siswaMagangId], references: [id])
+  nominalFee     Decimal     @db.Decimal(15, 2) @map("nominal_fee")
+  keterangan     String?
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@map("invoice_items")
+}
+
+model ItemPembayaran {
+  id                  Int                   @id @default(autoincrement())
+  namaItem            String                @map("nama_item")
+  nominalWajib        Decimal               @db.Decimal(15, 2) @map("nominal_wajib")
+  isActive            Boolean               @default(true) @map("is_active")
+  kewajibanList       KewajibanPembayaran[]
+  internalPayments    InternalPayment[]
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
+
+  @@map("item_pembayaran")
+}
+
+model InternalPayment {
+  id                Int            @id @default(autoincrement())
+  siswaId           Int            @map("siswa_id")
+  siswa             Siswa          @relation(fields: [siswaId], references: [id])
+  itemPembayaranId  Int            @map("item_pembayaran_id")
+  itemPembayaran    ItemPembayaran @relation(fields: [itemPembayaranId], references: [id])
+  nominal           Decimal        @db.Decimal(15, 2)
+  tanggalPembayaran DateTime       @map("tanggal_pembayaran")
+  metodePembayaran  String         @default("Tunai") @map("metode_pembayaran")
+  status            String         @default("Lunas")
+  keterangan        String?
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  @@map("internal_payments")
+}
+
+model KewajibanPembayaran {
+  id                Int            @id @default(autoincrement())
+  siswaId           Int            @map("siswa_id")
+  siswa             Siswa          @relation(fields: [siswaId], references: [id])
+  itemPembayaranId  Int            @map("item_pembayaran_id")
+  itemPembayaran    ItemPembayaran @relation(fields: [itemPembayaranId], references: [id])
+  nominalWajib      Decimal        @db.Decimal(15, 2) @map("nominal_wajib")
+  nominalTerbayar   Decimal        @db.Decimal(15, 2) @default(0) @map("nominal_terbayar")
+  sisaKewajiban     Decimal        @db.Decimal(15, 2) @map("sisa_kewajiban")
+  status            String         @default("Belum Lunas")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  @@map("kewajiban_pembayaran")
+}
+
+model StudentAttendance {
+  id        Int      @id @default(autoincrement())
+  siswaId   Int      @map("siswa_id")
+  siswa     Siswa    @relation(fields: [siswaId], references: [id])
+  date      DateTime
+  status    String   @default("hadiir") // hadiir, izin, sakit, alpha
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([siswaId, date])
+  @@map("student_attendances")
+}
+
+model StudentGrade {
+  id              Int      @id @default(autoincrement())
+  siswaId         Int      @map("siswa_id")
+  siswa           Siswa    @relation(fields: [siswaId], references: [id])
+  subject         String   // e.g., Hiragana, Katakana, JLPT N5, JFT
+  score           Int
+  examDate        DateTime @map("exam_date")
+  result          String   @default("pass") // pass, fail, remidi
+  teacherComments String?  @map("teacher_comments")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("student_grades")
+}
+
+model ClassSchedule {
+  id          Int      @id @default(autoincrement())
+  subject     String   // Mata Pelajaran (e.g. "Bahasa Jepang N4")
+  dayOfWeek   String   @map("day_of_week") // Hari (e.g. "Senin", "Monday")
+  startTime   String   @map("start_time") // Jam Mulai
+  endTime     String   @map("end_time") // Jam Selesai
+  room        String?  // Ruangan
+  teacherName String?  @map("teacher_name") // Nama Pengajar
+  notes       String?  // Catatan tambahan
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("class_schedules")
+}
+
+model LearningModule {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  category    String   // Bahasa, Budaya, Teknik
+  type        String   // pdf, video, link
+  url         String
+  authorId    Int?     @map("author_id")
+  author      User?    @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("learning_modules")
+}
+
+model Task {
+  id              Int       @id @default(autoincrement())
+  title           String
+  description     String?
+  status          String    @default("pending") // pending, in_progress, completed, cancelled
+  priority        String    @default("medium")  // low, medium, high, urgent
+  assignedToId    Int?      @map("assigned_to")
+  assignedTo      User?     @relation("AssignedToUser", fields: [assignedToId], references: [id])
+  createdById     Int?      @map("created_by")
+  createdBy       User?     @relation("CreatedByUser", fields: [createdById], references: [id])
+  dueDate         DateTime? @map("due_date")
+  completedAt     DateTime? @map("completed_at")
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("tasks")
+}
+
+model RecruitmentApplication {
+  id                Int       @id @default(autoincrement())
+  applicationNumber String    @unique @map("application_number")
+  siswaId           Int       @map("siswa_id")
+  siswa             Siswa     @relation(fields: [siswaId], references: [id])
+  programId         Int?      @map("program_id")
+  program           Program?  @relation(fields: [programId], references: [id])
+  status            String    @default("new") // new, review, interview, accepted, rejected, withdrawn
+  applicationDate   DateTime  @map("application_date")
+  interviewDate     DateTime? @map("interview_date")
+  interviewNotes    String?   @map("interview_notes")
+  score             Int?
+  rejectionReason   String?   @map("rejection_reason")
+  reviewedById      Int?      @map("reviewed_by")
+  reviewedBy        User?     @relation(fields: [reviewedById], references: [id])
+  reviewedAt        DateTime? @map("reviewed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("recruitment_applications")
+}
+
+model DocumentTracking {
+  id                  Int       @id @default(autoincrement())
+  siswaId             Int       @map("siswa_id")
+  siswa               Siswa     @relation(fields: [siswaId], references: [id])
+  passportStatus      String    @default("not_started") @map("passport_status")
+  passportExpiry      DateTime? @map("passport_expiry")
+  mcuStatus           String    @default("not_started") @map("mcu_status")
+  mcuDate             DateTime? @map("mcu_date")
+  languageCertStatus  String    @default("not_started") @map("language_cert_status")
+  languageCertLevel   String?   @map("language_cert_level")
+  coeStatus           String    @default("not_submitted") @map("coe_status")
+  coeNumber           String?   @map("coe_number")
+  coeIssueDate        DateTime? @map("coe_issue_date")
+  visaStatus          String    @default("not_applied") @map("visa_status")
+  visaExpiry          DateTime? @map("visa_expiry")
+  flightStatus        String    @default("not_booked") @map("flight_status")
+  departureDatetime   DateTime? @map("departure_datetime")
+  notes               String?
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@map("document_trackings")
+}
+
+model DocumentTemplate {
+  id               String          @id @default(uuid())
+  kode             String          @unique
+  nama             String
+  kategori         String
+  deskripsi        String?
+  templateContent  String?         @map("template_content")
+  isActive         Boolean         @default(true) @map("is_active")
+  isRequired       Boolean         @default(true) @map("is_required")
+  urutan           Int             @default(0)
+  siswaDocuments   SiswaDocument[]
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  @@map("document_templates")
+}
+
+model DocumentVariable {
+  id           Int      @id @default(autoincrement())
+  nama         String   @unique
+  displayName  String   @map("display_name")
+  kategori     String
+  sourceTable  String   @map("source_table")
+  sourceField  String   @map("source_field")
+  formatType   String   @default("text") @map("format_type")
+  defaultValue String?  @map("default_value")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("document_variables")
+}
+
+model SiswaDocument {
+  id                 Int              @id @default(autoincrement())
+  siswaMagangId      Int              @map("siswa_magang_id")
+  siswaMagang        SiswaMagang      @relation(fields: [siswaMagangId], references: [id])
+  documentTemplateId String?          @map("document_template_id")
+  documentTemplate   DocumentTemplate? @relation(fields: [documentTemplateId], references: [id])
+  nama               String?
+  filePath           String?          @map("file_path")
+  status             String           @default("pending")
+  keterangan         String?
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  @@map("siswa_documents")
+}
+
+model SiswaKeluargaIndonesia {
+  id        Int      @id @default(autoincrement())
+  siswaId   Int      @map("siswa_id")
+  siswa     Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  nama      String
+  hubungan  String?
+  umur      Int?
+  pekerjaan String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("siswa_keluarga_indonesia")
+}
+
+model SiswaKeluargaJepang {
+  id        Int      @id @default(autoincrement())
+  siswaId   Int      @map("siswa_id")
+  siswa     Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  nama      String
+  hubungan  String?
+  umur      Int?
+  pekerjaan String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("siswa_keluarga_jepang")
+}
+
+model SiswaKontakKeluarga {
+  id                   Int      @id @default(autoincrement())
+  siswaId              Int      @map("siswa_id")
+  siswa                Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  nama                 String
+  alamat               String?
+  rtRw                 String?  @map("rt_rw")
+  kelurahan            String?
+  kecamatan            String?
+  kabKota              String?  @map("kab_kota")
+  provinsi             String?
+  kodePos              String?  @map("kode_pos")
+  noHp                 String?  @map("no_hp")
+  penghasilanPerBulan Decimal? @map("penghasilan_per_bulan") @db.Decimal(15, 2)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("siswa_kontak_keluarga")
+}
+
+model SiswaPengalamanKerja {
+  id             Int      @id @default(autoincrement())
+  siswaId        Int      @map("siswa_id")
+  siswa          Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  namaPerusahaan String   @map("nama_perusahaan")
+  jenisPekerjaan String?  @map("jenis_pekerjaan")
+  tahunMasuk     Int?     @map("tahun_masuk")
+  tahunKeluar    Int?     @map("tahun_keluar")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("siswa_pengalaman_kerja")
+}
+
+model SiswaPendidikan {
+  id                Int      @id @default(autoincrement())
+  siswaId           Int      @map("siswa_id")
+  siswa     Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  jenjangPendidikan String   @map("jenjang_pendidikan")
+  namaInstitusi     String   @map("nama_institusi")
+  jurusan           String?
+  tahunMasuk        Int?     @map("tahun_masuk")
+  tahunLulus        Int?     @map("tahun_lulus")
+  nilaiAkhir        String?  @map("nilai_akhir")
+  sertifikatUrl     String?  @map("sertifikat_url")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("siswa_pendidikan")
+}
+
+model JenisKerja {
+  id        Int      @id @default(autoincrement())
+  kode      String?  @unique
+  nama      String
+  kategori  String?
+  posisiList PosisiKerja[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("jenis_kerjas")
+}
+
+model PosisiKerja {
+  id           Int         @id @default(autoincrement())
+  kode         String?     @unique
+  nama         String
+  deskripsi    String?
+  perusahaanId Int?        @map("perusahaan_id")
+  perusahaan   Perusahaan? @relation(fields: [perusahaanId], references: [id], onDelete: SetNull)
+  jenisKerjaId Int?        @map("jenis_kerja_id")
+  jenisKerja   JenisKerja? @relation(fields: [jenisKerjaId], references: [id], onDelete: SetNull)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@map("posisi_kerjas")
+}
+
+model ProfilLpk {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  pemilik   String?
+  alamat    String?
+  noTelp    String?  @map("no_telp")
+  email     String?
+  website   String?
+  logoUrl   String?  @map("logo_url")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("profil_lpks")
+}

@@ -90,7 +90,7 @@ export function AuthForm() {
     setError('');
     setSuccessMessage('');
     setEmail(roleEmail);
-    setPassword('1234qwer');
+    setPassword('password123');
     setSelectedRoleInfo(roleEmail);
 
     // Auto-scroll to form on mobile
@@ -291,7 +291,7 @@ export function AuthForm() {
                     <Shield className="w-3 h-3" /> Protected Environment
                   </div>
                   <p className="text-center text-[11px] text-slate-400 leading-relaxed font-medium">
-                    Kata sandi demo: <span className="bg-slate-50 px-2 py-1 rounded-lg text-slate-900 font-bold ml-1">1234qwer</span>
+                    Kata sandi demo: <span className="bg-slate-50 px-2 py-1 rounded-lg text-slate-900 font-bold ml-1">password123</span>
                   </p>
                 </div>
               </form>
